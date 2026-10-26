@@ -5,6 +5,8 @@
 // - IDs são UUID, nunca sequenciais.
 // - Tudo em UTC (timestamptz). O fuso do negócio fica em Tenant.timezone.
 // - Nada de apagar fisicamente sem política definida.
+// - Relações entre tabelas de negócio usam chave composta (tenant_id, id): o Postgres não aplica
+//   RLS na checagem de chave estrangeira, então é a chave composta que impede apontar para outro negócio.
 
 generator client {
   provider     = "prisma-client"
@@ -74,6 +76,7 @@ model User {
   professional Professional?
 
   @@index([tenantId])
+  @@unique([tenantId, id])
   @@map("users")
 }
 
@@ -89,13 +92,15 @@ model Professional {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   tenant       Tenant                @relation(fields: [tenantId], references: [id])
-  user         User?                 @relation(fields: [userId], references: [id])
+  user         User?                 @relation(fields: [tenantId, userId], references: [tenantId, id], onDelete: Restrict)
   services     ProfessionalService[]
   availability Availability[]
   timeOff      TimeOff[]
   appointments Appointment[]
 
   @@index([tenantId])
+  @@unique([tenantId, id])
+  @@unique([tenantId, userId])
   @@map("professionals")
 }
 
@@ -115,6 +120,7 @@ model Service {
   appointments  Appointment[]
 
   @@index([tenantId])
+  @@unique([tenantId, id])
   @@map("services")
 }
 
@@ -124,8 +130,8 @@ model ProfessionalService {
   professionalId String @map("professional_id") @db.Uuid
   serviceId      String @map("service_id") @db.Uuid
 
-  professional Professional @relation(fields: [professionalId], references: [id])
-  service      Service      @relation(fields: [serviceId], references: [id])
+  professional Professional @relation(fields: [tenantId, professionalId], references: [tenantId, id], onDelete: Restrict)
+  service      Service      @relation(fields: [tenantId, serviceId], references: [tenantId, id], onDelete: Restrict)
 
   @@id([professionalId, serviceId])
   @@index([tenantId])
@@ -143,7 +149,7 @@ model Availability {
   startMinute    Int    @map("start_minute")
   endMinute      Int    @map("end_minute")
 
-  professional Professional @relation(fields: [professionalId], references: [id])
+  professional Professional @relation(fields: [tenantId, professionalId], references: [tenantId, id], onDelete: Restrict)
 
   @@index([tenantId])
   @@index([professionalId, weekday])
@@ -159,7 +165,7 @@ model TimeOff {
   endsAt         DateTime @map("ends_at") @db.Timestamptz
   reason         String?
 
-  professional Professional? @relation(fields: [professionalId], references: [id])
+  professional Professional? @relation(fields: [tenantId, professionalId], references: [tenantId, id], onDelete: Restrict)
 
   @@index([tenantId, startsAt])
   @@map("time_off")
@@ -195,13 +201,14 @@ model Appointment {
   createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz
   updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz
 
-  contact      Contact      @relation(fields: [contactId], references: [id])
-  service      Service      @relation(fields: [serviceId], references: [id])
-  professional Professional @relation(fields: [professionalId], references: [id])
+  contact      Contact      @relation(fields: [tenantId, contactId], references: [tenantId, id], onDelete: Restrict)
+  service      Service      @relation(fields: [tenantId, serviceId], references: [tenantId, id], onDelete: Restrict)
+  professional Professional @relation(fields: [tenantId, professionalId], references: [tenantId, id], onDelete: Restrict)
   reminders    Reminder[]
 
   @@index([tenantId, startsAt])
   @@index([contactId])
+  @@unique([tenantId, id])
   @@map("appointments")
 }
 
@@ -226,7 +233,7 @@ model Reminder {
   status        ReminderStatus @default(PENDING)
   sentAt        DateTime?      @map("sent_at") @db.Timestamptz
 
-  appointment Appointment @relation(fields: [appointmentId], references: [id])
+  appointment Appointment @relation(fields: [tenantId, appointmentId], references: [tenantId, id], onDelete: Restrict)
 
   @@unique([appointmentId, kind])
   @@index([tenantId, status, sendAt])
@@ -259,6 +266,7 @@ model Contact {
   tasks         Task[]
 
   @@unique([tenantId, phone])
+  @@unique([tenantId, id])
   @@map("contacts")
 }
 
@@ -277,7 +285,7 @@ model Consent {
   channel   String
   createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
 
-  contact Contact @relation(fields: [contactId], references: [id])
+  contact Contact @relation(fields: [tenantId, contactId], references: [tenantId, id], onDelete: Restrict)
 
   @@index([tenantId, contactId])
   @@map("consents")
@@ -296,10 +304,11 @@ model Conversation {
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  contact  Contact   @relation(fields: [contactId], references: [id])
+  contact  Contact   @relation(fields: [tenantId, contactId], references: [tenantId, id], onDelete: Restrict)
   messages Message[]
 
   @@unique([tenantId, contactId, channel])
+  @@unique([tenantId, id])
   @@map("conversations")
 }
 
@@ -321,7 +330,7 @@ model Message {
   status         String?
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
-  conversation Conversation @relation(fields: [conversationId], references: [id])
+  conversation Conversation @relation(fields: [tenantId, conversationId], references: [tenantId, id], onDelete: Restrict)
 
   @@unique([tenantId, externalId])
   @@index([conversationId, createdAt])
@@ -342,6 +351,7 @@ model Pipeline {
   deals  Deal[]
 
   @@index([tenantId])
+  @@unique([tenantId, id])
   @@map("pipelines")
 }
 
@@ -359,11 +369,12 @@ model Stage {
   position   Int
   kind       StageKind @default(OPEN)
 
-  pipeline Pipeline @relation(fields: [pipelineId], references: [id])
+  pipeline Pipeline @relation(fields: [tenantId, pipelineId], references: [tenantId, id], onDelete: Restrict)
   deals    Deal[]
 
   @@unique([pipelineId, position])
   @@index([tenantId])
+  @@unique([tenantId, id])
   @@map("stages")
 }
 
@@ -379,9 +390,9 @@ model Deal {
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  contact  Contact  @relation(fields: [contactId], references: [id])
-  pipeline Pipeline @relation(fields: [pipelineId], references: [id])
-  stage    Stage    @relation(fields: [stageId], references: [id])
+  contact  Contact  @relation(fields: [tenantId, contactId], references: [tenantId, id], onDelete: Restrict)
+  pipeline Pipeline @relation(fields: [tenantId, pipelineId], references: [tenantId, id], onDelete: Restrict)
+  stage    Stage    @relation(fields: [tenantId, stageId], references: [tenantId, id], onDelete: Restrict)
 
   @@index([tenantId, stageId])
   @@map("deals")
@@ -399,7 +410,7 @@ model Task {
   doneAt    DateTime? @map("done_at") @db.Timestamptz
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
-  contact Contact? @relation(fields: [contactId], references: [id])
+  contact Contact? @relation(fields: [tenantId, contactId], references: [tenantId, id], onDelete: Restrict)
 
   @@index([tenantId, doneAt])
   @@map("tasks")

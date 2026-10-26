@@ -62,7 +62,7 @@ Legenda STRIDE: **S** falsificação de identidade, **T** adulteração, **R** r
 
 | Prioridade | Tarefa | Origem |
 |---|---|---|
-| Alta | Chaves estrangeiras compostas com `tenant_id` (ex.: `(tenant_id, contact_id)` → `contacts(tenant_id, id)`). O Postgres não aplica RLS na checagem de chave estrangeira, então hoje um negócio poderia apontar para o ID de um registro de outro negócio se o código não conferir antes. Mitigado no agendamento (E3), que confere a cliente pelo RLS. | Revisão da E3 |
+| Feita (27/10/2026) | Chaves estrangeiras compostas com `tenant_id` em todas as ligações entre tabelas de negócio. O Postgres não aplica RLS na checagem de chave estrangeira; a chave composta impede apontar para registro de outro negócio. Um teste da CI falha se surgir ligação sem `tenant_id`. | Revisão da E3 |
 
 ---
 

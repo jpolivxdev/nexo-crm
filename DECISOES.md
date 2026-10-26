@@ -44,5 +44,12 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Remarcar volta o status para "marcado"**, porque a confirmação era do horário antigo. Prefere a mesma profissional; se ela não estiver livre, passa para outra que faça o serviço.
 - **Mudanças de status permitidas:** marcado → confirmado, realizado, faltou ou cancelado; confirmado → realizado, faltou ou cancelado; realizado ↔ faltou (correção do dono); cancelado não muda mais.
 - **Cada ação grava um evento** (`appointment.created`, `rescheduled`, `confirmed`, `done`, `no_show`, `cancelled`) com quem fez.
-- **Chave estrangeira não passa pelo RLS.** Por isso o agendamento confere, pelo RLS, que a cliente é do mesmo negócio antes de gravar. A correção definitiva (chaves compostas com `tenant_id`) está nas tarefas de segurança do SEGURANCA.md.
+- **Chave estrangeira não passa pelo RLS.** Por isso o agendamento confere, pelo RLS, que a cliente é do mesmo negócio antes de gravar. A correção definitiva veio logo depois (ver abaixo).
 - **Sem rotas HTTP ainda.** As rotas da agenda entram com o login (E8), para não existir rota sem autenticação.
+
+## Ligações presas ao negócio (entre E3 e E4)
+
+- **Chaves estrangeiras compostas `(tenant_id, id)`** em todas as relações entre tabelas de negócio, com `ON DELETE RESTRICT`. Motivo: a checagem de chave estrangeira do Postgres ignora o RLS. Com a chave composta, o banco recusa qualquer registro que aponte para outro negócio.
+- **Teste de catálogo** em `tenant-isolation.test.ts`: falha se alguma chave estrangeira entre tabelas com `tenant_id` não incluir o `tenant_id` dos dois lados.
+- **Criação aninhada no Prisma** (ex.: etapas dentro do funil) herda o `tenant_id` do pai e não aceita o campo repetido.
+- A checagem da cliente no agendamento (E3) continua, para devolver uma mensagem clara em vez de erro do banco.
