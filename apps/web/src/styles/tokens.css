@@ -1,0 +1,17 @@
+/* Tokens da marca nexo. Não usar cores fora desta lista (guia de marca v1.0). */
+:root {
+  --tinta: #100c24;
+  --roxo-nexo: #6a1fe8;
+  --papel: #faf9fd;
+  --branco: #ffffff;
+  --azul-elo: #2f5bff;
+  --lavanda: #a98bff;
+  --lilas: #efeaff;
+  --grafite: #565170;
+
+  --fonte-titulo: 'Sora', system-ui, sans-serif;
+  --fonte-texto: 'Inter', system-ui, sans-serif;
+
+  /* Acessibilidade: alvo de toque mínimo de 44 px. */
+  --toque-minimo: 44px;
+}

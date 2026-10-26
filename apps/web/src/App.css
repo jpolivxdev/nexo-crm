@@ -1,0 +1,38 @@
+.app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.app__header h1 {
+  font-size: 1.5rem;
+  margin: 8px 0 0;
+}
+
+.empty {
+  margin-top: 24px;
+  padding: 24px 16px;
+  background: var(--lilas);
+  border-radius: 12px;
+}
+
+.empty h2 {
+  margin: 0 0 8px;
+  font-size: 1.125rem;
+}
+
+.empty p {
+  margin: 0;
+  color: var(--grafite);
+}
+
+.app__footer {
+  margin-top: auto;
+  padding-top: 24px;
+  font-size: 0.875rem;
+  color: var(--grafite);
+  text-align: center;
+}
