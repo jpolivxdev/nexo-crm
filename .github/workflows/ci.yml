@@ -26,7 +26,9 @@ jobs:
           --health-timeout 3s
           --health-retries 10
     env:
-      DATABASE_URL: postgresql://nexo:nexo@localhost:5432/nexo
+      # Migrações com o papel dono; aplicação e testes com nexo_app (sem superusuário, sem BYPASSRLS).
+      DATABASE_MIGRATION_URL: postgresql://nexo:nexo@localhost:5432/nexo
+      DATABASE_URL: postgresql://nexo_app:nexo_app_ci@localhost:5432/nexo
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,6 +40,10 @@ jobs:
       - run: npm run lint
       - run: npm run build -w @nexo/core
       - run: npm run typecheck
+      - name: Migrações e papel da aplicação
+        run: |
+          npm run db:deploy -w @nexo/api
+          npm run db:setup-local -w @nexo/api
       - run: npm test
       - run: npm run build
       - name: Auditoria de dependências (falha em alta ou crítica)

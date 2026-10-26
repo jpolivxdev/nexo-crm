@@ -21,6 +21,9 @@ npm install
 cp .env.example .env        # no Windows: copy .env.example .env
 npm run db:up               # sobe o Postgres local (só em 127.0.0.1)
 npm run build -w @nexo/core
+npm run db:migrate -w @nexo/api      # cria as tabelas, o RLS e o papel nexo_app
+npm run db:setup-local -w @nexo/api  # libera o login local do nexo_app
+npm run build -w @nexo/api && npm run db:seed -w @nexo/api   # negócios de demonstração
 npm run dev:api             # http://localhost:3000/health
 npm run dev:web             # http://localhost:5173
 ```
@@ -36,6 +39,14 @@ npm audit --audit-level=high
 ```
 
 A CI também roda o gitleaks para procurar segredos. Para rodar antes de cada commit, instale o [gitleaks](https://github.com/gitleaks/gitleaks#installing) e use `gitleaks protect --staged`.
+
+## Banco e isolamento entre negócios
+
+- Toda tabela de negócio tem `tenant_id` e Row Level Security ligado e forçado.
+- A aplicação acessa dados de negócio sempre por `withTenant(tenantId, tx => ...)` (`apps/api/src/database/prisma.ts`). Sem isso, o banco não devolve nenhuma linha.
+- O `tenantId` vem sempre da sessão autenticada, nunca do navegador.
+- O banco recusa dois horários ativos sobrepostos para a mesma profissional.
+- O teste `apps/api/test/tenant-isolation.test.ts` falha se alguma tabela com `tenant_id` ficar sem RLS.
 
 ## Documentos
 

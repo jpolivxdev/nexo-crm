@@ -1,0 +1,440 @@
+// Modelo de dados da nexo. Glossário (código -> tela) em CLAUDE.md, seção 5.
+//
+// Regras (SEGURANCA.md):
+// - Toda tabela com tenant_id tem RLS ligado e forçado (migração SQL). Um teste da CI falha se não tiver.
+// - IDs são UUID, nunca sequenciais.
+// - Tudo em UTC (timestamptz). O fuso do negócio fica em Tenant.timezone.
+// - Nada de apagar fisicamente sem política definida.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Negócio e acesso ----------
+
+enum Plan {
+  BASIC
+}
+
+/// Negócio (tenant).
+model Tenant {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  /// Nicho do negócio, usado para escolher o modelo de etapas (ex.: "cilios").
+  niche     String
+  timezone  String   @default("America/Sao_Paulo")
+  plan      Plan     @default(BASIC)
+  /// Recursos liberados além do plano (feature flags).
+  features  String[] @default([])
+  /// Mensagens do robô editáveis pelo dono. Vazio = padrão do sistema.
+  botMessages Json   @default("{}") @map("bot_messages")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  users         User[]
+  professionals Professional[]
+  services      Service[]
+  contacts      Contact[]
+  pipelines     Pipeline[]
+
+  @@map("tenants")
+}
+
+enum Role {
+  NEXO_ADMIN
+  OWNER
+  STAFF
+}
+
+/// Usuário com login. Admin nexo não tem negócio (tenantId nulo).
+/// Esta tabela não usa RLS por negócio porque o login acontece antes de saber o negócio.
+/// Só o módulo de autenticação pode lê-la (SEGURANCA.md, seção 3).
+model User {
+  id                String    @id @default(uuid()) @db.Uuid
+  tenantId          String?   @map("tenant_id") @db.Uuid
+  email             String    @unique
+  name              String
+  passwordHash      String    @map("password_hash")
+  role              Role
+  /// Segredo do 2FA, criptografado no nível do campo.
+  totpSecretEnc     String?   @map("totp_secret_enc")
+  failedLoginCount  Int       @default(0) @map("failed_login_count")
+  lockedUntil       DateTime? @map("locked_until") @db.Timestamptz
+  passwordChangedAt DateTime  @default(now()) @map("password_changed_at") @db.Timestamptz
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant       Tenant?       @relation(fields: [tenantId], references: [id])
+  professional Professional?
+
+  @@index([tenantId])
+  @@map("users")
+}
+
+// ---------- Agenda ----------
+
+model Professional {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  name      String
+  userId    String?  @unique @map("user_id") @db.Uuid
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant       Tenant                @relation(fields: [tenantId], references: [id])
+  user         User?                 @relation(fields: [userId], references: [id])
+  services     ProfessionalService[]
+  availability Availability[]
+  timeOff      TimeOff[]
+  appointments Appointment[]
+
+  @@index([tenantId])
+  @@map("professionals")
+}
+
+model Service {
+  id              String   @id @default(uuid()) @db.Uuid
+  tenantId        String   @map("tenant_id") @db.Uuid
+  name            String
+  durationMinutes Int      @map("duration_minutes")
+  /// Preço opcional, em centavos.
+  priceCents      Int?     @map("price_cents")
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant        Tenant                @relation(fields: [tenantId], references: [id])
+  professionals ProfessionalService[]
+  appointments  Appointment[]
+
+  @@index([tenantId])
+  @@map("services")
+}
+
+/// Quais serviços cada profissional faz.
+model ProfessionalService {
+  tenantId       String @map("tenant_id") @db.Uuid
+  professionalId String @map("professional_id") @db.Uuid
+  serviceId      String @map("service_id") @db.Uuid
+
+  professional Professional @relation(fields: [professionalId], references: [id])
+  service      Service      @relation(fields: [serviceId], references: [id])
+
+  @@id([professionalId, serviceId])
+  @@index([tenantId])
+  @@map("professional_services")
+}
+
+/// Horário de trabalho semanal. Pausas = dois intervalos no mesmo dia.
+model Availability {
+  id             String @id @default(uuid()) @db.Uuid
+  tenantId       String @map("tenant_id") @db.Uuid
+  professionalId String @map("professional_id") @db.Uuid
+  /// 0 = domingo ... 6 = sábado, no fuso do negócio.
+  weekday        Int
+  /// Minutos desde 00:00 no fuso do negócio.
+  startMinute    Int    @map("start_minute")
+  endMinute      Int    @map("end_minute")
+
+  professional Professional @relation(fields: [professionalId], references: [id])
+
+  @@index([tenantId])
+  @@index([professionalId, weekday])
+  @@map("availability")
+}
+
+/// Folga ou bloqueio. Sem profissional = o negócio inteiro fecha.
+model TimeOff {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @map("tenant_id") @db.Uuid
+  professionalId String?  @map("professional_id") @db.Uuid
+  startsAt       DateTime @map("starts_at") @db.Timestamptz
+  endsAt         DateTime @map("ends_at") @db.Timestamptz
+  reason         String?
+
+  professional Professional? @relation(fields: [professionalId], references: [id])
+
+  @@index([tenantId, startsAt])
+  @@map("time_off")
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  DONE
+  NO_SHOW
+  CANCELLED
+}
+
+enum Source {
+  WHATSAPP
+  PANEL
+  PUBLIC_LINK
+  IMPORT
+}
+
+/// Horário marcado. O banco impede dois horários ativos sobrepostos para o mesmo profissional.
+model Appointment {
+  id             String            @id @default(uuid()) @db.Uuid
+  tenantId       String            @map("tenant_id") @db.Uuid
+  contactId      String            @map("contact_id") @db.Uuid
+  serviceId      String            @map("service_id") @db.Uuid
+  professionalId String            @map("professional_id") @db.Uuid
+  startsAt       DateTime          @map("starts_at") @db.Timestamptz
+  endsAt         DateTime          @map("ends_at") @db.Timestamptz
+  status         AppointmentStatus @default(SCHEDULED)
+  source         Source
+  notes          String?
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+
+  contact      Contact      @relation(fields: [contactId], references: [id])
+  service      Service      @relation(fields: [serviceId], references: [id])
+  professional Professional @relation(fields: [professionalId], references: [id])
+  reminders    Reminder[]
+
+  @@index([tenantId, startsAt])
+  @@index([contactId])
+  @@map("appointments")
+}
+
+enum ReminderKind {
+  BEFORE_24H
+  BEFORE_1H
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  FAILED
+  CANCELLED
+}
+
+model Reminder {
+  id            String         @id @default(uuid()) @db.Uuid
+  tenantId      String         @map("tenant_id") @db.Uuid
+  appointmentId String         @map("appointment_id") @db.Uuid
+  kind          ReminderKind
+  sendAt        DateTime       @map("send_at") @db.Timestamptz
+  status        ReminderStatus @default(PENDING)
+  sentAt        DateTime?      @map("sent_at") @db.Timestamptz
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+
+  @@unique([appointmentId, kind])
+  @@index([tenantId, status, sendAt])
+  @@map("reminders")
+}
+
+// ---------- Clientes e conversas ----------
+
+/// Cliente final. Criado sozinho na primeira mensagem.
+model Contact {
+  id             String    @id @default(uuid()) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  /// Nome do perfil do WhatsApp ou digitado pelo dono.
+  name           String?
+  /// Só dígitos, com código do país (ex.: 5515999990000).
+  phone          String
+  tags           String[]  @default([])
+  notes          String?
+  /// Recusou mensagens automáticas ("parar"/"sair").
+  optedOutAt     DateTime? @map("opted_out_at") @db.Timestamptz
+  source         Source
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  conversations Conversation[]
+  appointments  Appointment[]
+  deals         Deal[]
+  consents      Consent[]
+  tasks         Task[]
+
+  @@unique([tenantId, phone])
+  @@map("contacts")
+}
+
+enum ConsentKind {
+  PRIVACY_NOTICE_SHOWN
+  OPT_IN
+  OPT_OUT
+}
+
+/// Registro de aviso de privacidade, opt-in e opt-out.
+model Consent {
+  id        String      @id @default(uuid()) @db.Uuid
+  tenantId  String      @map("tenant_id") @db.Uuid
+  contactId String      @map("contact_id") @db.Uuid
+  kind      ConsentKind
+  channel   String
+  createdAt DateTime    @default(now()) @map("created_at") @db.Timestamptz
+
+  contact Contact @relation(fields: [contactId], references: [id])
+
+  @@index([tenantId, contactId])
+  @@map("consents")
+}
+
+model Conversation {
+  id            String    @id @default(uuid()) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  contactId     String    @map("contact_id") @db.Uuid
+  channel       String
+  /// Estado atual da máquina de estados do robô.
+  botState      Json      @default("{}") @map("bot_state")
+  /// Preenchido quando a conversa passou para a equipe (robô pausado).
+  botPausedAt   DateTime? @map("bot_paused_at") @db.Timestamptz
+  lastMessageAt DateTime? @map("last_message_at") @db.Timestamptz
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  contact  Contact   @relation(fields: [contactId], references: [id])
+  messages Message[]
+
+  @@unique([tenantId, contactId, channel])
+  @@map("conversations")
+}
+
+enum Direction {
+  INBOUND
+  OUTBOUND
+}
+
+model Message {
+  id             String    @id @default(uuid()) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  conversationId String    @map("conversation_id") @db.Uuid
+  direction      Direction
+  /// ID da mensagem no canal (ex.: wamid da Meta). Garante processamento único.
+  externalId     String?   @map("external_id")
+  type           String
+  /// Texto da mensagem. Conteúdo não confiável: sempre exibido como texto.
+  body           String?
+  status         String?
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+
+  @@unique([tenantId, externalId])
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+// ---------- Etapas (funil) ----------
+
+model Pipeline {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  name      String
+  isDefault Boolean  @default(false) @map("is_default")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant Tenant  @relation(fields: [tenantId], references: [id])
+  stages Stage[]
+  deals  Deal[]
+
+  @@index([tenantId])
+  @@map("pipelines")
+}
+
+enum StageKind {
+  OPEN
+  WON
+  LOST
+}
+
+model Stage {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  pipelineId String    @map("pipeline_id") @db.Uuid
+  name       String
+  position   Int
+  kind       StageKind @default(OPEN)
+
+  pipeline Pipeline @relation(fields: [pipelineId], references: [id])
+  deals    Deal[]
+
+  @@unique([pipelineId, position])
+  @@index([tenantId])
+  @@map("stages")
+}
+
+/// Atendimento em andamento.
+model Deal {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  contactId  String    @map("contact_id") @db.Uuid
+  pipelineId String    @map("pipeline_id") @db.Uuid
+  stageId    String    @map("stage_id") @db.Uuid
+  valueCents Int?      @map("value_cents")
+  closedAt   DateTime? @map("closed_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  contact  Contact  @relation(fields: [contactId], references: [id])
+  pipeline Pipeline @relation(fields: [pipelineId], references: [id])
+  stage    Stage    @relation(fields: [stageId], references: [id])
+
+  @@index([tenantId, stageId])
+  @@map("deals")
+}
+
+// ---------- Lembretes, eventos e auditoria ----------
+
+/// Lembrete / A fazer para o dono.
+model Task {
+  id        String    @id @default(uuid()) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  contactId String?   @map("contact_id") @db.Uuid
+  title     String
+  dueAt     DateTime? @map("due_at") @db.Timestamptz
+  doneAt    DateTime? @map("done_at") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  contact Contact? @relation(fields: [contactId], references: [id])
+
+  @@index([tenantId, doneAt])
+  @@map("tasks")
+}
+
+/// Log de eventos de domínio. Alimenta histórico, relatórios e, no futuro, IA e gamificação.
+model Event {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  type       String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id") @db.Uuid
+  actorType  String   @map("actor_type")
+  actorId    String?  @map("actor_id") @db.Uuid
+  payload    Json     @default("{}")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, entityType, entityId])
+  @@map("events")
+}
+
+/// Auditoria de ações sensíveis. Só inclusão: a aplicação não pode alterar nem apagar.
+model AuditLog {
+  id          String   @id @default(uuid()) @db.Uuid
+  /// Nulo para ações fora de um negócio (ex.: login de admin nexo).
+  tenantId    String?  @map("tenant_id") @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  action      String
+  /// Motivo informado (obrigatório quando um admin nexo acessa um negócio).
+  reason      String?
+  ip          String?
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([tenantId, createdAt])
+  @@map("audit_logs")
+}

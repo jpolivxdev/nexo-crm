@@ -12,7 +12,7 @@ const env = loadEnv({
   ...process.env,
   NODE_ENV: 'test',
   LOG_LEVEL: 'fatal',
-  DATABASE_URL: process.env.DATABASE_URL ?? 'postgresql://nexo:nexo@localhost:5432/nexo',
+  DATABASE_URL: process.env.DATABASE_URL ?? 'postgresql://nexo_app:nexo_app@localhost:5432/nexo',
   WEB_ORIGIN: 'http://localhost:5173',
 });
 
