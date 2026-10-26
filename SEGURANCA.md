@@ -58,6 +58,14 @@ Legenda STRIDE: **S** falsificação de identidade, **T** adulteração, **R** r
 
 ---
 
+### Tarefas de segurança abertas
+
+| Prioridade | Tarefa | Origem |
+|---|---|---|
+| Alta | Chaves estrangeiras compostas com `tenant_id` (ex.: `(tenant_id, contact_id)` → `contacts(tenant_id, id)`). O Postgres não aplica RLS na checagem de chave estrangeira, então hoje um negócio poderia apontar para o ID de um registro de outro negócio se o código não conferir antes. Mitigado no agendamento (E3), que confere a cliente pelo RLS. | Revisão da E3 |
+
+---
+
 ## 4. Registro das operações de tratamento (LGPD)
 
 Papéis, em princípio: o negócio cliente é o **controlador** e a nexo é a **operadora**. **[CONFIRMAR COM ADVOGADO]**

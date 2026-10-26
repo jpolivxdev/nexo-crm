@@ -10,8 +10,8 @@ Módulos: M1 completo, M2 básico, M3 (funil padrão + modelo por nicho + classi
 |---|---|---|---|
 | E0 | Meta: conta, número da piloto, templates | Mensagem real entregue e 2 templates aprovados | Adiada (decisão do JP em 26/10/2026) |
 | E1 | Esqueleto: monorepo, Postgres local, lint, testes, CI, documentação | CI verde e `/health` respondendo | Feita |
-| E2 | Banco multi-negócio: Prisma, modelo de dados, RLS, papéis do banco, seed demo | Teste prova que um negócio não vê o outro | Em revisão |
-| E3 | Disponibilidade e agendamento, sem horário duplo | Testes de regras e de concorrência | A fazer |
+| E2 | Banco multi-negócio: Prisma, modelo de dados, RLS, papéis do banco, seed demo | Teste prova que um negócio não vê o outro | Feita |
+| E3 | Disponibilidade e agendamento, sem horário duplo | Testes de regras e de concorrência | Em revisão |
 | E4 | Robô (máquina de estados pura) + simulador | Teste para cada estado e transição | A fazer |
 | E5 | Canal: interface + adaptador simulado; depois Cloud API | Testes com payloads simulados; ponta a ponta real depende de E0 | A fazer |
 | E6 | CRM básico: contato automático, histórico, eventos, funil, classificação | Conversa simulada gera ficha e etapa certas | A fazer |
