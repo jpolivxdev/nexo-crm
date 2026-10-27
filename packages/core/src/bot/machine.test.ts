@@ -277,6 +277,7 @@ describe('robô: máquina de estados', () => {
     await send(tap('menu:faq'), { faq });
     const r = await send(tap('faq:0'), { faq });
     expect(bodies(r)[0]).toBe('Rua Exemplo, 100 (demo).');
+    expect(r.actions).toEqual([{ type: 'faq_viewed' }]);
     expect(state?.step).toBe('menu');
   });
 

@@ -23,9 +23,11 @@ npm run db:up               # sobe o Postgres local (só em 127.0.0.1)
 npm run build -w @nexo/core
 npm run db:migrate -w @nexo/api      # cria as tabelas, o RLS e o papel nexo_app
 npm run db:setup-local -w @nexo/api  # libera o login local do nexo_app
+npm run queue:setup -w @nexo/api     # cria a fila de mensagens (pg-boss)
 npm run build -w @nexo/api && npm run db:seed -w @nexo/api   # negócios de demonstração
 npm run dev:api             # http://localhost:3000/health
 npm run dev:web             # http://localhost:5173
+npm run simulator -w @nexo/api       # conversa com o robô pelo terminal (depois do build)
 ```
 
 ## Verificações (as mesmas da CI)

@@ -107,7 +107,11 @@ export interface BotPorts {
 }
 
 export type BotAction =
-  { type: 'privacy_notice_shown' } | { type: 'opt_out' } | { type: 'opt_in' } | { type: 'handoff' };
+  | { type: 'privacy_notice_shown' }
+  | { type: 'opt_out' }
+  | { type: 'opt_in' }
+  | { type: 'handoff' }
+  | { type: 'faq_viewed' };
 
 export interface BotResult {
   state: BotState;
@@ -524,6 +528,7 @@ async function onChoice(turn: Turn, id: string): Promise<boolean> {
       const item = turn.ctx.faq?.[Number(value)];
       if (!item) return false;
       turn.say(item.answer);
+      turn.actions.push({ type: 'faq_viewed' });
       await showMenu(turn);
       return true;
     }

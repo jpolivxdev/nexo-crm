@@ -11,6 +11,7 @@ export {
   dayRangeUtc,
   DEFAULT_MIN_NOTICE_MINUTES,
   DEFAULT_STEP_MINUTES,
+  isOpenAt,
   isSlotAvailable,
   todayIn,
   type BusyInterval,

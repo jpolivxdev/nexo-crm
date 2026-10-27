@@ -12,10 +12,10 @@ Módulos: M1 completo, M2 básico, M3 (funil padrão + modelo por nicho + classi
 | E1 | Esqueleto: monorepo, Postgres local, lint, testes, CI, documentação | CI verde e `/health` respondendo | Feita |
 | E2 | Banco multi-negócio: Prisma, modelo de dados, RLS, papéis do banco, seed demo | Teste prova que um negócio não vê o outro | Feita |
 | E3 | Disponibilidade e agendamento, sem horário duplo | Testes de regras e de concorrência | Feita |
-| E4 | Robô (máquina de estados pura) | Teste para cada estado e transição | Em revisão |
-| E5 | Canal: interface + adaptador simulado + simulador + webhook da Cloud API | Testes com payloads simulados; ponta a ponta real depende de E0 | A fazer |
-| E6 | CRM básico: contato automático, histórico, eventos, funil, classificação | Conversa simulada gera ficha e etapa certas | A fazer |
-| E7 | Passar para a equipe, "parar", fora do horário | Testes + aviso ao dono | A fazer |
+| E4 | Robô (máquina de estados pura) | Teste para cada estado e transição | Em revisão (PR #9) |
+| E5 | Canal: interface + adaptador simulado + simulador + webhook da Cloud API | Testes com payloads simulados; ponta a ponta real depende de E0 | Em revisão (PR #9) |
+| E6 | CRM básico: contato automático, histórico, eventos, funil, classificação | Conversa simulada gera ficha e etapa certas | Em revisão (PR #9) |
+| E7 | Passar para a equipe, "parar", fora do horário | Testes + aviso ao dono | Em revisão (PR #9; aviso pelo WhatsApp da dona depende de E0) |
 | E8 | Painel do dono (PWA): login, hoje, agenda, ficha, etapas, tempo real | 360 px, agendamento em até 5 s, acessibilidade | A fazer |
 | E9 | Onboarding guiado + admin nexo + cronômetro | Negócio demo criado com tempo medido | A fazer |
 | E10 | Lembretes 24h e 1h com confirmar/cancelar | Testes com relógio simulado | A fazer |

@@ -62,6 +62,8 @@ Legenda STRIDE: **S** falsificação de identidade, **T** adulteração, **R** r
 
 | Prioridade | Tarefa | Origem |
 |---|---|---|
+| Feita (27/10/2026) | Tabela `channel_routes` (número do canal → negócio) fica fora do RLS porque o webhook ainda não sabe o negócio. Compensação: a aplicação só tem `SELECT` nela, e o teste de RLS lista as únicas exceções (`users`, `channel_routes`). | E5 |
+| Feita (27/10/2026) | Fila pg-boss: estrutura criada pelo papel dono; a aplicação só usa. Jobs carregam conteúdo de mensagem e telefone, então ficam no máximo 1 hora depois de concluídos e 24 horas se não forem processados. Logs do worker não levam conteúdo. | E5 |
 | Feita (27/10/2026) | Chaves estrangeiras compostas com `tenant_id` em todas as ligações entre tabelas de negócio. O Postgres não aplica RLS na checagem de chave estrangeira; a chave composta impede apontar para registro de outro negócio. Um teste da CI falha se surgir ligação sem `tenant_id`. | Revisão da E3 |
 
 ---
@@ -80,6 +82,7 @@ Papéis, em princípio: o negócio cliente é o **controlador** e a nexo é a **
 | Nome, e-mail, senha (hash), 2FA | Dono e equipe | Login e segurança | Execução de contrato | Enquanto houver conta + [A DEFINIR] | Sistema; admin nexo para suporte |
 | Logs técnicos (telefone mascarado, IP) | Todos | Segurança e diagnóstico | Legítimo interesse [CONFIRMAR COM ADVOGADO] | [A DEFINIR] (sugestão: 90 dias) | JP e Jandoza |
 | Log de auditoria | Usuários do sistema | Prestação de contas | Legítimo interesse / obrigação legal [CONFIRMAR COM ADVOGADO] | [A DEFINIR] | Admin nexo; dono vê o do próprio negócio |
+| Fila de mensagens (pg-boss) | Cliente final | Processar a mensagem fora da requisição do webhook | Mesma do conteúdo das conversas | 1 hora após processar; 24 horas no máximo | Sistema |
 | Backups | Todos os acima | Continuidade | Mesma do dado original | Ciclo de [A DEFINIR] dias | Provedor (criptografado); admin nexo para restauração |
 
 Onde os dados ficam: provedor e região **[A DEFINIR]**, informar ao cliente na proposta.

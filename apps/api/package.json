@@ -15,7 +15,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:setup-local": "node --env-file-if-exists=../../.env scripts/setup-local-db.mjs",
     "queue:setup": "node --env-file-if-exists=../../.env scripts/setup-queue.mjs",
-    "db:seed": "node --env-file-if-exists=../../.env dist/seed.js"
+    "db:seed": "node --env-file-if-exists=../../.env dist/seed.js",
+    "simulator": "node --env-file-if-exists=../../.env dist/simulator.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.2.0",
