@@ -1,4 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
 import type { Env } from './config/env.js';
@@ -9,6 +10,7 @@ import type { Env } from './config/env.js';
  */
 export function setupApp(app: INestApplication, env: Env): INestApplication {
   app.useLogger(app.get(Logger));
+  (app as NestExpressApplication).set('trust proxy', env.TRUST_PROXY);
   app.use(
     helmet({
       contentSecurityPolicy: {

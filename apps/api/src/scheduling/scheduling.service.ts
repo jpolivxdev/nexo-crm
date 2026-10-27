@@ -208,26 +208,25 @@ export class SchedulingService {
 
     const day = dayRangeUtc(input.date, timeZone);
     const professionalIds = service.professionals.map((p) => p.professionalId);
-    const [appointments, timeOff] = await Promise.all([
-      tx.appointment.findMany({
-        where: {
-          professionalId: { in: professionalIds },
-          status: { in: ACTIVE },
-          startsAt: { lt: day.endsAt },
-          endsAt: { gt: day.startsAt },
-          ...(input.ignoreAppointmentId ? { id: { not: input.ignoreAppointmentId } } : {}),
-        },
-        select: { professionalId: true, startsAt: true, endsAt: true },
-      }),
-      tx.timeOff.findMany({
-        where: {
-          OR: [{ professionalId: { in: professionalIds } }, { professionalId: null }],
-          startsAt: { lt: day.endsAt },
-          endsAt: { gt: day.startsAt },
-        },
-        select: { professionalId: true, startsAt: true, endsAt: true },
-      }),
-    ]);
+    // Em sequência: as consultas dividem a mesma conexão da transação.
+    const appointments = await tx.appointment.findMany({
+      where: {
+        professionalId: { in: professionalIds },
+        status: { in: ACTIVE },
+        startsAt: { lt: day.endsAt },
+        endsAt: { gt: day.startsAt },
+        ...(input.ignoreAppointmentId ? { id: { not: input.ignoreAppointmentId } } : {}),
+      },
+      select: { professionalId: true, startsAt: true, endsAt: true },
+    });
+    const timeOff = await tx.timeOff.findMany({
+      where: {
+        OR: [{ professionalId: { in: professionalIds } }, { professionalId: null }],
+        startsAt: { lt: day.endsAt },
+        endsAt: { gt: day.startsAt },
+      },
+      select: { professionalId: true, startsAt: true, endsAt: true },
+    });
 
     const byStart = new Map<number, FreeSlot>();
     for (const { professional } of service.professionals) {

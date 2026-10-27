@@ -21,14 +21,25 @@ npm install
 cp .env.example .env        # no Windows: copy .env.example .env
 npm run db:up               # sobe o Postgres local (só em 127.0.0.1)
 npm run build -w @nexo/core
-npm run db:migrate -w @nexo/api      # cria as tabelas, o RLS e o papel nexo_app
+npm run db:deploy -w @nexo/api       # cria as tabelas, o RLS e o papel nexo_app
 npm run db:setup-local -w @nexo/api  # libera o login local do nexo_app
 npm run queue:setup -w @nexo/api     # cria a fila de mensagens (pg-boss)
-npm run build -w @nexo/api && npm run db:seed -w @nexo/api   # negócios de demonstração
-npm run dev:api             # http://localhost:3000/health
-npm run dev:web             # http://localhost:5173
-npm run simulator -w @nexo/api       # conversa com o robô pelo terminal (depois do build)
+npm run build -w @nexo/api && npm run db:seed -w @nexo/api   # negócios de demonstração + login da dona
 ```
+
+O seed mostra o e-mail e a senha do painel (senha nova a cada seed; para fixar, defina
+`SEED_OWNER_PASSWORD` no `.env`) e o `SIMULATOR_TENANT_ID`. Copie essa linha para o `.env`.
+
+Depois, em três terminais:
+
+```bash
+npm run dev:api                      # API + worker em http://localhost:3000
+npm run dev:web                      # painel em http://localhost:5173
+npm run simulator -w @nexo/api       # você é a cliente no "WhatsApp" do terminal
+```
+
+No simulador, escreva "oi" e responda com o número das opções. O painel aberto no navegador
+atualiza sozinho. Para ver como celular, use o modo de dispositivo do navegador (360 px).
 
 ## Verificações (as mesmas da CI)
 

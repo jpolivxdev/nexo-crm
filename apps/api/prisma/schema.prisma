@@ -57,6 +57,22 @@ model Tenant {
   @@map("tenants")
 }
 
+/// Sessão de login no servidor. O cookie leva um token aleatório; aqui fica só o hash dele.
+/// Sem tenant_id: o negócio vem do usuário. Só o módulo de autenticação usa esta tabela.
+model Session {
+  id         String   @id
+  userId     String   @map("user_id") @db.Uuid
+  csrfToken  String   @map("csrf_token")
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz
+  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
 enum Role {
   NEXO_ADMIN
   OWNER
@@ -83,6 +99,7 @@ model User {
 
   tenant       Tenant?       @relation(fields: [tenantId], references: [id])
   professional Professional?
+  sessions     Session[]
 
   @@index([tenantId])
   @@unique([tenantId, id])

@@ -1,32 +1,16 @@
+/* Painel do negócio: celular primeiro (a partir de 360 px). Cores só dos tokens da marca. */
+
 .app {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  max-width: 640px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 12px 16px 24px;
 }
 
-.app__header h1 {
-  font-size: 1.5rem;
-  margin: 8px 0 0;
-}
-
-.empty {
-  margin-top: 24px;
-  padding: 24px 16px;
-  background: var(--lilas);
-  border-radius: 12px;
-}
-
-.empty h2 {
-  margin: 0 0 8px;
-  font-size: 1.125rem;
-}
-
-.empty p {
-  margin: 0;
-  color: var(--grafite);
+.app--with-nav {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
 }
 
 .app__footer {
@@ -35,4 +19,479 @@
   font-size: 0.875rem;
   color: var(--grafite);
   text-align: center;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: var(--toque-minimo);
+}
+
+.brand {
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--roxo-nexo);
+}
+
+.page-header h1 {
+  font-size: 1.5rem;
+  margin: 8px 0 4px;
+}
+
+.page-header p {
+  margin: 0;
+}
+
+.section {
+  margin-top: 24px;
+}
+
+.section h2,
+.form h2 {
+  font-size: 1.125rem;
+  margin: 0 0 12px;
+}
+
+.day-title::first-letter,
+.page-header p::first-letter {
+  text-transform: uppercase;
+}
+
+.muted {
+  color: var(--grafite);
+}
+
+.small {
+  font-size: 0.875rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.row--between {
+  justify-content: space-between;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+/* Cartões */
+.card {
+  background: var(--branco);
+  border: 1px solid var(--lilas);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.card--attention {
+  border-color: var(--roxo-nexo);
+  border-left-width: 4px;
+}
+
+.card--button {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  display: grid;
+  gap: 4px;
+  cursor: pointer;
+  min-height: var(--toque-minimo);
+}
+
+.empty {
+  padding: 16px;
+  background: var(--lilas);
+  border-radius: 12px;
+}
+
+.empty h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.empty p {
+  margin: 4px 0 0;
+  color: var(--grafite);
+}
+
+/* Botões e links: alvo de toque de 44 px. */
+.button {
+  min-height: var(--toque-minimo);
+  padding: 0 18px;
+  border-radius: 10px;
+  border: 2px solid var(--roxo-nexo);
+  background: var(--roxo-nexo);
+  color: var(--branco);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.button--ghost {
+  background: var(--branco);
+  color: var(--roxo-nexo);
+}
+
+.button--small {
+  min-height: var(--toque-minimo);
+  padding: 0 12px;
+  font-size: 0.9375rem;
+}
+
+.link {
+  background: none;
+  border: none;
+  padding: 0;
+  min-height: var(--toque-minimo);
+  font: inherit;
+  font-weight: 600;
+  color: var(--azul-elo);
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.back {
+  margin-top: 4px;
+}
+
+/* Formulários */
+.form {
+  display: grid;
+  gap: 12px;
+}
+
+.form label {
+  display: grid;
+  gap: 4px;
+  font-weight: 500;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  min-height: var(--toque-minimo);
+  padding: 8px 12px;
+  border: 1px solid var(--grafite);
+  border-radius: 10px;
+  background: var(--branco);
+  color: var(--tinta);
+  width: 100%;
+}
+
+.search {
+  display: block;
+  margin: 16px 0;
+}
+
+.slots {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.slots legend {
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  min-height: var(--toque-minimo);
+  border: 2px solid var(--lavanda);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.slot input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.slot--on {
+  background: var(--roxo-nexo);
+  border-color: var(--roxo-nexo);
+  color: var(--branco);
+}
+
+.slot:focus-within {
+  outline: 3px solid var(--roxo-nexo);
+  outline-offset: 2px;
+}
+
+/* Avisos */
+.banner {
+  padding: 12px;
+  border-radius: 10px;
+  margin: 12px 0;
+  font-weight: 500;
+}
+
+.banner--error {
+  background: var(--lilas);
+  border-left: 4px solid var(--tinta);
+}
+
+.banner--ok {
+  background: var(--lilas);
+  border-left: 4px solid var(--azul-elo);
+}
+
+/* Situação do horário: texto + forma, nunca só cor. */
+.badge,
+.tag {
+  display: inline-block;
+  width: fit-content;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--lilas);
+  color: var(--tinta);
+}
+
+.badge--done {
+  background: var(--tinta);
+  color: var(--branco);
+}
+
+.badge--no_show,
+.badge--cancelled {
+  background: var(--branco);
+  border: 1px dashed var(--grafite);
+  color: var(--grafite);
+}
+
+.badge--confirmed {
+  background: var(--azul-elo);
+  color: var(--branco);
+}
+
+.tag--warn {
+  background: var(--branco);
+  border: 1px solid var(--tinta);
+}
+
+/* Horário na lista */
+.appointment {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 4px 12px;
+}
+
+.appointment__time {
+  display: grid;
+}
+
+.appointment__time strong {
+  font-family: var(--fonte-titulo);
+  font-size: 1.125rem;
+}
+
+.appointment__body {
+  display: grid;
+  gap: 2px;
+  justify-items: start;
+}
+
+.appointment__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.segmented {
+  display: flex;
+  margin-top: 16px;
+  border: 2px solid var(--roxo-nexo);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.segmented button {
+  flex: 1;
+  min-height: var(--toque-minimo);
+  border: none;
+  background: var(--branco);
+  color: var(--roxo-nexo);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.segmented button.on {
+  background: var(--roxo-nexo);
+  color: var(--branco);
+}
+
+.date-nav {
+  margin-top: 8px;
+}
+
+/* Etapas */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  min-height: var(--toque-minimo);
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 2px solid var(--lavanda);
+  background: var(--branco);
+  color: var(--tinta);
+  font: inherit;
+  cursor: pointer;
+}
+
+.chip--on {
+  background: var(--tinta);
+  border-color: var(--tinta);
+  color: var(--branco);
+  font-weight: 600;
+}
+
+.board {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.column h2 {
+  font-size: 1rem;
+  margin: 0 0 8px;
+}
+
+.count {
+  font-family: var(--fonte-texto);
+  font-size: 0.875rem;
+  color: var(--grafite);
+}
+
+.move {
+  display: block;
+  margin-top: 8px;
+}
+
+/* Conversa */
+.chat {
+  list-style: none;
+  padding: 12px;
+  margin: 0 0 12px;
+  background: var(--lilas);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.bubble {
+  max-width: 85%;
+  padding: 8px 12px;
+  border-radius: 12px;
+  display: grid;
+  gap: 2px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.bubble--in {
+  align-self: flex-start;
+  background: var(--branco);
+}
+
+.bubble--out {
+  align-self: flex-end;
+  background: var(--tinta);
+  color: var(--branco);
+}
+
+.bubble--out .muted {
+  color: var(--lavanda);
+}
+
+/* Navegação de baixo */
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background: var(--tinta);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 10;
+}
+
+.tabbar a {
+  flex: 1;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--lilas);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.tabbar a.on {
+  color: var(--branco);
+  box-shadow: inset 0 -4px 0 var(--roxo-nexo);
+}
+
+.login {
+  margin-top: 10vh;
+}
+
+@media (min-width: 900px) {
+  .app {
+    max-width: 1100px;
+  }
+
+  .board {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    align-items: start;
+  }
 }

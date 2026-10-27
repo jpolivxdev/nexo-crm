@@ -19,6 +19,17 @@ const envSchema = z.object({
   WHATSAPP_VERIFY_TOKEN: optionalSecret,
   WHATSAPP_APP_SECRET: optionalSecret,
   WHATSAPP_ACCESS_TOKEN: optionalSecret,
+  // Chave da criptografia de campo (AES-256-GCM): 32 bytes em base64. Gere com
+  // `node -e "console.log(crypto.randomBytes(32).toString('base64'))"`. Obrigatória para o 2FA.
+  FIELD_ENCRYPTION_KEY: optionalSecret,
+  // Quantos proxies confiáveis ficam na frente da API (para ler o IP real em X-Forwarded-For).
+  // 0 no localhost; em produção, o número de proxies do provedor (normalmente 1).
+  TRUST_PROXY: z.coerce.number().int().min(0).max(5).default(0),
+  // Avisos de tempo real entre processos (API, worker, simulador) pelo LISTEN/NOTIFY do Postgres.
+  REALTIME_CROSS_PROCESS: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((v) => v === 'true'),
   // Liga o worker que processa as mensagens da fila neste processo.
   RUN_WORKER: z
     .enum(['true', 'false'])

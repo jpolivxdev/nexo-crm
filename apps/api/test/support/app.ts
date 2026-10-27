@@ -23,6 +23,8 @@ export const testEnv = (overrides: Record<string, string> = {}) =>
     WHATSAPP_VERIFY_TOKEN: VERIFY_TOKEN,
     WHATSAPP_APP_SECRET: APP_SECRET,
     RUN_WORKER: 'true',
+    REALTIME_CROSS_PROCESS: 'false',
+    TRUST_PROXY: '1',
     ...overrides,
   });
 

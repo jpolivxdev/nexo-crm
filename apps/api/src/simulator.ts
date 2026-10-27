@@ -43,6 +43,8 @@ async function main(): Promise<void> {
     }),
   );
   const bus = new RealtimeBus();
+  // O painel aberto no navegador recebe os avisos do simulador (outro processo).
+  if (env.REALTIME_CROSS_PROCESS) await bus.connect(env.DATABASE_URL);
   const conversations = new ConversationService(
     db,
     new SchedulingService(db, bus),
@@ -85,6 +87,7 @@ async function main(): Promise<void> {
     }
   } finally {
     rl.close();
+    await bus.close();
     await prisma.$disconnect();
   }
 }

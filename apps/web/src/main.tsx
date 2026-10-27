@@ -19,3 +19,10 @@ createRoot(root).render(
     <App />
   </StrictMode>,
 );
+
+// App instalável (PWA). Só no build de produção, para não atrapalhar o desenvolvimento.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker.register('/sw.js');
+  });
+}
