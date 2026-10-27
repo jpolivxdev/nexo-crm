@@ -36,6 +36,14 @@ model Tenant {
   features  String[] @default([])
   /// Mensagens do robô editáveis pelo dono. Vazio = padrão do sistema.
   botMessages Json   @default("{}") @map("bot_messages")
+  /// Dúvidas frequentes respondidas pelo robô: [{ question, answer }].
+  faq         Json   @default("[]")
+  /// Nome de quem atende, usado em "Falar com ...".
+  attendantName String @default("a equipe") @map("attendant_name")
+  /// De quanto em quanto tempo oferecer horários.
+  slotStepMinutes  Int @default(30) @map("slot_step_minutes")
+  /// Antecedência mínima para marcar.
+  minNoticeMinutes Int @default(60) @map("min_notice_minutes")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -44,6 +52,7 @@ model Tenant {
   services      Service[]
   contacts      Contact[]
   pipelines     Pipeline[]
+  channelRoutes ChannelRoute[]
 
   @@map("tenants")
 }
@@ -78,6 +87,22 @@ model User {
   @@index([tenantId])
   @@unique([tenantId, id])
   @@map("users")
+}
+
+/// Rota do canal: qual negócio atende cada número do WhatsApp (phone_number_id da Meta).
+/// Sem RLS por negócio porque o webhook precisa descobrir o negócio antes de saber qual é.
+/// Guarda só identificadores técnicos, nenhum dado pessoal.
+model ChannelRoute {
+  channel       String
+  externalId    String   @map("external_id")
+  tenantId      String   @map("tenant_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@id([channel, externalId])
+  @@index([tenantId])
+  @@map("channel_routes")
 }
 
 // ---------- Agenda ----------
@@ -327,6 +352,8 @@ model Message {
   type           String
   /// Texto da mensagem. Conteúdo não confiável: sempre exibido como texto.
   body           String?
+  /// Conteúdo estruturado (botões, lista, opção escolhida).
+  payload        Json?
   status         String?
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
@@ -366,6 +393,8 @@ model Stage {
   tenantId   String    @map("tenant_id") @db.Uuid
   pipelineId String    @map("pipeline_id") @db.Uuid
   name       String
+  /// Identificador fixo da etapa para as regras de classificação (o nome o dono pode trocar).
+  key        String?
   position   Int
   kind       StageKind @default(OPEN)
 
@@ -373,6 +402,7 @@ model Stage {
   deals    Deal[]
 
   @@unique([pipelineId, position])
+  @@unique([pipelineId, key])
   @@index([tenantId])
   @@unique([tenantId, id])
   @@map("stages")

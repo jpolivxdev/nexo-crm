@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+/** Segredo opcional: vazio no .env conta como não configurado. */
+const optionalSecret = z.preprocess(
+  (v) => (v === '' ? undefined : v),
+  z.string().min(16).optional(),
+);
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
@@ -8,6 +14,16 @@ const envSchema = z.object({
   DATABASE_URL: z.url(),
   // Único domínio autorizado a chamar a API pelo navegador (CORS).
   WEB_ORIGIN: z.url(),
+  // WhatsApp Cloud API (oficial). Opcionais na Fase 1: sem elas o webhook recusa tudo e
+  // as respostas não saem para a Meta (use o simulador). Segredos: só no .env ou no cofre.
+  WHATSAPP_VERIFY_TOKEN: optionalSecret,
+  WHATSAPP_APP_SECRET: optionalSecret,
+  WHATSAPP_ACCESS_TOKEN: optionalSecret,
+  // Liga o worker que processa as mensagens da fila neste processo.
+  RUN_WORKER: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((v) => v === 'true'),
 });
 
 export type Env = z.infer<typeof envSchema>;

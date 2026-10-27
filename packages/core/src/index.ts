@@ -49,3 +49,10 @@ export {
 } from './bot/messages.js';
 export { choices, LIMITS, type Choice, type OutgoingMessage } from './bot/outgoing.js';
 export { globalCommand, normalize } from './bot/text.js';
+export {
+  classify,
+  type ClassificationInput,
+  type CrmEventType,
+  type StageRef,
+} from './crm/classification.js';
+export type { StageKey } from './crm/pipeline-templates.js';

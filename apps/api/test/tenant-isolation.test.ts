@@ -61,7 +61,8 @@ describe('isolamento entre negócios (RLS)', () => {
         AND EXISTS (SELECT 1 FROM pg_attribute a
                     WHERE a.attrelid = c.oid AND a.attname = 'tenant_id' AND NOT a.attisdropped)
         -- users: login acontece antes de saber o negócio (SEGURANCA.md, seção 3).
-        AND c.relname <> 'users'`;
+        -- channel_routes: o webhook descobre o negócio por ela; a aplicação só lê (seção 3).
+        AND c.relname NOT IN ('users', 'channel_routes')`;
     expect(tables.length).toBeGreaterThanOrEqual(TENANT_MODELS.length);
     expect(tables.filter((t) => !t.ok).map((t) => t.table)).toEqual([]);
   });

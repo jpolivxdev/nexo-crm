@@ -4,7 +4,21 @@
  */
 export type StageKind = 'OPEN' | 'WON' | 'LOST';
 
+/** Chave fixa da etapa, usada pelas regras (o dono pode renomear a etapa sem quebrar nada). */
+export type StageKey =
+  | 'new'
+  | 'asked_info'
+  | 'scheduled'
+  | 'attended'
+  | 'returned'
+  | 'qualified'
+  | 'proposal'
+  | 'negotiation'
+  | 'won'
+  | 'lost';
+
 export interface StageTemplate {
+  key: StageKey;
   name: string;
   kind: StageKind;
 }
@@ -18,12 +32,12 @@ export interface PipelineTemplate {
 export const DEFAULT_PIPELINE: PipelineTemplate = {
   name: 'Atendimentos',
   stages: [
-    { name: 'Novo contato', kind: 'OPEN' },
-    { name: 'Qualificado', kind: 'OPEN' },
-    { name: 'Orçamento', kind: 'OPEN' },
-    { name: 'Negociação', kind: 'OPEN' },
-    { name: 'Fechado', kind: 'WON' },
-    { name: 'Perdido', kind: 'LOST' },
+    { key: 'new', name: 'Novo contato', kind: 'OPEN' },
+    { key: 'qualified', name: 'Qualificado', kind: 'OPEN' },
+    { key: 'proposal', name: 'Orçamento', kind: 'OPEN' },
+    { key: 'negotiation', name: 'Negociação', kind: 'OPEN' },
+    { key: 'won', name: 'Fechado', kind: 'WON' },
+    { key: 'lost', name: 'Perdido', kind: 'LOST' },
   ],
 };
 
@@ -31,12 +45,12 @@ export const DEFAULT_PIPELINE: PipelineTemplate = {
 const BEAUTY_PIPELINE: PipelineTemplate = {
   name: 'Atendimentos',
   stages: [
-    { name: 'Novo contato', kind: 'OPEN' },
-    { name: 'Pediu informação', kind: 'OPEN' },
-    { name: 'Agendou', kind: 'OPEN' },
-    { name: 'Atendido', kind: 'WON' },
-    { name: 'Voltou', kind: 'WON' },
-    { name: 'Não seguiu', kind: 'LOST' },
+    { key: 'new', name: 'Novo contato', kind: 'OPEN' },
+    { key: 'asked_info', name: 'Pediu informação', kind: 'OPEN' },
+    { key: 'scheduled', name: 'Agendou', kind: 'OPEN' },
+    { key: 'attended', name: 'Atendido', kind: 'WON' },
+    { key: 'returned', name: 'Voltou', kind: 'WON' },
+    { key: 'lost', name: 'Não seguiu', kind: 'LOST' },
   ],
 };
 
