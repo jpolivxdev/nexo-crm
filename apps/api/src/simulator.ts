@@ -9,6 +9,7 @@ import { PanelOnlyOwnerNotifier } from './conversation/owner-notifier.js';
 import { createPrismaClient, withTenant } from './database/prisma.js';
 import type { PrismaService } from './database/prisma.service.js';
 import { RealtimeBus } from './realtime/realtime.bus.js';
+import { ReminderService } from './reminders/reminder.service.js';
 import { SchedulingService } from './scheduling/scheduling.service.js';
 import { createDemoTenant, DEMO_TENANTS } from './seed/demo-tenant.js';
 
@@ -53,9 +54,28 @@ async function main(): Promise<void> {
     new PanelOnlyOwnerNotifier(),
   );
 
+  const reminders = new ReminderService({ ...db, client: prisma } as PrismaService, registry, bus);
+
+  /** Roda os lembretes como se fosse a hora do próximo lembrete desta cliente. */
+  async function nextReminder(tenant: string, from: string): Promise<void> {
+    const next = await db.withTenant(tenant, (tx) =>
+      tx.reminder.findFirst({
+        where: { status: 'PENDING', appointment: { contact: { phone: from } } },
+        orderBy: { sendAt: 'asc' },
+      }),
+    );
+    if (!next) {
+      console.log('\n(nenhum lembrete pendente: marque um horário primeiro)\n');
+      return;
+    }
+    console.log(`\n(relógio adiantado para ${next.sendAt.toISOString()})`);
+    await reminders.runDue(next.sendAt, { tenantIds: [tenant] });
+  }
+
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   console.log(
-    `\nSimulador nexo: você é a cliente ${phone}. Escreva "oi" para começar ("sair" encerra).\n`,
+    `\nSimulador nexo: você é a cliente ${phone}. Escreva "oi" para começar ("sair" encerra).` +
+      `\n"/lembrete" adianta o relógio até o próximo lembrete dos seus horários.\n`,
   );
   try {
     rl.setPrompt('você › ');
@@ -64,6 +84,11 @@ async function main(): Promise<void> {
       const line = raw.trim();
       if (line === 'sair') break;
       if (!line) {
+        rl.prompt();
+        continue;
+      }
+      if (line === '/lembrete') {
+        await nextReminder(tenantId, phone);
         rl.prompt();
         continue;
       }

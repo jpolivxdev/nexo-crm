@@ -137,5 +137,17 @@ export function createBotPorts(deps: {
       if (!(await ownsActiveAppointment(appointmentId))) return;
       await scheduling.setStatus(tenantId, appointmentId, 'CANCELLED', actor);
     },
+
+    confirm: async (appointmentId) => {
+      const appt = await db.withTenant(tenantId, (tx) =>
+        tx.appointment.findFirst({
+          where: { id: appointmentId, contactId, status: 'SCHEDULED' },
+          select: { id: true },
+        }),
+      );
+      // Já confirmado (ou não é desta cliente): nada a fazer.
+      if (!appt) return;
+      await scheduling.setStatus(tenantId, appointmentId, 'CONFIRMED', actor);
+    },
   };
 }

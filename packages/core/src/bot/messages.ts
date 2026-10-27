@@ -44,6 +44,12 @@ export const DEFAULT_MESSAGES = {
     'Tudo bem, você não vai mais receber mensagens automáticas. Se mudar de ideia, escreva "oi".',
   notUnderstood: 'Não entendi. Escolha uma das opções abaixo.',
   more: 'Ver mais',
+  reminder24h:
+    'Oi! Passando para lembrar do seu horário no {negocio}: {servico}, amanhã ({data}) às {hora}. Você confirma?',
+  reminder1h:
+    'Seu horário de {servico} no {negocio} é hoje às {hora}. Se não puder vir, toque em Cancelar.',
+  reminderConfirmed: 'Combinado! Até {data} às {hora}.',
+  reminderGone: 'Esse horário não está mais marcado. Para ver seus horários, escreva "menu".',
 } as const;
 
 export type MessageKey = keyof typeof DEFAULT_MESSAGES;

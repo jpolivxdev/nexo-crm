@@ -38,7 +38,8 @@ npm run dev:web                      # painel em http://localhost:5173
 npm run simulator -w @nexo/api       # você é a cliente no "WhatsApp" do terminal
 ```
 
-No simulador, escreva "oi" e responda com o número das opções. O painel aberto no navegador
+No simulador, escreva "oi" e responda com o número das opções. Depois de marcar, `/lembrete`
+adianta o relógio até o próximo lembrete do horário (24 h ou 1 h antes). O painel aberto no navegador
 atualiza sozinho. Para ver como celular, use o modo de dispositivo do navegador (360 px).
 
 ### Admin nexo (opcional)
