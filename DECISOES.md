@@ -161,3 +161,4 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Arquivos com hash ficam em cache por 1 ano; `index.html` e `sw.js` sempre revalidam**, para versão nova chegar na hora.
 - **A imagem roda como `node`, não root**, e traz o CLI do Prisma para migrar com o mesmo build. A CI constrói a imagem a cada PR (não publica).
 - **Hospedagem ainda não escolhida.** Três opções com preço oficial em `CUSTOS.md`; recomendação: Railway no piloto. Decisão do Coca (teto de gasto).
+- **Tela de planos só visual** (pedido do JP em 27/10/2026): inspirada no bloco "Pricing" do 21st.dev, refeita no CSS do projeto, sem as dependências do original (Tailwind, shadcn, Next, framer-motion, confetti, number-flow); a animação de entrada é CSS e some com "reduzir movimento". Preço aparece como "R$ —" e "a definir", os recursos que ainda não existem têm "em breve" e os botões ficam desligados: nada ali é oferta (princípio 7). O que falta para funcionar está na PENDENCIAS.md.

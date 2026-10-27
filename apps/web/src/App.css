@@ -858,6 +858,170 @@ textarea:focus-visible {
   color: var(--cor-texto-suave);
 }
 
+/* Plano e assinatura (só visual por enquanto) */
+.stack {
+  display: grid;
+  gap: 8px;
+}
+
+.plans__period {
+  max-width: 320px;
+  margin-inline: auto;
+}
+
+.plans {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px 18px 18px;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 20px;
+  box-shadow: var(--sombra-1);
+  animation: plan-in 0.5s ease-out both;
+}
+
+.plan:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.plan:nth-child(3) {
+  animation-delay: 0.16s;
+}
+
+.plan--highlight {
+  border: 2px solid var(--roxo-nexo);
+  box-shadow: var(--sombra-2);
+}
+
+.plan__flag {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 0 18px 0 12px;
+  background: var(--roxo-nexo);
+  color: var(--branco);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.plan__name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+}
+
+.plan__price {
+  margin: 4px 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.plan__value {
+  font-family: var(--fonte-titulo);
+  font-weight: 700;
+  font-size: 2.25rem;
+  line-height: 1.1;
+}
+
+.plan__note,
+.plan__summary {
+  margin: 0;
+}
+
+.plan__note {
+  font-size: 0.8125rem;
+}
+
+.plan__features {
+  list-style: none;
+  margin: 8px 0 12px;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--cor-borda);
+  display: grid;
+  gap: 8px;
+}
+
+.plan__features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.plan__check {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--cor-destaque-texto);
+}
+
+.plan__soon {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--cor-suave);
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: 1px;
+}
+
+.plan .button {
+  margin-top: auto;
+}
+
+@media (min-width: 900px) {
+  .plans {
+    grid-template-columns: repeat(3, 1fr);
+    align-items: center;
+    gap: 0;
+    padding: 24px 0;
+  }
+
+  .plan:not(.plan--highlight) {
+    transform: scale(0.94);
+  }
+
+  .plan:first-child {
+    transform-origin: right center;
+  }
+
+  .plan:last-child {
+    transform-origin: left center;
+  }
+
+  .plan--highlight {
+    z-index: 1;
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes plan-in {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
 /* Fundo animado do login (componente Data Rain), com as cores da marca. */
 .dr-root {
   --dr-bg-0: var(--tinta);
@@ -961,6 +1125,7 @@ textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;
+    animation: none !important;
   }
 }
 

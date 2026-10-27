@@ -24,6 +24,7 @@ import { ContactFile } from './screens/ContactFile';
 import { Contacts } from './screens/Contacts';
 import { Login } from './screens/Login';
 import { Pipeline } from './screens/Pipeline';
+import { Plans } from './screens/Plans';
 import { Report } from './screens/Report';
 import { Setup } from './screens/Setup';
 import { Today } from './screens/Today';
@@ -179,6 +180,8 @@ function Panel({ me }: { me: Me }) {
           <ContactFile id={contactMatch[1]!} go={go} />
         ) : section === '/configurar' ? (
           <Setup go={go} />
+        ) : section === '/assinatura' ? (
+          <Plans go={go} />
         ) : section === '/conta' ? (
           <Account go={go} acting={Boolean(me.acting)} />
         ) : section === '/agenda' ? (
@@ -249,9 +252,12 @@ function Account({ go, acting }: { go: (to: string) => void; acting: boolean }) 
       <header className="page-header">
         <h1>Conta</h1>
       </header>
-      <section className="section">
+      <section className="section stack">
         <button type="button" className="button button--ghost" onClick={() => go('/configurar')}>
           Configurar o negócio (serviços, horários, dúvidas)
+        </button>
+        <button type="button" className="button button--ghost" onClick={() => go('/assinatura')}>
+          Plano e assinatura
         </button>
       </section>
       <ThemePicker />

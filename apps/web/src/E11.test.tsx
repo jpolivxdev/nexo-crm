@@ -109,3 +109,19 @@ describe('modo escuro', () => {
     expect(document.documentElement.dataset.theme).toBe('escuro');
   });
 });
+
+describe('plano e assinatura (só visual)', () => {
+  it('mostra os planos como prévia, sem preço inventado e sem botão de compra ativo', async () => {
+    mockApi();
+    window.location.hash = '#/assinatura';
+    render(<App />);
+    expect(await screen.findByRole('heading', { name: 'Plano e assinatura' })).toBeInTheDocument();
+    expect(screen.getByText(/Nada é cobrado por enquanto/)).toBeInTheDocument();
+    expect(screen.getAllByText('R$ —')).toHaveLength(3);
+    for (const button of screen.getAllByRole('button', { name: /Seu plano atual|Em breve/ })) {
+      expect(button).toBeDisabled();
+    }
+    await userEvent.click(screen.getByRole('button', { name: 'Anual' }));
+    expect(screen.getAllByText('/ ano')).toHaveLength(3);
+  });
+});
