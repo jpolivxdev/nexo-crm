@@ -111,6 +111,18 @@ describe('login, sessão e painel', () => {
     expect(sneaky.body.businessName).toBe('Estúdio Exemplo (demo)');
   });
 
+  it('relatório: exige sessão, aceita só 7, 30 ou 90 dias e mostra o próprio negócio', async () => {
+    expect((await http().get('/panel/report')).status).toBe(401);
+    const { cookie } = await login();
+    const ok = await http().get('/panel/report').set('cookie', cookie);
+    expect(ok.status).toBe(200);
+    expect(ok.body).toMatchObject({ days: 30, booked: { total: expect.any(Number) } });
+    const week = await http().get('/panel/report').query({ days: 7 }).set('cookie', cookie);
+    expect(week.body.days).toBe(7);
+    const odd = await http().get('/panel/report').query({ days: 15 }).set('cookie', cookie);
+    expect(odd.status).toBe(400);
+  });
+
   it('rota que muda dados exige o token CSRF', async () => {
     const { cookie, csrf } = await login();
     const body = { name: 'Cliente Nova', phone: '(00) 90000-1234' };

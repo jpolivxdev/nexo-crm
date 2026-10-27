@@ -141,3 +141,14 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Se a dona assumiu a conversa** (robô pausado), o lembrete sai mesmo assim; a resposta da cliente cai para a dona.
 - **Simulador:** `/lembrete` adianta o relógio até o próximo lembrete da cliente do terminal.
 - Textos do lembrete são editáveis pela dona como as outras mensagens (`reminder24h`, `reminder1h`, `reminderConfirmed`, `reminderGone`).
+
+## E11, parte 1: Resultados (M9 mínimo) e modo escuro
+
+- **Tela Resultados** (quinta aba): horários marcados pelo robô e pelo painel, realizados, faltas, cancelados, taxa de faltas, novos contatos, pedidos para falar com a dona, pedidos de "parar", confirmações pelo lembrete, clientes em cada etapa e (com mais de uma profissional) atendimentos por profissional. Períodos de 7, 30 ou 90 dias, contando hoje, no fuso do negócio. São as medidas do portão da piloto.
+- **Calculado na hora, sem tabela de relatório**: contagens agrupadas nas tabelas do próprio negócio (RLS). Para o volume de um estúdio, é rápido; se crescer, vira visão materializada.
+- **Taxa de faltas = faltaram ÷ (realizados + faltaram)**, só com atendimentos que já passaram. Sem base, a tela explica que aparece depois dos primeiros atendimentos.
+- **"Marcados" conta pela data em que a cliente marcou**; realizados, faltas e cancelados contam pela data do horário.
+- **Modo escuro** (pedido do JP em 27/10/2026): em Conta, "Claro", "Escuro" ou "Igual ao celular". Padrão: claro. A escolha fica só no aparelho (`localStorage`), porque é preferência visual.
+- **Cores do tema escuro saem da marca**: fundo Tinta; superfícies são Tinta misturada com um pouco de Lavanda (`color-mix`), como as sombras são derivadas da Tinta. Roxo em texto vira Lavanda; a seleção (abas de período, etapa atual) fica em Lavanda com texto Tinta. Contraste conferido: menor caso 5,2:1 (Lavanda sobre superfície).
+- **As telas usam papéis de cor** (`--cor-fundo`, `--cor-superficie`, `--cor-texto`…), que no tema claro apontam para as cores da marca de sempre. O visual claro não mudou.
+- **Logo no escuro:** o "feito pela nexo" usa a versão oficial para fundo escuro. Cabeçalho e login já usavam essa versão.

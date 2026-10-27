@@ -7,8 +7,8 @@
 html,
 body {
   margin: 0;
-  background: var(--papel);
-  color: var(--tinta);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
   font-family: var(--fonte-texto);
   font-size: 16px;
   line-height: 1.5;
@@ -23,10 +23,10 @@ h3 {
 }
 
 a {
-  color: var(--azul-elo);
+  color: var(--cor-link);
 }
 
 :focus-visible {
-  outline: 3px solid var(--roxo-nexo);
+  outline: 3px solid var(--cor-foco);
   outline-offset: 2px;
 }

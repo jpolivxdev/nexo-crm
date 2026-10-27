@@ -31,11 +31,13 @@ import {
   createContactBody,
   moveDealBody,
   replyBody,
+  reportQuery,
   rescheduleBody,
   slotsQuery,
   statusBody,
   updateContactBody,
 } from './panel.schemas.js';
+import { ReportService } from '../report/report.service.js';
 import { PanelService } from './panel.service.js';
 
 function parse<T extends z.ZodType>(schema: T, value: unknown): z.infer<T> {
@@ -58,6 +60,7 @@ export class PanelController {
     @Inject(SchedulingService) private readonly scheduling: SchedulingService,
     @Inject(ConversationService) private readonly conversations: ConversationService,
     @Inject(RealtimeBus) private readonly bus: RealtimeBus,
+    @Inject(ReportService) private readonly reports: ReportService,
   ) {}
 
   private tenant(req: AuthedRequest): string {
@@ -71,6 +74,12 @@ export class PanelController {
   @Get('today')
   today(@Req() req: AuthedRequest) {
     return this.panel.today(this.tenant(req));
+  }
+
+  @Get('report')
+  report(@Req() req: AuthedRequest, @Query() query: unknown) {
+    const { days } = parse(reportQuery, query);
+    return this.reports.summary(this.tenant(req), days);
   }
 
   @Get('agenda')
