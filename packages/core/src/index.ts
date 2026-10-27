@@ -26,3 +26,26 @@ export {
   type LocalDate,
   type ZonedParts,
 } from './scheduling/timezone.js';
+export {
+  handle as handleBotMessage,
+  type AppointmentSummary,
+  type BookResult,
+  type BotAction,
+  type BotContext,
+  type BotInput,
+  type BotPorts,
+  type BotResult,
+  type BotState,
+  type BotStep,
+  type FaqItem,
+  type ProfessionalOption,
+  type ServiceOption,
+} from './bot/machine.js';
+export {
+  DEFAULT_MESSAGES,
+  render,
+  type MessageKey,
+  type MessageOverrides,
+} from './bot/messages.js';
+export { choices, LIMITS, type Choice, type OutgoingMessage } from './bot/outgoing.js';
+export { globalCommand, normalize } from './bot/text.js';

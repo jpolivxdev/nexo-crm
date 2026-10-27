@@ -51,7 +51,14 @@ export class SchedulingService {
   /** Horários livres de um serviço num dia (no fuso do negócio). */
   listSlots(
     tenantId: string,
-    input: { serviceId: string; date: LocalDate; professionalId?: string; now?: Date },
+    input: {
+      serviceId: string;
+      date: LocalDate;
+      professionalId?: string;
+      now?: Date;
+      /** Na remarcação, o horário atual da cliente não conta como ocupado. */
+      ignoreAppointmentId?: string;
+    },
   ): Promise<FreeSlot[]> {
     return this.db.withTenant(tenantId, (tx) =>
       this.computeSlots(tx, tenantId, { ...input, now: input.now ?? new Date() }),
