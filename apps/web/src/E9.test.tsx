@@ -224,7 +224,7 @@ describe('E9 no painel', () => {
           body: {
             tenantId: 'x',
             ownerEmail: 'dona@exemplo.test',
-            temporaryPassword: 'Provisoria-Teste-1',
+            temporaryPassword: 'senha-provisoria-teste',
           },
         };
       if (url.endsWith('/admin/tenants')) return { status: 200, body: tenants };
@@ -253,9 +253,9 @@ describe('E9 no painel', () => {
     await userEvent.type(screen.getByLabelText('Nome da dona'), 'Dona Teste');
     await userEvent.type(screen.getByLabelText('E-mail da dona (login)'), 'dona@exemplo.test');
     await userEvent.click(screen.getByRole('button', { name: 'Criar' }));
-    expect(await screen.findByText('Provisoria-Teste-1')).toBeInTheDocument();
+    expect(await screen.findByText('senha-provisoria-teste')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Já anotei' }));
-    expect(screen.queryByText('Provisoria-Teste-1')).toBeNull();
+    expect(screen.queryByText('senha-provisoria-teste')).toBeNull();
 
     await userEvent.click(screen.getByRole('button', { name: 'Entrar para dar suporte' }));
     await userEvent.type(screen.getByLabelText('Motivo'), 'curto');
