@@ -44,6 +44,9 @@ model Tenant {
   slotStepMinutes  Int @default(30) @map("slot_step_minutes")
   /// Antecedência mínima para marcar.
   minNoticeMinutes Int @default(60) @map("min_notice_minutes")
+  /// Cronômetro do onboarding: quando o negócio foi criado pela nexo e quando a dona terminou de configurar.
+  onboardingStartedAt   DateTime? @map("onboarding_started_at") @db.Timestamptz
+  onboardingCompletedAt DateTime? @map("onboarding_completed_at") @db.Timestamptz
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -63,6 +66,10 @@ model Session {
   id         String   @id
   userId     String   @map("user_id") @db.Uuid
   csrfToken  String   @map("csrf_token")
+  /// Entrada controlada do admin nexo num negócio: qual, até quando e por quê (também na auditoria).
+  actingTenantId String?   @map("acting_tenant_id") @db.Uuid
+  actingUntil    DateTime? @map("acting_until") @db.Timestamptz
+  actingReason   String?   @map("acting_reason")
   expiresAt  DateTime @map("expires_at") @db.Timestamptz
   lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
@@ -94,6 +101,8 @@ model User {
   failedLoginCount  Int       @default(0) @map("failed_login_count")
   lockedUntil       DateTime? @map("locked_until") @db.Timestamptz
   passwordChangedAt DateTime  @default(now()) @map("password_changed_at") @db.Timestamptz
+  /// Senha provisória (criada pela nexo): precisa trocar no primeiro acesso.
+  mustChangePassword Boolean  @default(false) @map("must_change_password")
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -109,6 +118,19 @@ model User {
 /// Rota do canal: qual negócio atende cada número do WhatsApp (phone_number_id da Meta).
 /// Sem RLS por negócio porque o webhook precisa descobrir o negócio antes de saber qual é.
 /// Guarda só identificadores técnicos, nenhum dado pessoal.
+/// Lista de negócios para o admin nexo (só nome e datas, nada de cliente final).
+/// Fora do RLS e só leitura para a aplicação; preenchida por gatilho a partir de tenants.
+model TenantDirectory {
+  id                    String    @id @db.Uuid
+  name                  String
+  niche                 String
+  createdAt             DateTime  @map("created_at") @db.Timestamptz
+  onboardingStartedAt   DateTime? @map("onboarding_started_at") @db.Timestamptz
+  onboardingCompletedAt DateTime? @map("onboarding_completed_at") @db.Timestamptz
+
+  @@map("tenant_directory")
+}
+
 model ChannelRoute {
   channel       String
   externalId    String   @map("external_id")

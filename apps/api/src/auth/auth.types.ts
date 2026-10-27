@@ -5,10 +5,15 @@ import type { Role } from '../generated/prisma/client.js';
 export interface AuthContext {
   sessionId: string;
   userId: string;
+  /** Negócio da sessão. Para admin nexo, só durante uma entrada controlada (com motivo). */
   tenantId: string | null;
   role: Role;
   name: string;
   csrfToken: string;
+  /** Senha provisória: só pode trocar a senha até resolver isso. */
+  mustChangePassword: boolean;
+  /** Entrada controlada do admin nexo num negócio, se houver. */
+  acting: { tenantId: string; until: Date } | null;
 }
 
 export interface AuthedRequest extends Request {

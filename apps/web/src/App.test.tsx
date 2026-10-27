@@ -17,7 +17,15 @@ function mockApi(handler: Handler) {
   return fetchMock;
 }
 
-const ME = { name: 'Ana (demo)', role: 'OWNER', csrfToken: 'csrf-teste' };
+const ME = {
+  name: 'Ana (demo)',
+  role: 'OWNER',
+  csrfToken: 'csrf-teste',
+  mustChangePassword: false,
+  businessName: 'Estúdio Exemplo (demo)',
+  onboardingPending: false,
+  acting: null,
+};
 const TODAY = {
   date: '2031-01-07',
   businessName: 'Estúdio Exemplo (demo)',

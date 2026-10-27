@@ -41,6 +41,19 @@ npm run simulator -w @nexo/api       # você é a cliente no "WhatsApp" do termi
 No simulador, escreva "oi" e responda com o número das opções. O painel aberto no navegador
 atualiza sozinho. Para ver como celular, use o modo de dispositivo do navegador (360 px).
 
+### Admin nexo (opcional)
+
+Defina `FIELD_ENCRYPTION_KEY` no `.env` (o comando para gerar está no `.env.example`) e rode:
+
+```bash
+npm run build -w @nexo/api
+npm run admin:create -w @nexo/api -- admin@exemplo.test "Seu nome"
+```
+
+Ele mostra uma senha provisória e o segredo do 2FA (uma vez só). Cadastre o segredo num app
+autenticador e entre no painel: a área do admin lista os negócios, cria negócio novo (com senha
+provisória para a dona) e permite entrar num negócio para suporte, com motivo e código.
+
 ## Verificações (as mesmas da CI)
 
 ```bash
