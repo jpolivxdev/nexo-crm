@@ -29,6 +29,10 @@ const REPORT = (days: number) => ({
     { id: 's2', name: 'Agendou', count: 2 },
   ],
   byProfessional: [{ id: 'p1', name: 'Profissional Exemplo (demo)', count: 4 }],
+  daily: [
+    { date: '2031-01-14', booked: 2, done: 1 },
+    { date: '2031-01-15', booked: 3, done: 0 },
+  ],
 });
 
 function mockApi() {

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
@@ -44,6 +44,15 @@ const TODAY = {
   ],
   handoffs: [],
   tasks: [],
+  activity: [
+    {
+      id: 'e1',
+      type: 'appointment.created',
+      actorType: 'contact',
+      createdAt: '2031-01-06T22:30:00.000Z',
+      contact: { id: 'c1', name: 'Cliente Teste', phone: '5500900000001' },
+    },
+  ],
 };
 
 afterEach(() => {
@@ -96,14 +105,38 @@ describe('painel', () => {
 
     render(<App />);
     expect(await screen.findByText('09:00')).toBeInTheDocument();
-    expect(screen.getByText('Cliente Teste')).toBeInTheDocument();
+    const slots = screen.getByRole('region', { name: 'Horários marcados' });
+    expect(within(slots).getByText('Cliente Teste')).toBeInTheDocument();
     expect(screen.getByText('Marcado')).toBeInTheDocument();
+    // O que aconteceu: nome da cliente + o acontecimento em português.
+    const activity = screen.getByRole('region', { name: 'O que aconteceu' });
+    expect(within(activity).getByText('marcou um horário pelo WhatsApp')).toBeInTheDocument();
+    expect(within(activity).getByRole('button', { name: 'Cliente Teste' })).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Realizado' }));
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Realizado' })).toBeNull());
     expect(screen.getByText('Realizado')).toBeInTheDocument();
     const call = fetchMock.mock.calls.find(([url]) => String(url).includes('/status'))!;
     expect((call[1]?.headers as Record<string, string>)['x-csrf-token']).toBe('csrf-teste');
+  });
+
+  it('menu lateral: recolhe, continua com nome para leitor de tela e lembra a escolha', async () => {
+    mockApi((url) => {
+      if (url.endsWith('/auth/me')) return { status: 200, body: ME };
+      if (url.includes('/panel/today')) return { status: 200, body: TODAY };
+      return { status: 404, body: {} };
+    });
+
+    render(<App />);
+    const menu = await screen.findByRole('complementary', { name: 'Menu' });
+    expect(within(menu).getByRole('link', { name: 'Agenda' })).toHaveAttribute('href', '#/agenda');
+    await userEvent.click(within(menu).getByRole('button', { name: 'Recolher o menu' }));
+    const open = within(menu).getByRole('button', { name: 'Abrir o menu' });
+    expect(open).toHaveAttribute('aria-expanded', 'false');
+    expect(within(menu).getByRole('link', { name: 'Agenda' })).toBeInTheDocument();
+    expect(window.localStorage.getItem('nexo-menu-recolhido')).toBe('1');
+    await userEvent.click(open);
+    expect(window.localStorage.getItem('nexo-menu-recolhido')).toBe('0');
   });
 
   it('mensagem da cliente aparece como texto, nunca como HTML', async () => {

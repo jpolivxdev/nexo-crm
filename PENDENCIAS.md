@@ -47,3 +47,7 @@ Lista do que depende dos sócios. Atualizada em 26/10/2026. Quando um item for r
 ## Do JP
 - Criar o repositório `nexo-crm` no seu GitHub (eu não consigo criar repositórios daqui) e avisar.
 - Aprovar o plano (arquitetura + segurança) para começar o código.
+
+## Planos (27/10/2026)
+- Divisão escolhida pelo Jandoza: Grátis / CRM / Completo (CRM + agenda + robô). Falta o Coca definir preço, desconto anual e o limite de clientes do Grátis.
+- Trava por plano no servidor: hoje a tela de planos é só visual e todo negócio tem tudo. Antes de abrir o Grátis, cada rota da agenda e do robô precisa checar o plano na API (não basta esconder o botão na tela).

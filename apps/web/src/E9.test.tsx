@@ -37,6 +37,7 @@ const TODAY = {
   appointments: [],
   handoffs: [],
   tasks: [],
+  activity: [],
 };
 
 afterEach(() => {
