@@ -12,3 +12,4 @@ coverage/
 
 # Código gerado pelo Prisma (npm install gera de novo)
 apps/api/src/generated/
+*.tsbuildinfo
