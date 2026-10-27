@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { addDays, dayRangeUtc, todayIn } from '@nexo/core';
+import { addDays, dayRangeUtc, todayIn, utcToZoned, type LocalDate } from '@nexo/core';
 import { PrismaService } from '../database/prisma.service.js';
 
 /** Períodos que o painel oferece. */
@@ -10,6 +10,35 @@ export type ReportPeriod = (typeof REPORT_PERIODS)[number];
 export function noShowRate(done: number, noShow: number): number | null {
   const base = done + noShow;
   return base === 0 ? null : Math.round((noShow / base) * 100);
+}
+
+export interface DailyCount {
+  date: LocalDate;
+  /** Horários marcados naquele dia (pela data em que a cliente marcou). */
+  booked: number;
+  /** Atendimentos realizados naquele dia (pela data do horário). */
+  done: number;
+}
+
+/** Um ponto por dia do período, inclusive os dias sem nada (zero), no fuso do negócio. */
+export function dailySeries(
+  from: LocalDate,
+  to: LocalDate,
+  timeZone: string,
+  booked: Date[],
+  done: Date[],
+): DailyCount[] {
+  const days = new Map<LocalDate, DailyCount>();
+  for (let d = from; d <= to; d = addDays(d, 1)) days.set(d, { date: d, booked: 0, done: 0 });
+  for (const at of booked) {
+    const day = days.get(utcToZoned(at, timeZone).date);
+    if (day) day.booked += 1;
+  }
+  for (const at of done) {
+    const day = days.get(utcToZoned(at, timeZone).date);
+    if (day) day.done += 1;
+  }
+  return [...days.values()];
 }
 
 /**
@@ -44,6 +73,15 @@ export class ReportService {
         by: ['status'],
         where: { startsAt: past },
         _count: { _all: true },
+      });
+      // Só as datas, para o gráfico por dia. No volume de um estúdio, 90 dias cabem com folga.
+      const bookedDates = await tx.appointment.findMany({
+        where: { createdAt: range },
+        select: { createdAt: true },
+      });
+      const doneDates = await tx.appointment.findMany({
+        where: { startsAt: past, status: 'DONE' },
+        select: { startsAt: true },
       });
       const events = await tx.event.groupBy({
         by: ['type', 'actorType'],
@@ -97,6 +135,13 @@ export class ReportService {
         handoffs: eventCount('handoff.requested'),
         optOuts: eventCount('contact.opted_out'),
         confirmedByClient: eventCount('appointment.confirmed', 'contact'),
+        daily: dailySeries(
+          from,
+          to,
+          tenant.timezone,
+          bookedDates.map((a) => a.createdAt),
+          doneDates.map((a) => a.startsAt),
+        ),
         byStage: stages.map((s) => ({ id: s.id, name: s.name, count: s._count.deals })),
         byProfessional: byProfessional
           .map((p) => ({

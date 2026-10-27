@@ -8,6 +8,30 @@ import { RealtimeBus } from '../realtime/realtime.bus.js';
 
 const WHATSAPP_WINDOW_MS = 24 * 60 * 60 * 1000;
 
+/** Acontecimentos que aparecem em "O que aconteceu" no Hoje. O resto fica só na ficha. */
+export const ACTIVITY_TYPES = [
+  'contact.created',
+  'appointment.created',
+  'appointment.rescheduled',
+  'appointment.confirmed',
+  'appointment.cancelled',
+  'appointment.done',
+  'appointment.no_show',
+  'handoff.requested',
+  'contact.opted_out',
+] as const;
+
+const ACTIVITY_LIMIT = 8;
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Cliente do evento, lido do payload (JSON) só se for um ID válido. */
+function eventContactId(payload: unknown): string | null {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null;
+  const id = (payload as Record<string, unknown>).contactId;
+  return typeof id === 'string' && UUID.test(id) ? id : null;
+}
+
 const appointmentSelect = {
   id: true,
   startsAt: true,
@@ -68,6 +92,19 @@ export class PanelService {
           contact: { select: { id: true, name: true } },
         },
       });
+      const events = await tx.event.findMany({
+        where: { type: { in: [...ACTIVITY_TYPES] } },
+        orderBy: { createdAt: 'desc' },
+        take: ACTIVITY_LIMIT,
+        select: { id: true, type: true, actorType: true, createdAt: true, payload: true },
+      });
+      const contactIds = [
+        ...new Set(events.map((e) => eventContactId(e.payload)).filter((id) => id !== null)),
+      ];
+      const contacts = await tx.contact.findMany({
+        where: { id: { in: contactIds } },
+        select: { id: true, name: true, phone: true },
+      });
       return {
         date,
         businessName: tenant.name,
@@ -80,6 +117,17 @@ export class PanelService {
           lastMessage: h.messages[0] ?? null,
         })),
         tasks,
+        // Só o tipo, quem fez e a cliente: o payload inteiro não sai para a tela.
+        activity: events.map((e) => {
+          const contactId = eventContactId(e.payload);
+          return {
+            id: e.id,
+            type: e.type,
+            actorType: e.actorType,
+            createdAt: e.createdAt,
+            contact: contacts.find((c) => c.id === contactId) ?? null,
+          };
+        }),
       };
     });
   }
