@@ -104,6 +104,8 @@ export interface BotPorts {
   upcoming(): Promise<AppointmentSummary[]>;
   reschedule(q: { appointmentId: string; startsAt: Date }): Promise<BookResult>;
   cancel(appointmentId: string): Promise<void>;
+  /** A cliente confirmou pelo lembrete. */
+  confirm(appointmentId: string): Promise<void>;
 }
 
 export type BotAction =
@@ -427,6 +429,9 @@ async function onChoice(turn: Turn, id: string): Promise<boolean> {
     return true;
   }
 
+  // Botões do lembrete (rem:confirm:<id>, rem:reschedule:<id>, rem:cancel:<id>) valem em qualquer passo.
+  if (kind === 'rem') return onReminderChoice(turn, value);
+
   if (kind === 'more' && ['service', 'date', 'time'].includes(s.step)) {
     const page = Number(value);
     if (!Number.isInteger(page) || page < 0) return false;
@@ -535,6 +540,40 @@ async function onChoice(turn: Turn, id: string): Promise<boolean> {
     default:
       return false;
   }
+}
+
+async function onReminderChoice(turn: Turn, value: string): Promise<boolean> {
+  const [action, appointmentId] = splitId(value);
+  if (!['confirm', 'reschedule', 'cancel'].includes(action)) return false;
+  // Só horários ativos desta cliente: o id veio de fora.
+  const appt = await findUpcoming(turn, appointmentId);
+  if (!appt) {
+    turn.say(turn.t('reminderGone'));
+    turn.go({ step: 'start' });
+    return true;
+  }
+  if (action === 'confirm') {
+    await turn.ports.confirm(appt.id);
+    const vars = apptVars(turn, appt);
+    turn.say(turn.t('reminderConfirmed', vars));
+    turn.go({ step: 'start' });
+    return true;
+  }
+  if (action === 'reschedule') {
+    await askDate(turn, {
+      step: 'date',
+      flow: 'reschedule',
+      serviceId: appt.serviceId,
+      appointmentId: appt.id,
+    });
+    return true;
+  }
+  turn.ask(turn.t('cancelConfirm', apptVars(turn, appt)), [
+    { id: 'cancel:yes', title: turn.t('cancelYes') },
+    { id: 'cancel:no', title: turn.t('cancelNo') },
+  ]);
+  turn.go({ step: 'cancel_confirm', appointmentId: appt.id });
+  return true;
 }
 
 async function confirmBooking(turn: Turn, s: BotState): Promise<boolean> {

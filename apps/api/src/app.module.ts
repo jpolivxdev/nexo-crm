@@ -11,6 +11,7 @@ import { loggerParams } from './logger.js';
 import { PanelModule } from './panel/panel.module.js';
 import { QueueModule } from './queue/queue.module.js';
 import { RealtimeModule } from './realtime/realtime.module.js';
+import { ReminderModule } from './reminders/reminder.module.js';
 import { SetupModule } from './setup/setup.module.js';
 import { SchedulingModule } from './scheduling/scheduling.module.js';
 
@@ -32,6 +33,7 @@ export class AppModule {
         PanelModule,
         SetupModule,
         AdminModule,
+        ReminderModule,
       ],
       controllers: [HealthController],
       providers: [{ provide: ENV, useValue: env }],
