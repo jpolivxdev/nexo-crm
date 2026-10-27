@@ -2,7 +2,7 @@
 
 Atendimento e agendamento pelo WhatsApp com um CRM simples por trás, para pequenos negócios. Projeto da nexo, em construção (Fase 1, MVP piloto).
 
-O contexto completo está em [CLAUDE.md](CLAUDE.md). Segurança em [SEGURANCA.md](SEGURANCA.md). O que falta decidir em [PENDENCIAS.md](PENDENCIAS.md).
+O contexto completo está em [CLAUDE.md](CLAUDE.md). Segurança em [SEGURANCA.md](SEGURANCA.md). O que falta decidir em [PENDENCIAS.md](PENDENCIAS.md). Como colocar no ar em [DEPLOY.md](DEPLOY.md); custos e opções de hospedagem em [CUSTOS.md](CUSTOS.md).
 
 ## Estrutura
 

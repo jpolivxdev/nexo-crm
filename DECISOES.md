@@ -153,3 +153,11 @@ Cada decisão com data, quem decidiu e o motivo.
 - **As telas usam papéis de cor** (`--cor-fundo`, `--cor-superficie`, `--cor-texto`…), que no tema claro apontam para as cores da marca de sempre. O visual claro não mudou.
 - **Logo no escuro:** o "feito pela nexo" usa a versão oficial para fundo escuro. Cabeçalho e login já usavam essa versão.
 - **Fundo animado no login** (pedido do JP em 27/10/2026): componente "Data Rain" do 21st.dev, só na tela de login. Entrou **sem Tailwind e sem shadcn**: o componente só usa as próprias classes (`dr-*`), que ficaram em `App.css`; trazer Tailwind para um componente mudaria o build inteiro e conviveria mal com os tokens da marca. Ficou em `components/DataRain.tsx`, como os outros componentes do projeto (o `components/ui.tsx` já existe, então uma pasta `ui/` daria conflito de nome no import). Cores trocadas pelas da marca (Lavanda, Azul Elo, Lilás sobre Tinta). Com "reduzir movimento", desenha um quadro parado; com a aba escondida, para de animar. Nos testes (jsdom), o canvas não liga.
+
+## E11, parte 2: imagem de produção e custos
+
+- **Um processo só em produção** (API + worker + painel), numa imagem Docker. O painel é servido pela própria API na raiz e a API fica em `/api` (`WEB_DIST_DIR`). Mesma origem: sem CORS e com o cookie `SameSite=Strict` funcionando. No desenvolvimento nada muda (o Vite continua mandando `/api` para a API).
+- **Duas políticas de CSP:** a API continua com `default-src 'none'`; o painel só aceita arquivos da própria origem, sem script inline (só atributo `style` liberado, para a largura das barras). Teste automatizado confere as duas.
+- **Arquivos com hash ficam em cache por 1 ano; `index.html` e `sw.js` sempre revalidam**, para versão nova chegar na hora.
+- **A imagem roda como `node`, não root**, e traz o CLI do Prisma para migrar com o mesmo build. A CI constrói a imagem a cada PR (não publica).
+- **Hospedagem ainda não escolhida.** Três opções com preço oficial em `CUSTOS.md`; recomendação: Railway no piloto. Decisão do Coca (teto de gasto).
