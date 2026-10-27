@@ -1,5 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="nexo">
-  <rect width="512" height="512" rx="112" fill="#100C24"/>
-  <path d="M152 360V176h56l96 116V176h56v184h-56l-96-116v116z" fill="#FAF9FD"/>
-  <circle cx="380" cy="148" r="28" fill="#6A1FE8"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="512" height="512"><path d="M18 52 V30 a14 14 0 0 1 28 0 V32" fill="none" stroke="#100C24" stroke-width="9" stroke-linecap="round"/><circle cx="46" cy="48" r="6.5" fill="#6A1FE8"/></svg>

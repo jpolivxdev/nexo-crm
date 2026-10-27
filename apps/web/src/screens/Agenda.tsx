@@ -1,3 +1,4 @@
+import { CalendarX2 } from 'lucide-react';
 import { useState } from 'react';
 import { AppointmentCard } from '../components/AppointmentCard';
 import { Banner, Empty, Loading } from '../components/ui';
@@ -117,7 +118,9 @@ export function Agenda({ go }: { go: (to: string) => void }) {
       ) : error ? (
         <Banner>{error}</Banner>
       ) : dayList.length === 0 ? (
-        <Empty title="Nenhum horário nos próximos 30 dias" />
+        <Empty title="Nenhum horário nos próximos 30 dias" icon={<CalendarX2 size={24} />}>
+          Os horários marcados pelo WhatsApp ou por você aparecem aqui.
+        </Empty>
       ) : (
         dayList.map((day) => (
           <section key={day} className="section" aria-label={localDateLabel(day)}>

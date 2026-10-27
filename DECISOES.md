@@ -22,7 +22,7 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Prisma 7.10 (estável), não o 8 (release candidate).** Será instalado na E2.
 - **Fontes servidas pelo próprio painel (@fontsource)**, sem chamar o Google Fonts. Motivo: menos dado de visitante saindo para terceiros e CSP mais simples.
 - **`multer` forçado para 2.5.0** (via `overrides`). Motivo: a versão que vem com o NestJS 12.2 tem uma vulnerabilidade alta (GHSA-q7qp-rjg7-q26m).
-- **Logo:** o painel ainda não usa os SVGs oficiais (não estão no repositório). Mostra só "feito pela nexo" em texto. Nada de redesenhar o logo.
+- **Logo:** os 4 SVGs oficiais ficam em `apps/web/src/assets/brand`, sem alteração. No painel, o logo vai inline (`components/Brand.tsx`, mesmo desenho) para o "nexo" usar a Sora carregada pela página. O ícone do app é o símbolo oficial.
 
 ## E2 (banco multi-negócio)
 
@@ -120,3 +120,12 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Troca de senha** pela tela Conta: pede a atual, encerra as outras sessões e emite um cookie novo.
 - **Primeiro admin** pelo terminal: `npm run admin:create -w @nexo/api -- email "Nome"`. Mostra senha provisória e o segredo do 2FA uma vez.
 - **Medido no navegador a 360 px:** admin cria negócio, entra com motivo e sai; a dona troca a senha provisória e conclui o assistente; o serviço cadastrado aparece no "Marcar horário". Sem rolagem lateral. O tempo real da piloto vai ser medido com ela (o cronômetro já registra).
+
+## Visual do painel (27/10/2026)
+
+- **Cabeçalho escuro (Tinta) com o nome do negócio** e botões de Conta e Sair; navegação de baixo branca com ícones (lucide-react) e a seção atual destacada em Lilás e Roxo.
+- **Hoje começa com um resumo** (horários, esperando você, a fazer); "esperando você" fica em Roxo quando há alguém.
+- **Cartões com sombra leve e cantos de 16 px**, horário em bloco Lilás, ações lado a lado. Estados vazios com ícone e próximo passo.
+- **Login com o logo oficial** sobre fundo Tinta e o formulário num cartão. "feito pela nexo" com o símbolo no rodapé.
+- **Sombras e cantos viram tokens** (`--sombra-1`, `--sombra-2`, `--raio`), feitos só com a Tinta. Nenhuma cor nova.
+- Acessibilidade mantida: toque de 44 px ou mais, foco visível, contraste 4,5:1, nada só por cor, respeita "reduzir movimento".

@@ -1,3 +1,4 @@
+import { Users } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { Banner, Empty, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
@@ -49,7 +50,10 @@ export function Contacts({ go }: { go: (to: string) => void }) {
       ) : error ? (
         <Banner>{error}</Banner>
       ) : !data?.length ? (
-        <Empty title={q ? 'Nenhuma cliente encontrada' : 'Nenhuma cliente ainda'}>
+        <Empty
+          title={q ? 'Nenhuma cliente encontrada' : 'Nenhuma cliente ainda'}
+          icon={<Users size={24} />}
+        >
           {q
             ? 'Confira o nome ou o telefone.'
             : 'Quem mandar mensagem no WhatsApp entra aqui sozinha.'}
