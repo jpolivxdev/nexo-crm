@@ -2,6 +2,7 @@ import { type FormEvent, useState } from 'react';
 import { ApiError } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { MadeByNexo, NexoLogo } from '../components/Brand';
+import DataRain from '../components/DataRain';
 import { Banner } from '../components/ui';
 
 export function Login() {
@@ -33,6 +34,7 @@ export function Login() {
 
   return (
     <main className="login">
+      <DataRain className="login__rain" />
       <div className="login__hero">
         <NexoLogo fundo="escuro" height={36} />
         <p>Agenda, clientes e conversas do seu negócio, num lugar só.</p>
@@ -79,7 +81,7 @@ export function Login() {
           </button>
         </form>
       </div>
-      <MadeByNexo />
+      <MadeByNexo fundo="escuro" />
     </main>
   );
 }
