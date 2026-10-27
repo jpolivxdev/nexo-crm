@@ -61,7 +61,7 @@ export async function createDemoTenant(
         name: template.name,
         isDefault: true,
         stages: {
-          create: template.stages.map((stage, position) => ({ tenantId, position, ...stage })),
+          create: template.stages.map((stage, position) => ({ position, ...stage })),
         },
       },
       include: { stages: { orderBy: { position: 'asc' } } },

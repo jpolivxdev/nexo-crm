@@ -125,6 +125,51 @@ describe('isolamento entre negócios (RLS)', () => {
     ).rejects.toThrow();
   });
 
+  it('toda ligação entre tabelas de negócio inclui o tenant_id', async () => {
+    // Chave estrangeira não passa pelo RLS; sem tenant_id na chave, daria para apontar para outro negócio.
+    const loose = await prisma.$queryRaw<{ constraint: string }[]>`
+      SELECT con.conname AS constraint
+      FROM pg_constraint con
+      JOIN pg_class src ON src.oid = con.conrelid
+      JOIN pg_class dst ON dst.oid = con.confrelid
+      JOIN pg_attribute src_tenant ON src_tenant.attrelid = src.oid AND src_tenant.attname = 'tenant_id'
+      JOIN pg_attribute dst_tenant ON dst_tenant.attrelid = dst.oid AND dst_tenant.attname = 'tenant_id'
+      WHERE con.contype = 'f'
+        AND NOT (src_tenant.attnum = ANY (con.conkey) AND dst_tenant.attnum = ANY (con.confkey))`;
+    expect(loose.map((c) => c.constraint)).toEqual([]);
+  });
+
+  it('o negócio A não grava registros apontando para registros do B', async () => {
+    await expect(
+      withTenant(prisma, a.tenantId, (tx) =>
+        tx.appointment.create({
+          data: {
+            tenantId: a.tenantId,
+            contactId: b.contactIds[0]!,
+            serviceId: a.serviceIds[0]!,
+            professionalId: a.professionalId,
+            startsAt: new Date('2032-01-06T13:00:00Z'),
+            endsAt: new Date('2032-01-06T14:00:00Z'),
+            source: 'PANEL',
+          },
+        }),
+      ),
+    ).rejects.toThrow();
+
+    await expect(
+      withTenant(prisma, a.tenantId, (tx) =>
+        tx.consent.create({
+          data: {
+            tenantId: a.tenantId,
+            contactId: b.contactIds[0]!,
+            kind: 'OPT_OUT',
+            channel: 'whatsapp',
+          },
+        }),
+      ),
+    ).rejects.toThrow();
+  });
+
   it('recusa tenantId que não é UUID', async () => {
     await expect(withTenant(prisma, "x' OR '1'='1", async () => null)).rejects.toThrow(
       'tenantId inválido.',
