@@ -858,6 +858,108 @@ textarea:focus-visible {
   color: var(--cor-texto-suave);
 }
 
+/* Login em vidro sobre o fundo animado (modelo do 21st.dev, sem Tailwind) */
+.glass-card {
+  position: relative;
+  margin-top: -40px;
+  padding: 28px 22px 24px;
+  border-radius: 20px;
+  border: 1px solid rgb(255 255 255 / 20%);
+  background: rgb(255 255 255 / 10%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 24px 48px rgb(16 12 36 / 50%);
+  color: var(--branco);
+}
+
+.glass-card h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.glass-card__lead {
+  margin: 6px 0 24px;
+  text-align: center;
+  color: var(--lilas);
+}
+
+.glass-form {
+  display: grid;
+  gap: 28px;
+}
+
+/* Campo com a etiqueta que sobe quando tem foco ou texto */
+.float-field {
+  position: relative;
+  z-index: 0;
+}
+
+.float-field input {
+  min-height: 48px;
+  padding: 18px 0 6px;
+  border: 0;
+  border-bottom: 2px solid rgb(239 234 255 / 70%);
+  border-radius: 0;
+  background: transparent;
+  color: var(--branco);
+  box-shadow: none;
+}
+
+.float-field input:focus {
+  border-bottom-color: var(--lavanda);
+  box-shadow: none;
+}
+
+.float-field input:focus-visible {
+  outline: 3px solid var(--lavanda);
+  outline-offset: 4px;
+}
+
+.float-field label {
+  position: absolute;
+  top: 18px;
+  left: 0;
+  z-index: -1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--lilas);
+  transform-origin: left top;
+  transition:
+    transform 0.25s ease,
+    color 0.25s ease;
+  pointer-events: none;
+}
+
+.float-field input:focus + label,
+.float-field input:not(:placeholder-shown) + label {
+  transform: translateY(-22px) scale(0.8);
+}
+
+.float-field input:focus + label {
+  color: var(--lavanda);
+}
+
+.glass-form__submit {
+  gap: 8px;
+}
+
+.glass-form__arrow {
+  transition: transform 0.2s ease;
+}
+
+.glass-form__submit:hover .glass-form__arrow {
+  transform: translateX(4px);
+}
+
+.glass-card .banner {
+  margin: 0;
+  background: var(--lilas);
+  color: var(--tinta);
+}
+
 /* Plano e assinatura (só visual por enquanto) */
 .stack {
   display: grid;

@@ -1,3 +1,4 @@
+import { ArrowRight, KeyRound, Lock, User } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { ApiError } from '../lib/api';
 import { useAuth } from '../lib/auth';
@@ -39,45 +40,62 @@ export function Login() {
         <NexoLogo fundo="escuro" height={36} />
         <p>Agenda, clientes e conversas do seu negócio, num lugar só.</p>
       </div>
-      <div className="auth-card">
+      <div className="glass-card">
         <h1>Entrar no painel</h1>
-        <form onSubmit={submit} className="form" noValidate>
-          <label>
-            E-mail
+        <p className="glass-card__lead">Que bom te ver por aqui de novo.</p>
+        <form onSubmit={submit} className="glass-form" noValidate>
+          <div className="float-field">
             <input
+              id="login-email"
               type="email"
               autoComplete="username"
+              placeholder=" "
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-          </label>
-          <label>
-            Senha
+            <label htmlFor="login-email">
+              <User aria-hidden="true" size={16} />
+              E-mail
+            </label>
+          </div>
+          <div className="float-field">
             <input
+              id="login-senha"
               type="password"
               autoComplete="current-password"
+              placeholder=" "
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-          </label>
+            <label htmlFor="login-senha">
+              <Lock aria-hidden="true" size={16} />
+              Senha
+            </label>
+          </div>
           {needsTotp && (
-            <label>
-              Código do app autenticador
+            <div className="float-field">
               <input
+                id="login-totp"
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 pattern="\d{6}"
                 maxLength={6}
+                placeholder=" "
                 value={totp}
                 onChange={(e) => setTotp(e.target.value.replace(/\D/g, ''))}
               />
-            </label>
+              <label htmlFor="login-totp">
+                <KeyRound aria-hidden="true" size={16} />
+                Código do app autenticador
+              </label>
+            </div>
           )}
           {error && <Banner>{error}</Banner>}
-          <button type="submit" className="button" disabled={busy}>
+          <button type="submit" className="button glass-form__submit" disabled={busy}>
             {busy ? 'Entrando…' : 'Entrar'}
+            {!busy && <ArrowRight aria-hidden="true" size={20} className="glass-form__arrow" />}
           </button>
         </form>
       </div>
