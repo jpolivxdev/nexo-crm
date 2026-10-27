@@ -7,7 +7,7 @@ import {
   UserRound,
   Users,
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import './App.css';
 import { MadeByNexo, NexoLogo } from './components/Brand';
 import { Loading } from './components/ui';
@@ -22,6 +22,8 @@ import { Agenda } from './screens/Agenda';
 import { ChangePassword } from './screens/ChangePassword';
 import { ContactFile } from './screens/ContactFile';
 import { Contacts } from './screens/Contacts';
+import { ConfirmEmail, ForgotPassword, ResetPassword, Signup } from './screens/AuthPages';
+import { Landing } from './screens/Landing';
 import { Login } from './screens/Login';
 import { Pipeline } from './screens/Pipeline';
 import { Plans } from './screens/Plans';
@@ -45,8 +47,24 @@ export function App() {
   );
 }
 
+/** Telas abertas sem login. Os links dos e-mails valem mesmo com alguém logado no aparelho. */
+function publicScreen(route: string, loggedIn: boolean): ReactNode {
+  const [path, query = ''] = route.split('?');
+  const token = new URLSearchParams(query).get('token') ?? '';
+  if (path === '/nova-senha') return <ResetPassword token={token} />;
+  if (path === '/confirmar-email') return <ConfirmEmail token={token} />;
+  if (loggedIn) return null;
+  if (path === '/criar-conta') return <Signup />;
+  if (path === '/esqueci-senha') return <ForgotPassword />;
+  if (path === '/' || path === '') return <Landing />;
+  return <Login />;
+}
+
 function Shell() {
   const { me, loading, logout } = useAuth();
+  const [route] = useRoute();
+  const raw = route === '/hoje' && !window.location.hash.replace(/^#/, '') ? '/' : route;
+  const open = loading ? null : publicScreen(raw, !!me);
 
   if (loading) {
     return (
@@ -55,13 +73,10 @@ function Shell() {
       </div>
     );
   }
-  if (!me) {
-    return (
-      <div className="app app--auth">
-        <Login />
-      </div>
-    );
+  if (open) {
+    return raw === '/' ? open : <div className="app app--auth">{open}</div>;
   }
+  if (!me) return null;
   if (me.mustChangePassword) {
     return (
       <div className="app app--auth">

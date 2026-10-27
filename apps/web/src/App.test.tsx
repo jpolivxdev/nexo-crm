@@ -53,6 +53,7 @@ afterEach(() => {
 
 describe('painel', () => {
   it('sem sessão, mostra o login e entra com e-mail e senha', async () => {
+    window.location.hash = '/entrar';
     let logged = false;
     const fetchMock = mockApi((url, init) => {
       if (url.endsWith('/auth/me'))

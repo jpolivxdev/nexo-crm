@@ -23,6 +23,12 @@ Lista do que depende dos sócios. Atualizada em 26/10/2026. Quando um item for r
 - Desconto do plano anual: existe? Quanto?
 - Fazer funcionar depois: forma de cobrança (cartão, Pix, boleto) e provedor de pagamento, troca de plano, liberação de recursos por plano (o banco já tem `Tenant.plan` e feature flags), nota fiscal (depende do CNPJ) e o que acontece quando o pagamento atrasa.
 
+## Criar conta e e-mails (feito em 27/10/2026, falta decidir para produção)
+- Provedor de e-mail para produção (confirmar e-mail, esqueci a senha): escolher entre opções como Resend, Brevo ou Amazon SES, com preço conferido na página oficial de cada um. Precisa de um domínio da nexo para enviar (SPF/DKIM). Sem isso, em produção "Esqueci a senha" e "Criar conta" ficam escondidos.
+- Abrir o cadastro para qualquer pessoa (`SIGNUP_ENABLED=true`) ou deixar só a nexo criando contas na piloto? (sócios)
+- Texto dos termos de uso e da política de privacidade que a pessoa aceita no cadastro [CONFIRMAR COM ADVOGADO/CONTADOR] (item 4 abaixo).
+- O que fazer com contas criadas e nunca confirmadas (apagar depois de X dias?).
+
 ## Para levar a advogado ou contador
 1. A nexo é operadora e o negócio cliente é controlador dos dados das clientes finais? Como isso entra no contrato?
 2. Qual base legal usar para guardar nome, telefone e conversas das clientes finais (execução de contrato, legítimo interesse, consentimento)?
