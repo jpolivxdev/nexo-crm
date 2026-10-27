@@ -15,17 +15,8 @@ import {
 import { z } from 'zod';
 import type { AuthedRequest } from '../auth/auth.types.js';
 import { AdminGuard, SessionGuard } from '../auth/session.guard.js';
+import { NICHES } from '../setup/niches.js';
 import { AdminService } from './admin.service.js';
-
-export const NICHES = [
-  'cilios',
-  'salao',
-  'barbearia',
-  'estudio',
-  'clinica',
-  'pet',
-  'outro',
-] as const;
 
 const createTenantBody = z.object({
   name: z.string().trim().min(2).max(120),
