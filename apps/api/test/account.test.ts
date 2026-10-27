@@ -157,7 +157,7 @@ describe('criar conta, confirmar e-mail e esqueci a senha', () => {
     // Senha fraca não gasta o link.
     const reset = await post('/auth/password/reset', {
       token,
-      newPassword: 'nova-senha-bem-forte-456',
+      newPassword: 'senha-nova-senha-nova',
     });
     expect(reset.status).toBe(200);
     expect(
@@ -168,9 +168,9 @@ describe('criar conta, confirmar e-mail e esqueci a senha', () => {
       401,
     );
     expect((await post('/auth/login', { email, password: PASSWORD })).status).toBe(401);
-    expect(
-      (await post('/auth/login', { email, password: 'nova-senha-bem-forte-456' })).status,
-    ).toBe(200);
+    expect((await post('/auth/login', { email, password: 'senha-nova-senha-nova' })).status).toBe(
+      200,
+    );
   });
 
   it('o link de nova senha vence em 30 minutos e destrava a conta bloqueada', async () => {
@@ -183,7 +183,7 @@ describe('criar conta, confirmar e-mail e esqueci a senha', () => {
     });
     const expired = await post('/auth/password/reset', {
       token: tokenFor(email),
-      newPassword: 'nova-senha-bem-forte-456',
+      newPassword: 'senha-nova-senha-nova',
     });
     expect(expired.status).toBe(400);
     expect(expired.body.message).toContain('venceu');
@@ -195,13 +195,13 @@ describe('criar conta, confirmar e-mail e esqueci a senha', () => {
     await post('/auth/password/forgot', { email });
     await post('/auth/password/reset', {
       token: tokenFor(email),
-      newPassword: 'nova-senha-bem-forte-456',
+      newPassword: 'senha-nova-senha-nova',
     });
     const after = await prisma.user.findUniqueOrThrow({ where: { email } });
     expect(after.lockedUntil).toBeNull();
-    expect(
-      (await post('/auth/login', { email, password: 'nova-senha-bem-forte-456' })).status,
-    ).toBe(200);
+    expect((await post('/auth/login', { email, password: 'senha-nova-senha-nova' })).status).toBe(
+      200,
+    );
   });
 
   it('limita pedidos de e-mail por endereço', async () => {

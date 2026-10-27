@@ -2,3 +2,14 @@
 # (commit:arquivo:regra:linha). Só entra aqui dado fictício de teste, nunca segredo real.
 # Senha provisória fictícia num teste de tela (E9); trocada no commit seguinte.
 66aa8ca9f14ab5d125ceb3c4b0a5d2e55f989528:apps/web/src/E9.test.tsx:generic-api-key:227
+# Senhas fictícias dos testes de criar conta e nova senha (E12); trocadas no commit seguinte.
+2864ad32e7502933849a58edb863e2c3573f8a6a:apps/api/test/account.test.ts:generic-api-key:160
+2864ad32e7502933849a58edb863e2c3573f8a6a:apps/api/test/account.test.ts:generic-api-key:172
+2864ad32e7502933849a58edb863e2c3573f8a6a:apps/api/test/account.test.ts:generic-api-key:186
+2864ad32e7502933849a58edb863e2c3573f8a6a:apps/api/test/account.test.ts:generic-api-key:198
+2864ad32e7502933849a58edb863e2c3573f8a6a:apps/api/test/account.test.ts:generic-api-key:203
+e730dd8f5deaee2ca5fbcd9025647f680f79fe30:apps/web/src/E12.test.tsx:generic-api-key:85
+e730dd8f5deaee2ca5fbcd9025647f680f79fe30:apps/web/src/E12.test.tsx:generic-api-key:86
+e730dd8f5deaee2ca5fbcd9025647f680f79fe30:apps/web/src/E12.test.tsx:generic-api-key:99
+e730dd8f5deaee2ca5fbcd9025647f680f79fe30:apps/web/src/E12.test.tsx:generic-api-key:115
+e730dd8f5deaee2ca5fbcd9025647f680f79fe30:apps/web/src/E12.test.tsx:generic-api-key:130

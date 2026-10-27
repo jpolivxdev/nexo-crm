@@ -82,8 +82,8 @@ describe('página de entrada, criar conta e esqueci a senha (E12)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('pelo menos 10 caracteres');
 
     await userEvent.clear(screen.getByLabelText(/^Senha/));
-    await userEvent.type(screen.getByLabelText(/^Senha/), 'senha-bem-forte-1');
-    await userEvent.type(screen.getByLabelText('Repita a senha'), 'senha-bem-forte-1');
+    await userEvent.type(screen.getByLabelText(/^Senha/), 'senha-senha-senha-1');
+    await userEvent.type(screen.getByLabelText('Repita a senha'), 'senha-senha-senha-1');
     await userEvent.click(submit);
     expect(await screen.findByRole('alert')).toHaveTextContent('aceite os termos');
     expect(bodyOf(fetchMock, '/auth/signup')).toBeNull();
@@ -96,7 +96,7 @@ describe('página de entrada, criar conta e esqueci a senha (E12)', () => {
       niche: 'cilios',
       ownerName: 'Dona Teste',
       email: 'dona@exemplo.test',
-      password: 'senha-bem-forte-1',
+      password: 'senha-senha-senha-1',
       acceptTerms: true,
     });
   });
@@ -112,7 +112,7 @@ describe('página de entrada, criar conta e esqueci a senha (E12)', () => {
     window.location.hash = '/entrar';
     render(<App />);
     await userEvent.type(await screen.findByLabelText('E-mail'), 'dona@exemplo.test');
-    await userEvent.type(screen.getByLabelText('Senha'), 'senha-bem-forte-1');
+    await userEvent.type(screen.getByLabelText('Senha'), 'senha-senha-senha-1');
     await userEvent.click(screen.getByRole('button', { name: 'Entrar' }));
     expect(await screen.findByRole('heading', { name: 'Confirme seu e-mail' })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Mandar o link de novo' }));
@@ -127,7 +127,7 @@ describe('página de entrada, criar conta e esqueci a senha (E12)', () => {
     window.location.hash = '/nova-senha?token=token-de-teste-com-tamanho-bom';
     render(<App />);
     await userEvent.type(await screen.findByLabelText('Nova senha'), 'nova-senha-forte-2');
-    await userEvent.type(screen.getByLabelText('Repita a nova senha'), 'outra-coisa-123');
+    await userEvent.type(screen.getByLabelText('Repita a nova senha'), 'outra-outra-1');
     await userEvent.click(screen.getByRole('button', { name: 'Salvar senha nova' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('não são iguais');
 
