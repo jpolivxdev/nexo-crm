@@ -3,7 +3,8 @@ import { availableSlots, dayRangeUtc, type LocalDate, utcToZoned } from '@nexo/c
 import type { Appointment, AppointmentStatus, Source } from '../generated/prisma/client.js';
 import { type Actor, recordEvent } from '../crm/domain-events.js';
 import { PrismaService } from '../database/prisma.service.js';
-import type { RealtimeBus } from '../realtime/realtime.bus.js';
+import type { OwnerAlert, RealtimeBus } from '../realtime/realtime.bus.js';
+import type { OwnerAlerts } from './owner-alerts.js';
 import type { TenantTx } from '../database/prisma.js';
 import { cancelReminders, syncReminders } from './reminder-plan.js';
 import {
@@ -48,6 +49,7 @@ export class SchedulingService {
   constructor(
     private readonly db: Pick<PrismaService, 'withTenant'>,
     private readonly bus?: Pick<RealtimeBus, 'publish'>,
+    private readonly alerts?: Pick<OwnerAlerts, 'appointmentChanged'>,
   ) {}
 
   /** Horários livres de um serviço num dia (no fuso do negócio). */
@@ -80,7 +82,7 @@ export class SchedulingService {
       now?: Date;
     },
   ): Promise<Appointment> {
-    return this.notify(tenantId, () =>
+    return this.notify(tenantId, alertFor(input.actor, 'booked'), () =>
       this.db.withTenant(tenantId, async (tx) => {
         // Chave estrangeira não passa pelo RLS: confere pelo RLS que a cliente é deste negócio.
         const contact = await tx.contact.findUnique({ where: { id: input.contactId } });
@@ -107,6 +109,7 @@ export class SchedulingService {
           },
         });
         await this.recordEvent(tx, tenantId, 'appointment.created', appointment, input.actor);
+        await closeNextVisit(tx, input.contactId);
         await syncReminders(tx, tenantId, appointment, input.now ?? new Date());
         return appointment;
       }),
@@ -119,7 +122,7 @@ export class SchedulingService {
     appointmentId: string,
     input: { startsAt: Date; actor: Actor; now?: Date },
   ): Promise<Appointment> {
-    return this.notify(tenantId, () =>
+    return this.notify(tenantId, alertFor(input.actor, 'rescheduled'), () =>
       this.db.withTenant(tenantId, async (tx) => {
         const current = await this.loadActive(tx, appointmentId, 'SCHEDULED');
         const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
@@ -160,7 +163,8 @@ export class SchedulingService {
     status: Exclude<AppointmentStatus, 'SCHEDULED'>,
     actor: Actor,
   ): Promise<Appointment> {
-    return this.notify(tenantId, () =>
+    const alert = status === 'CANCELLED' ? alertFor(actor, 'cancelled') : null;
+    return this.notify(tenantId, alert, () =>
       this.db.withTenant(tenantId, async (tx) => {
         const current = await tx.appointment.findUnique({ where: { id: appointmentId } });
         if (!current) throw new AppointmentNotFoundError();
@@ -312,9 +316,19 @@ export class SchedulingService {
    * Roda a mudança e, só depois do commit, avisa o painel que a agenda mudou.
    * Também traduz a corrida entre dois pedidos (o banco barra o segundo) em horário ocupado.
    */
-  private async notify(tenantId: string, fn: () => Promise<Appointment>): Promise<Appointment> {
+  private async notify(
+    tenantId: string,
+    alert: OwnerAlert | null,
+    fn: () => Promise<Appointment>,
+  ): Promise<Appointment> {
     const appointment = await this.guardOverlap(fn);
-    this.bus?.publish(tenantId, { type: 'agenda.changed', id: appointment.id });
+    this.bus?.publish(tenantId, {
+      type: 'agenda.changed',
+      id: appointment.id,
+      ...(alert && { alert }),
+    });
+    // O e-mail não segura a resposta para a cliente.
+    if (alert) void this.alerts?.appointmentChanged(tenantId, appointment.id, alert);
     return appointment;
   }
 
@@ -329,6 +343,11 @@ export class SchedulingService {
   }
 }
 
+/** Só o que a cliente fez sozinha vira aviso para a dona; o que a dona fez ela já sabe. */
+function alertFor(actor: Actor, alert: OwnerAlert): OwnerAlert | null {
+  return actor.type === 'contact' ? alert : null;
+}
+
 export const NEXT_VISIT_TASK = 'Oferecer o próximo horário';
 
 /**
@@ -336,6 +355,11 @@ export const NEXT_VISIT_TASK = 'Oferecer o próximo horário';
  * vira um "a fazer" para a dona oferecer o próximo. Não repete se já houver um aberto.
  */
 async function offerNextVisit(tx: TenantTx, tenantId: string, contactId: string) {
+  const { nextVisitDays } = await tx.tenant.findUniqueOrThrow({
+    where: { id: tenantId },
+    select: { nextVisitDays: true },
+  });
+  if (nextVisitDays === null) return;
   const upcoming = await tx.appointment.count({
     where: { contactId, status: { in: ACTIVE }, startsAt: { gt: new Date() } },
   });
@@ -345,6 +369,19 @@ async function offerNextVisit(tx: TenantTx, tenantId: string, contactId: string)
   });
   if (open > 0) return;
   await tx.task.create({
-    data: { tenantId, contactId, title: NEXT_VISIT_TASK, dueAt: new Date() },
+    data: {
+      tenantId,
+      contactId,
+      title: NEXT_VISIT_TASK,
+      dueAt: new Date(Date.now() + nextVisitDays * 24 * 60 * 60 * 1000),
+    },
+  });
+}
+
+/** A cliente marcou: o "a fazer" de oferecer o próximo horário perdeu o sentido. */
+async function closeNextVisit(tx: TenantTx, contactId: string) {
+  await tx.task.updateMany({
+    where: { contactId, title: NEXT_VISIT_TASK, doneAt: null },
+    data: { doneAt: new Date() },
   });
 }

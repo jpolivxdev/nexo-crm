@@ -2524,3 +2524,43 @@ input[type='time'] {
   flex-wrap: wrap;
   gap: 6px;
 }
+
+.banner--warn {
+  background: var(--cor-suave);
+  box-shadow: inset 4px 0 0 var(--lavanda);
+}
+
+/* Avisos da dona (cliente marcou, cancelou ou pediu atendimento) */
+.toasts {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 50;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 10px 14px;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  box-shadow:
+    inset 4px 0 0 var(--roxo-nexo),
+    var(--sombra-1);
+}
+
+.toast > span {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast .icon-button {
+  color: inherit;
+}

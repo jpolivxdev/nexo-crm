@@ -141,8 +141,9 @@ export class PanelService {
           },
         },
       });
+      // "A fazer" com prazo para frente (ex.: oferecer o próximo horário em 10 dias) espera o dia.
       const tasks = await tx.task.findMany({
-        where: { doneAt: null },
+        where: { doneAt: null, OR: [{ dueAt: null }, { dueAt: { lt: day.endsAt } }] },
         orderBy: [{ dueAt: 'asc' }, { createdAt: 'asc' }],
         take: 20,
         select: {

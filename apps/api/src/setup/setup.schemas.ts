@@ -121,3 +121,9 @@ export const professionalBody = z.object({
 });
 
 export const staffLoginBody = z.object({ email: z.email().max(200) });
+
+/** Conta → Avisos: e-mail para a dona e prazo do "oferecer o próximo horário". */
+export const alertsBody = z.object({
+  notifyEmail: z.boolean(),
+  nextVisitDays: z.number().int().min(0).max(180).nullable(),
+});

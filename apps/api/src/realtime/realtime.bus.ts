@@ -7,7 +7,12 @@ import { z } from 'zod';
 export interface RealtimeNotice {
   type: 'agenda.changed' | 'conversation.updated' | 'handoff.requested' | 'contact.updated';
   id?: string;
+  /** Mudança feita pela cliente (WhatsApp) que merece um aviso na tela da dona. */
+  alert?: OwnerAlert;
 }
+
+export const OWNER_ALERTS = ['booked', 'rescheduled', 'cancelled'] as const;
+export type OwnerAlert = (typeof OWNER_ALERTS)[number];
 
 const CHANNEL = 'nexo_realtime';
 const wireSchema = z.object({
@@ -20,6 +25,7 @@ const wireSchema = z.object({
       'contact.updated',
     ]),
     id: z.uuid().optional(),
+    alert: z.enum(OWNER_ALERTS).optional(),
   }),
 });
 
