@@ -65,8 +65,13 @@ export {
 export { globalCommand, normalize } from './bot/text.js';
 export {
   classify,
+  defaultStageFor,
+  RULE_EVENTS,
+  ruleEventOf,
   type ClassificationInput,
   type CrmEventType,
+  type RuleEvent,
   type StageRef,
+  type StageRule,
 } from './crm/classification.js';
 export type { StageKey } from './crm/pipeline-templates.js';

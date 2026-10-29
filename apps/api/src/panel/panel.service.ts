@@ -1,8 +1,23 @@
-import { Inject, Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { addDays, dayRangeUtc, todayIn, type LocalDate } from '@nexo/core';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  addDays,
+  dayRangeUtc,
+  defaultStageFor,
+  RULE_EVENTS,
+  type StageRule,
+  todayIn,
+  type LocalDate,
+} from '@nexo/core';
 import { ChannelRegistry } from '../channel/channel.registry.js';
 import type { ChannelName } from '../channel/channel.types.js';
 import { recordEvent } from '../crm/domain-events.js';
+import { readStageRules } from '../crm/stage-rules.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { RealtimeBus } from '../realtime/realtime.bus.js';
 
@@ -339,6 +354,56 @@ export class PanelService {
       if (!pipeline) throw new NotFoundException('Nenhuma etapa configurada.');
       return pipeline;
     });
+  }
+
+  /** Regras automáticas de etapa: o que vale hoje para cada acontecimento. */
+  stageRules(tenantId: string) {
+    return this.db.withTenant(tenantId, async (tx) => {
+      const pipeline = await tx.pipeline.findFirst({
+        where: { isDefault: true },
+        select: {
+          rules: true,
+          stages: {
+            orderBy: { position: 'asc' },
+            select: { id: true, name: true, key: true, position: true },
+          },
+        },
+      });
+      if (!pipeline) throw new NotFoundException('Nenhuma etapa configurada.');
+      const rules = readStageRules(pipeline.rules);
+      return {
+        stages: pipeline.stages.map(({ id, name }) => ({ id, name })),
+        rules: RULE_EVENTS.map((event) => {
+          const rule = rules.find((r) => r.event === event);
+          return {
+            event,
+            defaultStageId: defaultStageFor(event, pipeline.stages),
+            // undefined = segue o padrão; null = não mexe na etapa.
+            stageId: rule ? rule.stageId : undefined,
+          };
+        }),
+      };
+    });
+  }
+
+  /** Salva as regras da dona. Acontecimento que não vier volta à regra padrão. */
+  async saveStageRules(tenantId: string, rules: StageRule[]) {
+    await this.db.withTenant(tenantId, async (tx) => {
+      const pipeline = await tx.pipeline.findFirst({
+        where: { isDefault: true },
+        select: { id: true, stages: { select: { id: true } } },
+      });
+      if (!pipeline) throw new NotFoundException('Nenhuma etapa configurada.');
+      const ids = new Set(pipeline.stages.map((s) => s.id));
+      if (rules.some((r) => r.stageId !== null && !ids.has(r.stageId))) {
+        throw new BadRequestException('Essa etapa não existe mais. Recarregue a página.');
+      }
+      await tx.pipeline.update({
+        where: { id: pipeline.id },
+        data: { rules: rules.map((r) => ({ event: r.event, stageId: r.stageId })) },
+      });
+    });
+    return this.stageRules(tenantId);
   }
 
   /** A dona move o atendimento para qualquer etapa (inclusive para trás ou "Não seguiu"). */

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { stageRulesSchema } from '../crm/stage-rules.js';
 
 /** Entradas do painel. Tudo validado com limite de tamanho; tenant_id nunca vem daqui. */
 export const localDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -54,3 +55,5 @@ export const eraseContactBody = z.object({
 export const moveDealBody = z.object({ stageId: z.uuid() });
 
 export const replyBody = z.object({ text: z.string().trim().min(1).max(4096) });
+
+export const stageRulesBody = z.object({ rules: stageRulesSchema });

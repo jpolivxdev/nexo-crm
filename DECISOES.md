@@ -214,3 +214,11 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Lembretes:** a tela avisa que, com o WhatsApp oficial, lembrete fora da conversa usa modelo aprovado pela Meta e mudar o texto pede nova aprovação.
 - **Textos de cuidado** (antes do horário, saúde) continuam sendo da dona (CLAUDE.md, seção 2): a tela não sugere nenhum.
 
+## E16: regras de etapa criadas pela dona (29/10/2026)
+
+- **Onde fica:** Etapas → Regras automáticas. Uma linha por acontecimento: "Se a cliente **faltou**, colocar em [etapa]". As opções são "Padrão (Agendou)", cada etapa do funil e "Não mudar a etapa".
+- **Acontecimentos (lista fechada):** primeira mensagem, viu as dúvidas, marcou, confirmou, foi atendida, foi atendida de novo (2ª vez ou mais), faltou, cancelou, pediu você, pediu para parar. Texto livre ou condição montada pela dona ficam para depois (mais telas, mais erro).
+- **Regra da dona vale antes da padrão e pode mover para qualquer etapa**, inclusive para trás ou para "Não seguiu", porque foi escolha explícita dela. A padrão continua só andando para frente. "Não mudar a etapa" desliga a padrão daquele acontecimento. Sem regra própria para "atendida de novo", vale a de "foi atendida".
+- **Guardadas como JSON no funil (`pipelines.rules`)**, validadas ao ler e ao salvar (Zod), em vez de tabela nova: são no máximo 10 linhas, sempre lidas junto com o funil, e o RLS da tabela de funis já cobre. Regra que aponta para etapa que não existe mais é ignorada e vale a padrão.
+- **Lógica no `@nexo/core` (`classify` com `rules`)**, com teste; a API só lê e grava.
+

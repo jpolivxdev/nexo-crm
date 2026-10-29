@@ -1,6 +1,7 @@
 import { classify } from '@nexo/core';
 import type { Prisma } from '../generated/prisma/client.js';
 import type { TenantTx } from '../database/prisma.js';
+import { readStageRules } from './stage-rules.js';
 
 export interface Actor {
   type: 'contact' | 'user' | 'system';
@@ -84,8 +85,18 @@ async function applyClassification(
     eventType === 'appointment.done'
       ? await tx.appointment.count({ where: { contactId, status: 'DONE' } })
       : 0;
+  const pipeline = await tx.pipeline.findUnique({
+    where: { id: deal.pipelineId },
+    select: { rules: true },
+  });
 
-  const target = classify({ event: eventType, stages, currentStageId: deal.stageId, doneCount });
+  const target = classify({
+    event: eventType,
+    stages,
+    currentStageId: deal.stageId,
+    doneCount,
+    rules: readStageRules(pipeline?.rules),
+  });
   if (!target || target === deal.stageId) return;
 
   await tx.deal.update({ where: { id: deal.id }, data: { stageId: target } });

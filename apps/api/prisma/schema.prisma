@@ -440,6 +440,8 @@ model Pipeline {
   tenantId  String   @map("tenant_id") @db.Uuid
   name      String
   isDefault Boolean  @default(false) @map("is_default")
+  /// Regras da dona: [{ event, stageId | null }]. Lidas com validação (crm/stage-rules.ts).
+  rules     Json     @default("[]")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   tenant Tenant  @relation(fields: [tenantId], references: [id])

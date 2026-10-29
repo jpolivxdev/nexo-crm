@@ -10,6 +10,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Put,
   Query,
   Req,
   Sse,
@@ -35,6 +36,7 @@ import {
   reportQuery,
   rescheduleBody,
   slotsQuery,
+  stageRulesBody,
   statusBody,
   updateContactBody,
 } from './panel.schemas.js';
@@ -176,6 +178,17 @@ export class PanelController {
   @Get('pipeline')
   pipeline(@Req() req: AuthedRequest) {
     return this.panel.pipeline(this.tenant(req));
+  }
+
+  @Get('pipeline/rules')
+  stageRules(@Req() req: AuthedRequest) {
+    return this.panel.stageRules(this.tenant(req));
+  }
+
+  @Put('pipeline/rules')
+  saveStageRules(@Req() req: AuthedRequest, @Body() body: unknown) {
+    const { rules } = parse(stageRulesBody, body);
+    return this.panel.saveStageRules(this.tenant(req), rules);
   }
 
   @Post('deals/:id/stage')

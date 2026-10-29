@@ -31,7 +31,12 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
   return (
     <>
       <header className="page-header">
-        <h1>Etapas</h1>
+        <div className="row row--between">
+          <h1>Etapas</h1>
+          <button type="button" className="button button--ghost" onClick={() => go('/regras')}>
+            Regras automáticas
+          </button>
+        </div>
         <p className="muted">O robô move sozinho; você pode mudar a qualquer momento.</p>
       </header>
       {actionError && <Banner>{actionError}</Banner>}

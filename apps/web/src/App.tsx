@@ -32,6 +32,7 @@ import { Report } from './screens/Report';
 import { Setup } from './screens/Setup';
 import { TimeOff } from './screens/TimeOff';
 import { BotMessages } from './screens/BotMessages';
+import { StageRules } from './screens/StageRules';
 import { Today } from './screens/Today';
 
 const NAV = [
@@ -202,6 +203,8 @@ function Panel({ me }: { me: Me }) {
         )}
         {contactMatch ? (
           <ContactFile id={contactMatch[1]!} go={go} />
+        ) : section === '/regras' ? (
+          <StageRules go={go} />
         ) : section === '/mensagens' ? (
           <BotMessages go={go} />
         ) : section === '/folgas' ? (

@@ -2498,3 +2498,9 @@ input[type='time'] {
     bottom: 0;
   }
 }
+
+/* Regras automáticas de etapa */
+.rule {
+  display: grid;
+  gap: 8px;
+}
