@@ -31,6 +31,7 @@ import { Plans } from './screens/Plans';
 import { Report } from './screens/Report';
 import { Setup } from './screens/Setup';
 import { TimeOff } from './screens/TimeOff';
+import { BotMessages } from './screens/BotMessages';
 import { Today } from './screens/Today';
 
 const NAV = [
@@ -201,6 +202,8 @@ function Panel({ me }: { me: Me }) {
         )}
         {contactMatch ? (
           <ContactFile id={contactMatch[1]!} go={go} />
+        ) : section === '/mensagens' ? (
+          <BotMessages go={go} />
         ) : section === '/folgas' ? (
           <TimeOff go={go} />
         ) : section === '/configurar' ? (
@@ -280,6 +283,9 @@ function Account({ go, acting }: { go: (to: string) => void; acting: boolean }) 
       <section className="section stack">
         <button type="button" className="button button--ghost" onClick={() => go('/configurar')}>
           Configurar o negócio (serviços, horários, dúvidas)
+        </button>
+        <button type="button" className="button button--ghost" onClick={() => go('/mensagens')}>
+          Mensagens do robô
         </button>
         <button type="button" className="button button--ghost" onClick={() => go('/folgas')}>
           Folgas e bloqueios

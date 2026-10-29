@@ -101,3 +101,83 @@ describe('folgas e bloqueios (E14)', () => {
     });
   });
 });
+
+const MESSAGES = {
+  messages: [
+    {
+      key: 'menu',
+      default: 'Como posso ajudar? Escolha uma opção.',
+      custom: null,
+      variables: [],
+      max: 1024,
+      button: false,
+    },
+    {
+      key: 'menuBook',
+      default: 'Marcar horário',
+      custom: null,
+      variables: [],
+      max: 20,
+      button: true,
+    },
+    {
+      key: 'privacyNotice',
+      default: 'Oi! Aqui é o atendimento automático do {negocio}. Para parar, escreva "parar".',
+      custom: null,
+      variables: ['negocio'],
+      max: 1024,
+      button: false,
+    },
+  ],
+};
+
+describe('mensagens do robô (E14)', () => {
+  it('manda só o que mudou e mostra o erro na mensagem certa', async () => {
+    let calls = 0;
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const path = String(url).replace(/^\/api/, '');
+      if (path === '/auth/me') return json(OWNER);
+      if (path === '/panel/setup/messages' && init?.method === 'PUT') {
+        calls++;
+        return calls === 1
+          ? json(
+              { message: 'O aviso precisa continuar dizendo como parar.', key: 'privacyNotice' },
+              400,
+            )
+          : json(MESSAGES);
+      }
+      return json(MESSAGES);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    window.location.hash = '#/mensagens';
+    render(<App />);
+
+    const button = await screen.findByLabelText('Botão: marcar');
+    expect(screen.getByText('14/20 letras (botão do WhatsApp)')).toBeInTheDocument();
+    await userEvent.clear(button);
+    await userEvent.type(button, 'Agendar');
+    const notice = screen.getByLabelText('Aviso da primeira conversa');
+    await userEvent.clear(notice);
+    await userEvent.type(notice, 'Oi!');
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar (2 mudadas)' }));
+
+    expect(await screen.findByText(/Confira a mensagem marcada/)).toBeInTheDocument();
+    expect(notice).toHaveAttribute('aria-invalid', 'true');
+    const put = fetchMock.mock.calls.find(([, i]) => i?.method === 'PUT');
+    expect(JSON.parse(String(put?.[1]?.body))).toEqual({
+      messages: { menuBook: 'Agendar', privacyNotice: 'Oi!' },
+    });
+
+    // Volta ao padrão e salva de novo.
+    await userEvent.click(screen.getAllByRole('button', { name: 'Voltar ao texto padrão' })[1]!);
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar (1 mudada)' }));
+    expect(await screen.findByText(/Mensagens salvas/)).toBeInTheDocument();
+  });
+});
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json' },
+  });
+}

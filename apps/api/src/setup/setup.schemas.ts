@@ -88,3 +88,8 @@ export const timeOffBody = z
     message: 'Informe as duas horas, ou marque o dia todo.',
   })
   .refine((v) => v.endDate >= v.startDate, { message: 'O fim precisa ser depois do início.' });
+
+/** Mensagens do robô. Regras de cada uma (tamanho, variáveis, aviso de "parar") no @nexo/core. */
+export const messagesBody = z.object({
+  messages: z.record(z.string().max(40), z.string().max(2000)),
+});

@@ -206,3 +206,11 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Remover apaga de verdade** o bloqueio: não é dado pessoal e não entra em relatório. O motivo é opcional, curto (80 caracteres) e só a dona vê; a tela sugere exemplos que não são de saúde.
 - **Limites:** no máximo um ano por bloqueio; período que já passou é recusado.
 
+## E15: mensagens do robô editáveis pela dona (29/10/2026)
+
+- **Onde fica:** Conta → Mensagens do robô. As 41 mensagens aparecem em cinco grupos, na ordem da conversa (primeira mensagem e menu, marcar, remarcar e cancelar, dúvidas/você/"parar", lembretes), cada uma com um nome que a dona entende ("Botão: confirmar", "Horário marcado").
+- **Guarda só o que mudou.** Texto vazio ou igual ao padrão volta ao padrão, e o padrão pode melhorar sem apagar o que a dona escreveu. "Voltar ao texto padrão" em cada uma.
+- **Regras no `@nexo/core` (`checkMessageOverrides`), com teste:** botão ou item de lista do WhatsApp tem no máximo 20 caracteres; mensagem no máximo 1.024; só as variáveis que o texto padrão usa (`{servico}`, `{data}`, `{hora}`, `{dona}`, `{negocio}`), para nenhuma ficar sem valor; o aviso da primeira conversa precisa continuar dizendo como "parar" (LGPD e regras do WhatsApp). O erro volta com a mensagem certa, que fica marcada na tela.
+- **Lembretes:** a tela avisa que, com o WhatsApp oficial, lembrete fora da conversa usa modelo aprovado pela Meta e mudar o texto pede nova aprovação.
+- **Textos de cuidado** (antes do horário, saúde) continuam sendo da dona (CLAUDE.md, seção 2): a tela não sugere nenhum.
+

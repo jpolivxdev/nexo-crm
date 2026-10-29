@@ -2463,3 +2463,38 @@ input[type='time'] {
   padding-left: 20px;
   font-weight: 400;
 }
+
+/* Mensagens do robô */
+.message-edit {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.message-edit--error {
+  box-shadow: inset 4px 0 0 var(--cor-texto);
+}
+
+.message-edit__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.message-edit .link {
+  justify-self: start;
+}
+
+.sticky-save {
+  position: sticky;
+  bottom: calc(var(--toque-minimo) + 40px);
+  padding: 12px 0;
+  background: var(--cor-fundo);
+}
+
+@media (min-width: 1024px) {
+  .sticky-save {
+    bottom: 0;
+  }
+}
