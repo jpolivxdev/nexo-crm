@@ -2428,3 +2428,86 @@ input[type='time'] {
     transition: none;
   }
 }
+
+/* Dados da cliente (LGPD): baixar e excluir */
+.privacy__actions {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.privacy__confirm {
+  padding: 14px;
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-suave);
+  box-shadow: inset 4px 0 0 var(--cor-texto);
+}
+
+.privacy__confirm h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.privacy__confirm ul {
+  margin: 0 0 8px;
+  padding-left: 20px;
+}
+
+/* Folgas e bloqueios */
+.page-header__actions {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.conflicts {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  font-weight: 400;
+}
+
+/* Mensagens do robô */
+.message-edit {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.message-edit--error {
+  box-shadow: inset 4px 0 0 var(--cor-texto);
+}
+
+.message-edit__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.message-edit .link {
+  justify-self: start;
+}
+
+.sticky-save {
+  position: sticky;
+  bottom: calc(var(--toque-minimo) + 40px);
+  padding: 12px 0;
+  background: var(--cor-fundo);
+}
+
+@media (min-width: 1024px) {
+  .sticky-save {
+    bottom: 0;
+  }
+}
+
+/* Regras automáticas de etapa */
+.rule {
+  display: grid;
+  gap: 8px;
+}
+
+/* Visões de clientes: o número que explica a cliente estar ali */
+.tag--info {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-contorno);
+  color: var(--cor-destaque-texto);
+}

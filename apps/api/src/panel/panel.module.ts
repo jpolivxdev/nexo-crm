@@ -5,10 +5,11 @@ import { SchedulingModule } from '../scheduling/scheduling.module.js';
 import { PanelController } from './panel.controller.js';
 import { ReportService } from '../report/report.service.js';
 import { PanelService } from './panel.service.js';
+import { PrivacyService } from './privacy.service.js';
 
 @Module({
   imports: [ChannelModule, ConversationModule, SchedulingModule],
   controllers: [PanelController],
-  providers: [PanelService, ReportService],
+  providers: [PanelService, PrivacyService, ReportService],
 })
 export class PanelModule {}

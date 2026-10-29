@@ -10,6 +10,8 @@ Lista do que depende dos sócios. Atualizada em 26/10/2026. Quando um item for r
 - Como ela agenda hoje (caderno, app, só WhatsApp) e quantas clientes atende por semana.
 - O que ela quer que o robô diga antes do horário (cuidados, chegar sem rímel, teste de sensibilidade). Texto dela, não nosso.
 - Se ela tem MEI ou CNPJ (vai pesar quando a Meta entrar).
+- Depois de quantos dias sem vir ela considera que a cliente sumiu (a tela usa 45 dias por enquanto).
+- Se quer o lembrete de oferecer o próximo horário depois do atendimento, e em quantos dias.
 - Data para começar o piloto.
 
 ## Dos sócios
@@ -43,6 +45,7 @@ Lista do que depende dos sócios. Atualizada em 26/10/2026. Quando um item for r
 11. Sem CNPJ: dá para assinar contrato com a piloto pelo MEI do Jandoza ou em nome dos sócios? Quem responde se algo der errado? (contador e advogado)
 12. Como emitir nota e receber da piloto antes de a nexo ter CNPJ? (contador)
 13. Usar o número pessoal de trabalho da dona na API da Meta: há algum cuidado contratual sobre perda ou bloqueio do número?
+14. Quando a cliente pede para excluir os dados, perdemos também o pedido de "parar" dela. Podemos guardar só o telefone (ou um hash dele) numa lista de bloqueio, para o robô não mandar mensagem automática de novo? Por quanto tempo?
 
 ## Do JP
 - Criar o repositório `nexo-crm` no seu GitHub (eu não consigo criar repositórios daqui) e avisar.

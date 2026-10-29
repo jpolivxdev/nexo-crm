@@ -19,12 +19,38 @@ export interface StageRef {
   position: number;
 }
 
+/**
+ * Acontecimentos que a dona pode ligar a uma etapa ("se X, colocar em Y").
+ * "appointment.returned" é o realizado da 2ª vez em diante.
+ */
+export const RULE_EVENTS = [
+  'contact.created',
+  'faq.viewed',
+  'appointment.created',
+  'appointment.confirmed',
+  'appointment.done',
+  'appointment.returned',
+  'appointment.no_show',
+  'appointment.cancelled',
+  'handoff.requested',
+  'contact.opted_out',
+] as const;
+export type RuleEvent = (typeof RULE_EVENTS)[number];
+
+/** Regra da dona. stageId null = "não mexer na etapa" (desliga a regra padrão). */
+export interface StageRule {
+  event: RuleEvent;
+  stageId: string | null;
+}
+
 export interface ClassificationInput {
   event: CrmEventType | string;
   stages: readonly StageRef[];
   currentStageId: string | null;
   /** Quantos atendimentos realizados o cliente já tem (contando este). */
   doneCount: number;
+  /** Regras da dona. Valem antes das padrão e podem mover para qualquer etapa. */
+  rules?: readonly StageRule[];
 }
 
 function targetKey(event: string, doneCount: number): StageKey | null {
@@ -50,8 +76,46 @@ const FALLBACK: Partial<Record<StageKey, StageKey>> = {
   returned: 'won',
 };
 
+/** Evento de regra: o realizado da 2ª vez em diante vira "appointment.returned". */
+export function ruleEventOf(event: string, doneCount: number): string {
+  return event === 'appointment.done' && doneCount >= 2 ? 'appointment.returned' : event;
+}
+
+/** Etapa para onde a regra padrão leva, para mostrar na tela ("Padrão: Agendou"). */
+export function defaultStageFor(event: RuleEvent, stages: readonly StageRef[]): string | null {
+  if (event === 'appointment.returned') {
+    return defaultTarget('appointment.done', 2, stages);
+  }
+  return defaultTarget(event, 1, stages);
+}
+
+function defaultTarget(event: string, doneCount: number, stages: readonly StageRef[]) {
+  let key = targetKey(event, doneCount);
+  if (!key) return null;
+  let target = stages.find((s) => s.key === key);
+  if (!target && FALLBACK[key]) {
+    key = FALLBACK[key]!;
+    target = stages.find((s) => s.key === key);
+  }
+  return target?.id ?? null;
+}
+
 /** Devolve a etapa para onde o cliente deve ir, ou null se fica onde está. */
 export function classify(input: ClassificationInput): string | null {
+  const ruleEvent = ruleEventOf(input.event, input.doneCount);
+  const rule =
+    input.rules?.find((r) => r.event === ruleEvent) ??
+    // Sem regra própria para "voltou", vale a de "foi atendida".
+    (ruleEvent === 'appointment.returned'
+      ? input.rules?.find((r) => r.event === 'appointment.done')
+      : undefined);
+  if (rule) {
+    if (rule.stageId === null) return null;
+    const target = input.stages.find((s) => s.id === rule.stageId);
+    // Regra para etapa que não existe mais: segue a padrão.
+    if (target) return target.id === input.currentStageId ? null : target.id;
+  }
+
   let key = targetKey(input.event, input.doneCount);
   if (!key) return null;
 

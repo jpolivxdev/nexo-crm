@@ -1,8 +1,25 @@
-import { Inject, Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { addDays, dayRangeUtc, todayIn, type LocalDate } from '@nexo/core';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  addDays,
+  dayRangeUtc,
+  defaultStageFor,
+  RULE_EVENTS,
+  type StageRule,
+  todayIn,
+  type LocalDate,
+} from '@nexo/core';
 import { ChannelRegistry } from '../channel/channel.registry.js';
 import type { ChannelName } from '../channel/channel.types.js';
 import { recordEvent } from '../crm/domain-events.js';
+import { readStageRules } from '../crm/stage-rules.js';
+import type { ContactSegment } from './panel.schemas.js';
+import type { TenantTx } from '../database/prisma.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { RealtimeBus } from '../realtime/realtime.bus.js';
 
@@ -22,6 +39,20 @@ export const ACTIVITY_TYPES = [
 ] as const;
 
 const ACTIVITY_LIMIT = 8;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+/**
+ * Regras das visões de clientes (Fase 1, fixas; ver DECISOES.md, E17).
+ * Frequente: 3+ atendimentos realizados nos últimos 180 dias.
+ * Sumida: já foi atendida, mas o último atendimento foi há mais de 45 dias e não tem horário marcado.
+ * Faltosa: 2+ faltas nos últimos 180 dias.
+ */
+export const SEGMENT_RULES = {
+  windowDays: 180,
+  frequentMinDone: 3,
+  missingAfterDays: 45,
+  noShowMin: 2,
+} as const;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -156,20 +187,23 @@ export class PanelService {
     );
   }
 
-  contacts(tenantId: string, q?: string) {
+  async contacts(tenantId: string, q?: string, segment?: ContactSegment, now = new Date()) {
     const digits = q?.replace(/\D/g, '') ?? '';
-    return this.db.withTenant(tenantId, (tx) =>
-      tx.contact.findMany({
+    return this.db.withTenant(tenantId, async (tx) => {
+      const segmentIds = segment ? await this.segmentStats(tx, segment, now) : null;
+      const list = await tx.contact.findMany({
         where: q
           ? {
+              ...(segmentIds ? { id: { in: [...segmentIds.keys()] } } : {}),
+              erasedAt: null,
               OR: [
                 { name: { contains: q, mode: 'insensitive' } },
                 ...(digits.length >= 3 ? [{ phone: { contains: digits } }] : []),
               ],
             }
-          : {},
+          : { erasedAt: null, ...(segmentIds ? { id: { in: [...segmentIds.keys()] } } : {}) },
         orderBy: { updatedAt: 'desc' },
-        take: 50,
+        take: segmentIds ? 200 : 50,
         select: {
           id: true,
           name: true,
@@ -182,8 +216,59 @@ export class PanelService {
             select: { stage: { select: { id: true, name: true } } },
           },
         },
-      }),
-    );
+      });
+      if (!segmentIds) return list;
+      // Na visão, quem mais se encaixa vem primeiro (mais atendimentos, mais tempo sumida, mais faltas).
+      return list
+        .map((c) => ({ ...c, stats: segmentIds.get(c.id)! }))
+        .sort((a, b) => b.stats.score - a.stats.score);
+    });
+  }
+
+  /** Clientes de uma visão, com os números que explicam por que estão nela. */
+  private async segmentStats(tx: TenantTx, segment: ContactSegment, now: Date) {
+    const since = new Date(now.getTime() - SEGMENT_RULES.windowDays * DAY_MS);
+    const out = new Map<
+      string,
+      { score: number; doneCount?: number; noShowCount?: number; lastDoneAt?: Date }
+    >();
+    if (segment === 'frequent' || segment === 'no_show') {
+      const status = segment === 'frequent' ? 'DONE' : 'NO_SHOW';
+      const min = segment === 'frequent' ? SEGMENT_RULES.frequentMinDone : SEGMENT_RULES.noShowMin;
+      const groups = await tx.appointment.groupBy({
+        by: ['contactId'],
+        where: { status, startsAt: { gte: since, lte: now } },
+        _count: { _all: true },
+      });
+      for (const g of groups) {
+        if (g._count._all < min) continue;
+        out.set(g.contactId, {
+          score: g._count._all,
+          ...(segment === 'frequent'
+            ? { doneCount: g._count._all }
+            : { noShowCount: g._count._all }),
+        });
+      }
+      return out;
+    }
+    const cutoff = new Date(now.getTime() - SEGMENT_RULES.missingAfterDays * DAY_MS);
+    const last = await tx.appointment.groupBy({
+      by: ['contactId'],
+      where: { status: 'DONE', startsAt: { lte: now } },
+      _max: { startsAt: true },
+    });
+    const upcoming = await tx.appointment.findMany({
+      where: { status: { in: ['SCHEDULED', 'CONFIRMED'] }, startsAt: { gt: now } },
+      select: { contactId: true },
+      distinct: ['contactId'],
+    });
+    const booked = new Set(upcoming.map((u) => u.contactId));
+    for (const g of last) {
+      const lastDoneAt = g._max.startsAt;
+      if (!lastDoneAt || lastDoneAt >= cutoff || booked.has(g.contactId)) continue;
+      out.set(g.contactId, { score: now.getTime() - lastDoneAt.getTime(), lastDoneAt });
+    }
+    return out;
   }
 
   async createContact(
@@ -215,8 +300,8 @@ export class PanelService {
 
   async contact(tenantId: string, contactId: string) {
     return this.db.withTenant(tenantId, async (tx) => {
-      const contact = await tx.contact.findUnique({
-        where: { id: contactId },
+      const contact = await tx.contact.findFirst({
+        where: { id: contactId, erasedAt: null },
         select: {
           id: true,
           name: true,
@@ -298,7 +383,10 @@ export class PanelService {
     input: { name?: string; notes?: string | null; tags?: string[] },
   ) {
     const updated = await this.db.withTenant(tenantId, async (tx) => {
-      const found = await tx.contact.findUnique({ where: { id: contactId }, select: { id: true } });
+      const found = await tx.contact.findFirst({
+        where: { id: contactId, erasedAt: null },
+        select: { id: true },
+      });
       if (!found) throw new NotFoundException('Cliente não encontrada.');
       return tx.contact.update({
         where: { id: contactId },
@@ -335,6 +423,56 @@ export class PanelService {
       if (!pipeline) throw new NotFoundException('Nenhuma etapa configurada.');
       return pipeline;
     });
+  }
+
+  /** Regras automáticas de etapa: o que vale hoje para cada acontecimento. */
+  stageRules(tenantId: string) {
+    return this.db.withTenant(tenantId, async (tx) => {
+      const pipeline = await tx.pipeline.findFirst({
+        where: { isDefault: true },
+        select: {
+          rules: true,
+          stages: {
+            orderBy: { position: 'asc' },
+            select: { id: true, name: true, key: true, position: true },
+          },
+        },
+      });
+      if (!pipeline) throw new NotFoundException('Nenhuma etapa configurada.');
+      const rules = readStageRules(pipeline.rules);
+      return {
+        stages: pipeline.stages.map(({ id, name }) => ({ id, name })),
+        rules: RULE_EVENTS.map((event) => {
+          const rule = rules.find((r) => r.event === event);
+          return {
+            event,
+            defaultStageId: defaultStageFor(event, pipeline.stages),
+            // undefined = segue o padrão; null = não mexe na etapa.
+            stageId: rule ? rule.stageId : undefined,
+          };
+        }),
+      };
+    });
+  }
+
+  /** Salva as regras da dona. Acontecimento que não vier volta à regra padrão. */
+  async saveStageRules(tenantId: string, rules: StageRule[]) {
+    await this.db.withTenant(tenantId, async (tx) => {
+      const pipeline = await tx.pipeline.findFirst({
+        where: { isDefault: true },
+        select: { id: true, stages: { select: { id: true } } },
+      });
+      if (!pipeline) throw new NotFoundException('Nenhuma etapa configurada.');
+      const ids = new Set(pipeline.stages.map((s) => s.id));
+      if (rules.some((r) => r.stageId !== null && !ids.has(r.stageId))) {
+        throw new BadRequestException('Essa etapa não existe mais. Recarregue a página.');
+      }
+      await tx.pipeline.update({
+        where: { id: pipeline.id },
+        data: { rules: rules.map((r) => ({ event: r.event, stageId: r.stageId })) },
+      });
+    });
+    return this.stageRules(tenantId);
   }
 
   /** A dona move o atendimento para qualquer etapa (inclusive para trás ou "Não seguiu"). */

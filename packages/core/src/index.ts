@@ -43,8 +43,14 @@ export {
   type ServiceOption,
 } from './bot/machine.js';
 export {
+  BUTTON_KEYS,
+  BUTTON_MAX,
+  checkMessageOverrides,
   DEFAULT_MESSAGES,
+  MESSAGE_MAX,
+  messageVariables,
   render,
+  type MessageCheck,
   type MessageKey,
   type MessageOverrides,
 } from './bot/messages.js';
@@ -59,8 +65,13 @@ export {
 export { globalCommand, normalize } from './bot/text.js';
 export {
   classify,
+  defaultStageFor,
+  RULE_EVENTS,
+  ruleEventOf,
   type ClassificationInput,
   type CrmEventType,
+  type RuleEvent,
   type StageRef,
+  type StageRule,
 } from './crm/classification.js';
 export type { StageKey } from './crm/pipeline-templates.js';

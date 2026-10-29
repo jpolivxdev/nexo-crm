@@ -1,9 +1,24 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { readFaq } from '../conversation/tenant-bot-config.js';
+import {
+  BUTTON_KEYS,
+  BUTTON_MAX,
+  checkMessageOverrides,
+  DEFAULT_MESSAGES,
+  MESSAGE_MAX,
+  type MessageKey,
+  messageVariables,
+} from '@nexo/core';
+import { readFaq, readMessageOverrides } from '../conversation/tenant-bot-config.js';
 import type { TenantTx } from '../database/prisma.js';
 import { PrismaService } from '../database/prisma.service.js';
 import type { z } from 'zod';
-import type { businessBody, faqBody, hoursBody, servicesBody } from './setup.schemas.js';
+import type {
+  businessBody,
+  faqBody,
+  hoursBody,
+  messagesBody,
+  servicesBody,
+} from './setup.schemas.js';
 
 /**
  * Assistente de configuração do negócio: dados do negócio, serviços, horários e dúvidas.
@@ -131,6 +146,39 @@ export class SetupService {
       tx.tenant.update({ where: { id: tenantId }, data: { faq: input.items } }),
     );
     return this.get(tenantId);
+  }
+
+  /** Mensagens do robô: o padrão, o que a dona trocou e as regras de cada uma. */
+  messages(tenantId: string) {
+    return this.db.withTenant(tenantId, async (tx) => {
+      const tenant = await tx.tenant.findUniqueOrThrow({
+        where: { id: tenantId },
+        select: { botMessages: true },
+      });
+      const overrides = readMessageOverrides(tenant.botMessages);
+      return {
+        messages: (Object.keys(DEFAULT_MESSAGES) as MessageKey[]).map((key) => ({
+          key,
+          default: DEFAULT_MESSAGES[key],
+          custom: overrides[key] ?? null,
+          variables: messageVariables(key),
+          max: BUTTON_KEYS.includes(key) ? BUTTON_MAX : MESSAGE_MAX,
+          button: BUTTON_KEYS.includes(key),
+        })),
+      };
+    });
+  }
+
+  /** Troca as mensagens (o que não vier ou vier vazio volta ao padrão). */
+  async saveMessages(tenantId: string, input: z.infer<typeof messagesBody>) {
+    const checked = checkMessageOverrides(input.messages);
+    if (!checked.ok) {
+      throw new BadRequestException({ message: checked.message, key: checked.key });
+    }
+    await this.db.withTenant(tenantId, (tx) =>
+      tx.tenant.update({ where: { id: tenantId }, data: { botMessages: checked.overrides } }),
+    );
+    return this.messages(tenantId);
   }
 
   /** Fecha o cronômetro do onboarding. Precisa de pelo menos um serviço e um horário. */

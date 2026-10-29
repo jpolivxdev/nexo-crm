@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { stageRulesSchema } from '../crm/stage-rules.js';
 
 /** Entradas do painel. Tudo validado com limite de tamanho; tenant_id nunca vem daqui. */
 export const localDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -30,7 +31,13 @@ export const statusBody = z.object({
 
 export const rescheduleBody = z.object({ startsAt: z.iso.datetime() });
 
-export const contactsQuery = z.object({ q: z.string().trim().max(100).optional() });
+export const CONTACT_SEGMENTS = ['frequent', 'missing', 'no_show'] as const;
+export type ContactSegment = (typeof CONTACT_SEGMENTS)[number];
+
+export const contactsQuery = z.object({
+  q: z.string().trim().max(100).optional(),
+  segment: z.enum(CONTACT_SEGMENTS).optional(),
+});
 
 export const createContactBody = z.object({
   name: z.string().trim().min(1).max(120),
@@ -46,6 +53,13 @@ export const updateContactBody = z.object({
   tags: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
 });
 
+/** Excluir é para sempre: o painel manda a confirmação explícita. */
+export const eraseContactBody = z.object({
+  confirm: z.literal(true, { error: 'Confirme que quer excluir os dados da cliente.' }),
+});
+
 export const moveDealBody = z.object({ stageId: z.uuid() });
 
 export const replyBody = z.object({ text: z.string().trim().min(1).max(4096) });
+
+export const stageRulesBody = z.object({ rules: stageRulesSchema });

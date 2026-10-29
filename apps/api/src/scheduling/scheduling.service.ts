@@ -84,7 +84,7 @@ export class SchedulingService {
       this.db.withTenant(tenantId, async (tx) => {
         // Chave estrangeira não passa pelo RLS: confere pelo RLS que a cliente é deste negócio.
         const contact = await tx.contact.findUnique({ where: { id: input.contactId } });
-        if (!contact) throw new ContactNotFoundError();
+        if (!contact || contact.erasedAt) throw new ContactNotFoundError();
 
         const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
         const slot = await this.findFreeSlot(tx, tenantId, {
@@ -175,6 +175,7 @@ export class SchedulingService {
           from: current.status,
         });
         if (status !== 'CONFIRMED') await cancelReminders(tx, updated.id);
+        if (status === 'DONE') await offerNextVisit(tx, tenantId, updated.contactId);
         return updated;
       }),
     );
@@ -326,4 +327,24 @@ export class SchedulingService {
       throw error;
     }
   }
+}
+
+export const NEXT_VISIT_TASK = 'Oferecer o próximo horário';
+
+/**
+ * Gatilho de fechamento (M4): atendimento realizado e nenhum horário marcado para frente
+ * vira um "a fazer" para a dona oferecer o próximo. Não repete se já houver um aberto.
+ */
+async function offerNextVisit(tx: TenantTx, tenantId: string, contactId: string) {
+  const upcoming = await tx.appointment.count({
+    where: { contactId, status: { in: ACTIVE }, startsAt: { gt: new Date() } },
+  });
+  if (upcoming > 0) return;
+  const open = await tx.task.count({
+    where: { contactId, title: NEXT_VISIT_TASK, doneAt: null },
+  });
+  if (open > 0) return;
+  await tx.task.create({
+    data: { tenantId, contactId, title: NEXT_VISIT_TASK, dueAt: new Date() },
+  });
 }

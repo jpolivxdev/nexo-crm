@@ -13,7 +13,7 @@ import {
 import type { z } from 'zod';
 import type { AuthedRequest } from '../auth/auth.types.js';
 import { SessionGuard, TenantGuard } from '../auth/session.guard.js';
-import { businessBody, faqBody, hoursBody, servicesBody } from './setup.schemas.js';
+import { businessBody, faqBody, hoursBody, messagesBody, servicesBody } from './setup.schemas.js';
 import { SetupService } from './setup.service.js';
 
 function parse<T extends z.ZodType>(schema: T, value: unknown): z.infer<T> {
@@ -57,6 +57,16 @@ export class SetupController {
   @Put('faq')
   faq(@Req() req: AuthedRequest, @Body() body: unknown) {
     return this.setup.saveFaq(this.tenant(req), parse(faqBody, body));
+  }
+
+  @Get('messages')
+  messages(@Req() req: AuthedRequest) {
+    return this.setup.messages(this.tenant(req));
+  }
+
+  @Put('messages')
+  saveMessages(@Req() req: AuthedRequest, @Body() body: unknown) {
+    return this.setup.saveMessages(this.tenant(req), parse(messagesBody, body));
   }
 
   @Post('complete')

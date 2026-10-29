@@ -64,3 +64,80 @@ export function render(
   const template = overrides[key]?.trim() || DEFAULT_MESSAGES[key];
   return template.replace(/\{(\w+)\}/g, (match, name: string) => vars[name] ?? match);
 }
+
+/** Textos que viram botão ou item de lista no WhatsApp: no máximo 20 caracteres. */
+export const BUTTON_KEYS: readonly MessageKey[] = [
+  'menuBook',
+  'menuMine',
+  'menuFaq',
+  'menuHuman',
+  'anyProfessional',
+  'confirmYes',
+  'confirmOtherTime',
+  'manageReschedule',
+  'manageCancel',
+  'manageBack',
+  'cancelYes',
+  'cancelNo',
+  'more',
+];
+export const BUTTON_MAX = 20;
+export const MESSAGE_MAX = 1024;
+
+/** Variáveis que a mensagem padrão usa. A versão da dona só pode usar essas. */
+export function messageVariables(key: MessageKey): string[] {
+  return [...new Set([...DEFAULT_MESSAGES[key].matchAll(/\{(\w+)\}/g)].map((m) => m[1]!))];
+}
+
+export type MessageCheck =
+  { ok: true; overrides: MessageOverrides } | { ok: false; key: string; message: string };
+
+/**
+ * Confere as mensagens que a dona escreveu antes de salvar.
+ * Vazio volta ao padrão; texto igual ao padrão também não é guardado.
+ */
+export function checkMessageOverrides(input: Record<string, string>): MessageCheck {
+  const overrides: MessageOverrides = {};
+  for (const [rawKey, rawValue] of Object.entries(input)) {
+    if (!(rawKey in DEFAULT_MESSAGES)) {
+      return { ok: false, key: rawKey, message: 'Mensagem desconhecida.' };
+    }
+    const key = rawKey as MessageKey;
+    const value = rawValue.trim();
+    if (!value || value === DEFAULT_MESSAGES[key]) continue;
+
+    const max = BUTTON_KEYS.includes(key) ? BUTTON_MAX : MESSAGE_MAX;
+    if (value.length > max) {
+      return {
+        ok: false,
+        key,
+        message: BUTTON_KEYS.includes(key)
+          ? `Texto de botão tem no máximo ${BUTTON_MAX} caracteres.`
+          : `A mensagem tem no máximo ${MESSAGE_MAX} caracteres.`,
+      };
+    }
+    const allowed = messageVariables(key);
+    const unknown = [...value.matchAll(/\{(\w*)\}/g)]
+      .map((m) => m[1]!)
+      .find((v) => !allowed.includes(v));
+    if (unknown !== undefined) {
+      return {
+        ok: false,
+        key,
+        message: allowed.length
+          ? `Aqui só dá para usar ${allowed.map((v) => `{${v}}`).join(', ')}.`
+          : 'Esta mensagem não aceita palavras entre chaves.',
+      };
+    }
+    // O aviso inicial é o que garante à cliente saber como parar (LGPD e regras do WhatsApp).
+    if (key === 'privacyNotice' && !/parar/i.test(value)) {
+      return {
+        ok: false,
+        key,
+        message: 'O aviso precisa continuar dizendo como parar de receber mensagens ("parar").',
+      };
+    }
+    overrides[key] = value;
+  }
+  return { ok: true, overrides };
+}

@@ -64,12 +64,14 @@ export function addDays(date: string, days: number): string {
 
 /** 5515999990000 → +55 (15) 99999-0000 */
 export function phone(digits: string): string {
+  // Cliente que pediu para excluir os dados não tem mais telefone.
+  if (!/^\d+$/.test(digits)) return '';
   const m = /^55(\d{2})(\d{4,5})(\d{4})$/.exec(digits);
   return m ? `+55 (${m[1]}) ${m[2]}-${m[3]}` : `+${digits}`;
 }
 
 export function contactName(c: { name: string | null; phone: string }): string {
-  return c.name?.trim() || phone(c.phone);
+  return c.name?.trim() || phone(c.phone) || 'Cliente excluída';
 }
 
 export const BUSINESS_TZ_FALLBACK = 'America/Sao_Paulo';

@@ -186,3 +186,54 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Série por dia sai do relatório** (`daily` em `/panel/report`): um ponto por dia do período, com zero nos dias vazios, no fuso do negócio. "Marcados" conta pela data em que a cliente marcou; "realizados", pela data do horário, igual aos totais.
 - **"O que aconteceu"** (`activity` em `/panel/today`): os 8 últimos eventos de uma lista fechada (cliente nova, horário marcado, remarcado, confirmado, cancelado, realizado, faltou, pediu você, pediu para parar). Só sai tipo, quem fez, data e a cliente; o payload do evento não vai para a tela. A cliente é lida do payload só se for um ID válido e buscada com RLS: cliente de outro negócio vira "Uma cliente". Teste automatizado confere as três coisas.
 - **Planos (tela ainda só visual):** Grátis (CRM básico, limite de clientes a definir), CRM (sem limite, resultados, retornos) e Completo (CRM + agenda + robô no WhatsApp). Preços e limites: [A DEFINIR com o Coca]. Hoje todo negócio tem tudo liberado: a trava por plano no servidor é o próximo passo (ver PENDENCIAS.md).
+
+## E13: baixar e excluir os dados de uma cliente (29/10/2026)
+
+- **Onde fica:** no fim da ficha da cliente, seção "Dados da cliente", com "Baixar dados" e "Excluir dados". É a dona quem atende o pedido da cliente; a nexo não mexe nisso sem ela.
+- **Baixar dados gera um arquivo `.json`** com tudo o que o negócio guarda sobre a cliente (cadastro, conversas completas, horários com serviço e profissional, etapa, "a fazer", registros de aviso e de "parar" e a lista de acontecimentos). Formato aberto, que dá para ler num editor de texto; um PDF bonito pode vir depois, se a piloto pedir.
+- **Excluir anonimiza em vez de apagar a linha.** A cliente perde nome, telefone, etiquetas e anotações, e as conversas, mensagens e "a fazer" dela são apagados de verdade. A linha fica, marcada com `erased_at`, porque os horários passados e as etapas apontam para ela: assim os relatórios (faltas, realizados, novos contatos) continuam certos, como pede o item 9 da seção 3 do `SEGURANCA.md`. Os eventos já guardam só IDs e tipos, então não precisam de limpeza.
+- **Horários futuros são cancelados** e voltam a ficar livres, com os lembretes cancelados juntos. Os passados ficam, sem a anotação.
+- **Se a cliente mandar mensagem de novo depois**, ela entra como cliente nova: o telefone antigo não existe mais no sistema. Isso inclui o pedido de "parar", que se perde junto. Ver PENDENCIAS.md: [CONFIRMAR COM ADVOGADO/CONTADOR] se dá para guardar só o telefone em lista de bloqueio.
+- **Duas confirmações:** na tela, um segundo passo explica o que some e diz que não dá para desfazer; na API, o corpo precisa de `confirm: true`. As duas ações (baixar e excluir) entram na auditoria só com o ID da cliente e as contagens.
+- **Backups:** quando a hospedagem existir, a exclusão chega aos backups só quando eles vencerem. Prazo [CONFIRMAR COM ADVOGADO/CONTADOR] (já está na lista para o advogado, item 6).
+
+## E14: folgas e bloqueios (29/10/2026)
+
+- **Onde fica:** botão "Folgas" na Agenda (e em Conta). Uma tela com "Marcar folga ou bloqueio" e a lista dos próximos, cada um com "Remover".
+- **Dia todo ou algumas horas.** Dia todo pode ser um período (férias); com horas, é um dia só, para a tela continuar simples. Guardado em UTC a partir do fuso do negócio.
+- **Sem profissional = o negócio inteiro fecha.** O seletor "Quem" só aparece quando houver mais de uma profissional.
+- **Horários já marcados no período não mudam sozinhos.** Cancelar a cliente sem avisar seria pior: a tela lista quem está marcado, com link para a ficha, para a dona remarcar ou cancelar.
+- **Remover apaga de verdade** o bloqueio: não é dado pessoal e não entra em relatório. O motivo é opcional, curto (80 caracteres) e só a dona vê; a tela sugere exemplos que não são de saúde.
+- **Limites:** no máximo um ano por bloqueio; período que já passou é recusado.
+
+## E15: mensagens do robô editáveis pela dona (29/10/2026)
+
+- **Onde fica:** Conta → Mensagens do robô. As 41 mensagens aparecem em cinco grupos, na ordem da conversa (primeira mensagem e menu, marcar, remarcar e cancelar, dúvidas/você/"parar", lembretes), cada uma com um nome que a dona entende ("Botão: confirmar", "Horário marcado").
+- **Guarda só o que mudou.** Texto vazio ou igual ao padrão volta ao padrão, e o padrão pode melhorar sem apagar o que a dona escreveu. "Voltar ao texto padrão" em cada uma.
+- **Regras no `@nexo/core` (`checkMessageOverrides`), com teste:** botão ou item de lista do WhatsApp tem no máximo 20 caracteres; mensagem no máximo 1.024; só as variáveis que o texto padrão usa (`{servico}`, `{data}`, `{hora}`, `{dona}`, `{negocio}`), para nenhuma ficar sem valor; o aviso da primeira conversa precisa continuar dizendo como "parar" (LGPD e regras do WhatsApp). O erro volta com a mensagem certa, que fica marcada na tela.
+- **Lembretes:** a tela avisa que, com o WhatsApp oficial, lembrete fora da conversa usa modelo aprovado pela Meta e mudar o texto pede nova aprovação.
+- **Textos de cuidado** (antes do horário, saúde) continuam sendo da dona (CLAUDE.md, seção 2): a tela não sugere nenhum.
+
+## E16: regras de etapa criadas pela dona (29/10/2026)
+
+- **Onde fica:** Etapas → Regras automáticas. Uma linha por acontecimento: "Se a cliente **faltou**, colocar em [etapa]". As opções são "Padrão (Agendou)", cada etapa do funil e "Não mudar a etapa".
+- **Acontecimentos (lista fechada):** primeira mensagem, viu as dúvidas, marcou, confirmou, foi atendida, foi atendida de novo (2ª vez ou mais), faltou, cancelou, pediu você, pediu para parar. Texto livre ou condição montada pela dona ficam para depois (mais telas, mais erro).
+- **Regra da dona vale antes da padrão e pode mover para qualquer etapa**, inclusive para trás ou para "Não seguiu", porque foi escolha explícita dela. A padrão continua só andando para frente. "Não mudar a etapa" desliga a padrão daquele acontecimento. Sem regra própria para "atendida de novo", vale a de "foi atendida".
+- **Guardadas como JSON no funil (`pipelines.rules`)**, validadas ao ler e ao salvar (Zod), em vez de tabela nova: são no máximo 10 linhas, sempre lidas junto com o funil, e o RLS da tabela de funis já cobre. Regra que aponta para etapa que não existe mais é ignorada e vale a padrão.
+- **Lógica no `@nexo/core` (`classify` com `rules`)**, com teste; a API só lê e grava.
+
+## E17: clientes frequentes, sumidas e faltosas (29/10/2026)
+
+- **Onde fica:** na tela Clientes, botões "Todas · Frequentes · Sumidas · Faltosas". Cada visão diz a regra em uma frase e cada cliente mostra o número que a colocou ali ("5 vezes em 6 meses", "Última vez há 62 dias", "Faltou 2 vezes").
+- **Regras fixas na Fase 1 (`SEGMENT_RULES` na API):** frequente = 3+ atendimentos realizados em 180 dias; sumida = já foi atendida, o último atendimento foi há mais de 45 dias e não tem horário marcado; faltosa = 2+ faltas em 180 dias. Os 45 dias pensam na manutenção de cílios (2 a 4 semanas, ver CLAUDE.md, seção 2): passou disso, vale chamar. Ajustar com a piloto; deixar a dona mudar fica para a Fase 2, junto com os retornos (M5).
+- **Calculado na hora** (agrupando os horários com RLS), sem tabela nova nem tarefa agendada. Com poucos milhares de horários por negócio, é rápido; se crescer, vira visão materializada.
+- **Ordem:** quem mais se encaixa primeiro (mais atendimentos, mais tempo sumida, mais faltas). Busca por nome funciona dentro da visão.
+- Cliente excluída (E13) não aparece em nenhuma visão.
+
+## E18: gatilho de fechamento (29/10/2026)
+
+- **Regra:** quando a dona marca "realizado" e a cliente não tem nenhum horário marcado para frente, nasce um "a fazer" **"Oferecer o próximo horário"** para hoje, ligado à cliente. Aparece no Hoje com o nome dela e some quando a dona marca como feito.
+- **Não repete:** se já existe um aberto para a mesma cliente, não cria outro; se ela já marcou o próximo, não cria.
+- **Por que "a fazer" e não mensagem automática:** mandar mensagem sozinho para oferecer horário, fora da conversa, é marketing e no WhatsApp oficial exige modelo aprovado e cuidado com opt-in. Na Fase 1 a dona decide quando e como chamar (princípio 6, humano no controle). Mensagem automática de retorno entra com o M5 (Fase 2).
+- **Sempre ligado na Fase 1.** Ligar e desligar, e o prazo (ex.: oferecer manutenção em 3 semanas), ficam para quando a piloto disser o que faz sentido.
+

@@ -55,11 +55,16 @@ export function Agenda({ go }: { go: (to: string) => void }) {
     <>
       <header className="page-header row row--between">
         <h1>Agenda</h1>
-        {!booking && (
-          <button type="button" className="button" onClick={() => setBooking(true)}>
-            Marcar horário
+        <div className="row page-header__actions">
+          <button type="button" className="button button--ghost" onClick={() => go('/folgas')}>
+            Folgas
           </button>
-        )}
+          {!booking && (
+            <button type="button" className="button" onClick={() => setBooking(true)}>
+              Marcar horário
+            </button>
+          )}
+        </div>
       </header>
 
       {booking && (
