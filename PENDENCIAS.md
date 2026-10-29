@@ -5,6 +5,7 @@ Lista do que depende dos sócios. Atualizada em 29/10/2026. Quando um item for r
 ## Da cliente-piloto
 
 Respostas recebidas em 29/10/2026 (pelo Jandoza e pelo JP) estão em `CLAUDE.md`, seção 2. Ainda falta:
+- O robô pode marcar uma cliente logo depois da outra, sem intervalo entre os atendimentos? (hoje marca seguido)
 - OK dela no rascunho do recado antes do horário (em `CLAUDE.md`, seção 2).
 - Preço por serviço: ela só deu a faixa de R$ 160 a R$ 230. Na Fase 1 o preço é opcional; sem ele, o robô não fala de preço.
 - Ela volta na semana de 02/11/2026. Acertar o sistema com ela e depois marcar a data do piloto.
