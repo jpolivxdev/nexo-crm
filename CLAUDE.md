@@ -19,8 +19,21 @@ Arquiteto de software, dev full-stack sênior e product manager de SaaS B2B para
 
 ## 2. Cliente-piloto
 
-- **Quem:** a mãe do Jandoza. Nome: **[A DEFINIR]**.
-- **Negócio (Atualizado):** estúdio de **cílios**. Duração padrão informada: **1 hora** por atendimento. Serviços exatos, preços, horário de funcionamento e como agenda hoje: **[A DEFINIR]** (o Jandoza vai confirmar com ela quando ela voltar de viagem).
+- **Quem:** **Lígia Jandoza**, mãe do Jandoza (no robô: "Falar com a Lígia").
+- **Estúdio (respostas de 29/10/2026):** **Instituto Star Sorocaba**, conhecido pelas clientes como o lugar que faz cílios. Sorocaba (SP).
+- **Serviços:** "cílios em geral", **1h30** por atendimento (substitui o "1 hora" de 26/10). Preços de **R$ 160 a R$ 230**; ela só informou essa faixa (preço por serviço não veio).
+- **Manutenção:** de 21 a 25 dias depois da aplicação. Passou de 25 dias, vira colocação nova.
+- **Atendimento:** sob agendamento, sem horário fixo. Na agenda: **segunda a sábado, das 9h às 19h**, folga no domingo, sem pausa fixa (JP, 29/10/2026). O que ela não puder, fecha em Folgas e bloqueios.
+- **Férias:** volta na semana de 02/11/2026. O piloto começa depois de acertar o sistema com ela; data **[A DEFINIR]**.
+- **Hoje:** agenda num aplicativo simples de agenda (qual: **[A DEFINIR]**). Atende de 10 a 15 clientes por semana.
+- **Cliente sumida:** depois de 45 dias sem vir.
+- **Próximo horário:** quer o lembrete de oferecer o próximo horário **10 dias** depois do atendimento.
+- **Recado antes do horário:** ela deixou a nexo escrever. Rascunho (lembrete de 24h), **aguardando o OK dela** antes de entrar no sistema, porque fala de cuidado com os olhos:
+  > Oi! Passando para lembrar do seu horário no {negocio}: {servico}, amanhã ({data}) às {hora}. O atendimento leva cerca de 1h30.
+  > Para tudo sair certinho:
+  > • venha sem maquiagem nos olhos (rímel, delineador e sombra);
+  > • se for a sua primeira vez, ou se tiver alergia ou sensibilidade nos olhos, me avise antes por aqui.
+  > Você confirma?
 - **Equipe (Atualizado):** por enquanto só ela usa o sistema. Só ela precisa de login.
 - **Número (Atualizado):** o robô vai usar o número atual dela, porque todas as clientes já estão nele. A integração com a Meta **fica para uma fase posterior**; por enquanto o canal é simulado (ver seção 9).
 - Alcance: cerca de 13 mil seguidores no Instagram; tem amigas donas de estabelecimento.

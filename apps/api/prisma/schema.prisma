@@ -44,6 +44,10 @@ model Tenant {
   slotStepMinutes  Int @default(30) @map("slot_step_minutes")
   /// Antecedência mínima para marcar.
   minNoticeMinutes Int @default(60) @map("min_notice_minutes")
+  /// Avisar a dona por e-mail quando uma cliente marca, remarca ou cancela pelo WhatsApp.
+  notifyEmail      Boolean @default(false) @map("notify_email")
+  /// Dias depois do atendimento para o "a fazer" de oferecer o próximo horário. Nulo = não criar.
+  nextVisitDays    Int?    @default(0) @map("next_visit_days")
   /// Cronômetro do onboarding: quando o negócio foi criado pela nexo e quando a dona terminou de configurar.
   onboardingStartedAt   DateTime? @map("onboarding_started_at") @db.Timestamptz
   onboardingCompletedAt DateTime? @map("onboarding_completed_at") @db.Timestamptz

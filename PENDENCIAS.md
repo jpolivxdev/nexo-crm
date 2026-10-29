@@ -1,20 +1,18 @@
 # Pendências do nexo CRM
 
-Lista do que depende dos sócios. Atualizada em 26/10/2026. Quando um item for respondido, ele sai daqui e vai para `CLAUDE.md` ou `DECISOES.md`.
+Lista do que depende dos sócios. Atualizada em 29/10/2026. Quando um item for respondido, ele sai daqui e vai para `CLAUDE.md` ou `DECISOES.md`.
 
-## Da cliente-piloto (o Jandoza confirma com a mãe quando ela voltar de viagem)
-- Nome dela e nome do estúdio.
-- Lista de serviços (ex.: aplicação fio a fio, volume russo, híbrido, manutenção, remoção, lash lifting), com duração e preço de cada um. Hoje só sabemos "1 hora".
-- Prazo de manutenção que ela usa (ex.: até X dias conta como manutenção; depois disso vira aplicação nova?).
-- Dias e horário de funcionamento, pausas e folgas.
-- Como ela agenda hoje (caderno, app, só WhatsApp) e quantas clientes atende por semana.
-- O que ela quer que o robô diga antes do horário (cuidados, chegar sem rímel, teste de sensibilidade). Texto dela, não nosso.
-- Se ela tem MEI ou CNPJ (vai pesar quando a Meta entrar).
-- Depois de quantos dias sem vir ela considera que a cliente sumiu (a tela usa 45 dias por enquanto).
-- Se quer o lembrete de oferecer o próximo horário depois do atendimento, e em quantos dias.
-- Data para começar o piloto.
+## Da cliente-piloto
+
+Respostas recebidas em 29/10/2026 (pelo Jandoza e pelo JP) estão em `CLAUDE.md`, seção 2. Ainda falta:
+- OK dela no rascunho do recado antes do horário (em `CLAUDE.md`, seção 2).
+- Preço por serviço: ela só deu a faixa de R$ 160 a R$ 230. Na Fase 1 o preço é opcional; sem ele, o robô não fala de preço.
+- Ela volta na semana de 02/11/2026. Acertar o sistema com ela e depois marcar a data do piloto.
+- Qual é o aplicativo de agenda que ela usa hoje, e se quer trazer os horários já marcados de lá.
+- Se ela tem MEI ou CNPJ (vai pesar quando a Meta entrar). Não respondeu.
 
 ## Dos sócios
+- Lembrete por e-mail para a cliente final (item da seção M4): as clientes não têm e-mail no cadastro, só WhatsApp, e pedir e-mail vai contra coletar o mínimo. Proposta: lembrete só pelo WhatsApp e tirar o e-mail da cliente do escopo da Fase 1. Confirmar com o JP.
 - Teto de gasto mensal com hospedagem (Coca).
 - Modelo de planos: grátis + IA paga x implantação + mensalidade (Coca).
 - Destravar a conta da Meta: forma de pagamento, perfil da empresa, verificação, e de quem fica a conta (usar o MEI do Jandoza ou o da piloto).

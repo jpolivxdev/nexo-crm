@@ -35,6 +35,35 @@ export function useLoad<T>(load: () => Promise<T>, key: string) {
 export interface Notice {
   type: 'agenda.changed' | 'conversation.updated' | 'handoff.requested' | 'contact.updated';
   id?: string;
+  /** Mudança feita pela cliente no WhatsApp que merece aviso para a dona. */
+  alert?: 'booked' | 'rescheduled' | 'cancelled';
+}
+
+// Uma conexão só para o painel inteiro, dividida entre as telas abertas.
+const listeners = new Set<(notice: Notice) => void>();
+let source: EventSource | null = null;
+
+function subscribe(listener: (notice: Notice) => void): () => void {
+  listeners.add(listener);
+  if (!source) {
+    source = new EventSource('/api/panel/events');
+    source.addEventListener('notice', (event) => {
+      let notice: Notice;
+      try {
+        notice = JSON.parse((event as MessageEvent<string>).data) as Notice;
+      } catch {
+        return; // aviso malformado: ignora
+      }
+      for (const l of [...listeners]) l(notice);
+    });
+  }
+  return () => {
+    listeners.delete(listener);
+    if (listeners.size === 0) {
+      source?.close();
+      source = null;
+    }
+  };
 }
 
 /** Ouve os avisos em tempo real do painel (Server-Sent Events). */
@@ -46,15 +75,7 @@ export function useRealtime(onNotice: (notice: Notice) => void): void {
 
   useEffect(() => {
     if (typeof EventSource === 'undefined') return;
-    const source = new EventSource('/api/panel/events');
-    source.addEventListener('notice', (event) => {
-      try {
-        handler.current(JSON.parse((event as MessageEvent<string>).data) as Notice);
-      } catch {
-        // aviso malformado: ignora
-      }
-    });
-    return () => source.close();
+    return subscribe((notice) => handler.current(notice));
   }, []);
 }
 

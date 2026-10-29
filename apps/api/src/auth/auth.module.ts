@@ -19,6 +19,6 @@ import { AdminGuard, SessionGuard, TenantGuard } from './session.guard.js';
     AdminGuard,
     { provide: MAILER, useFactory: (env: Env) => createMailer(env), inject: [ENV] },
   ],
-  exports: [AuthService, AuditService, SessionGuard, TenantGuard, AdminGuard],
+  exports: [AuthService, AuditService, SessionGuard, TenantGuard, AdminGuard, MAILER],
 })
 export class AuthModule {}
