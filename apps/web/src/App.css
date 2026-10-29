@@ -617,6 +617,124 @@ textarea:focus-visible {
   margin-top: 8px;
 }
 
+/* Agenda: calendário do mês */
+.month {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  box-shadow: var(--sombra-1);
+}
+
+.month__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-bottom: 12px;
+}
+
+.month__head h2 {
+  margin: 0;
+}
+
+.month__head p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.month__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.month__weekday {
+  padding-bottom: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--cor-texto-suave);
+}
+
+.month__day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 48px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--cor-suave);
+  color: var(--cor-texto);
+  font: inherit;
+  cursor: pointer;
+}
+
+.month__day:hover {
+  border-color: var(--cor-contorno);
+}
+
+.month__day--out {
+  background: transparent;
+  color: var(--cor-texto-suave);
+  opacity: 0.6;
+}
+
+.month__day--today {
+  border-color: var(--cor-destaque-texto);
+}
+
+.month__day--today .month__num {
+  color: var(--cor-destaque-texto);
+  font-weight: 700;
+}
+
+.month__num {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+/* Quantidade de horários do dia: número, não só cor. */
+.month__count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--roxo-nexo);
+  color: var(--branco);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.month__day[aria-pressed='true'] {
+  background: var(--roxo-nexo);
+  border-color: var(--roxo-nexo);
+  color: var(--branco);
+}
+
+.month__day[aria-pressed='true'] .month__num {
+  color: var(--branco);
+}
+
+.month__day[aria-pressed='true'] .month__count {
+  background: var(--branco);
+  color: var(--roxo-nexo);
+}
+
+@media (min-width: 768px) {
+  .month__day {
+    min-height: 64px;
+  }
+}
+
 /* Etapas */
 .chips {
   display: flex;
