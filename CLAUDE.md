@@ -19,22 +19,22 @@ Arquiteto de software, dev full-stack sênior e product manager de SaaS B2B para
 
 ## 2. Cliente-piloto
 
-- **Quem:** **Lígia Jandoza**, mãe do Jandoza (no robô: "Falar com a Lígia").
+- **Quem:** **Lígia Jandoza**, mãe do Jandoza. No robô, ela quer o nome do estúdio, não o dela ("Falar com Instituto Star"). Esse texto passa do limite de 20 letras do botão do WhatsApp; proposta em PENDENCIAS.
 - **Estúdio (respostas de 29/10/2026):** **Instituto Star Sorocaba**, conhecido pelas clientes como o lugar que faz cílios. Sorocaba (SP).
 - **Serviços:** "cílios em geral", **1h30** por atendimento (substitui o "1 hora" de 26/10). Preços de **R$ 160 a R$ 230**; ela só informou essa faixa (preço por serviço não veio).
-- **Manutenção:** de 21 a 25 dias depois da aplicação. Passou de 25 dias, vira colocação nova.
+- **Manutenção:** o PDF orienta 15 a 20 dias, mas as clientes fixas costumam voltar entre 21 e 25. Passou de 25 dias, vira colocação nova.
 - **Atendimento:** sob agendamento, sem horário fixo. Na agenda: **segunda a sábado, das 9h às 19h**, folga no domingo, sem pausa fixa (JP, 29/10/2026). O que ela não puder, fecha em Folgas e bloqueios.
 - **Férias:** volta na semana de 02/11/2026. O piloto começa depois de acertar o sistema com ela; data **[A DEFINIR]**.
 - **Hoje:** agenda num aplicativo simples de agenda (qual: **[A DEFINIR]**). Atende de 10 a 15 clientes por semana.
 - **Cliente sumida:** depois de 45 dias sem vir.
 - **Próximo horário:** quer o lembrete de oferecer o próximo horário **10 dias** depois do atendimento.
 - **Recado antes do horário:** ela deixou a nexo escrever. Rascunho (lembrete de 24h), **aguardando o OK dela** antes de entrar no sistema, porque fala de cuidado com os olhos:
-  > Oi! Passando para lembrar do seu horário no {negocio}: {servico}, amanhã ({data}) às {hora}. O atendimento leva cerca de 1h30.
-  > Para tudo sair certinho:
-  > • venha sem maquiagem nos olhos (rímel, delineador e sombra);
-  > • se for a sua primeira vez, ou se tiver alergia ou sensibilidade nos olhos, me avise antes por aqui.
+  > Oi! Passando para lembrar do seu horário no {negocio}: {servico}, amanhã ({data}) às {hora}.
+  > Se for cílios, venha sem maquiagem nos olhos (rímel, delineador e sombra). Se for a sua primeira vez, ou se tiver alergia ou sensibilidade, me avise antes por aqui.
   > Você confirma?
-- **Catálogo dela (PDF de 29/10/2026, em `/mnt/project-files/nexo/CRM/piloto/instituto-star-catalogo.pdf`):** marca "Instituto Star **by Lika**". Endereço: R. José Maria Hannickel, 150, Sorocaba. Instagram @institutostarsorocaba. Tem um número para agendamento e outro para **curso** (ela dá curso). Preços abaixo são do PDF; duração só conhecemos a dos cílios (1h30). **Falta confirmar com ela** antes de cadastrar.
+
+  Ajustado em 29/10/2026: como o robô agenda todos os serviços e o lembrete é um texto só, saiu o "leva cerca de 1h30" e o cuidado com os olhos ficou só para cílios.
+- **Catálogo dela (PDF de 29/10/2026, em `/mnt/project-files/nexo/CRM/piloto/instituto-star-catalogo.pdf`):** marca "Instituto Star **by Lika**". Endereço: R. José Maria Hannickel, 150, Sorocaba. Instagram @institutostarsorocaba. Tem um número para agendamento e outro para **curso** (ela dá curso). Preços abaixo são do PDF; duração só conhecemos a dos cílios (1h30). Confirmado por ela em 29/10/2026, com as correções abaixo. **O robô agenda todos os serviços.** Curso é tratado no mesmo WhatsApp (passa para ela).
 
   | Serviço | Aplicação | Manutenção |
   |---|---|---|
@@ -42,17 +42,18 @@ Arquiteto de software, dev full-stack sênior e product manager de SaaS B2B para
   | Star Clássica (curvado, volume na medida) | R$ 160 | R$ 110 |
   | Star Charmosa (volumoso, 3D) | R$ 190 | R$ 130 |
   | Volume Híbrido | R$ 240 | R$ 140 |
-  | Efeito Molhado | R$ 170 | R$ 119 (confirmar) |
+  | Efeito Molhado | R$ 170 | R$ 120 |
   | Star Natural (lash lifting) | R$ 190 | não tem |
   | Limpeza de pele | R$ 130 | |
   | Design de sobrancelha | R$ 50 | |
   | Spa das sobrancelhas | R$ 70 | |
   | Dermaplan | R$ 130 | |
-  | Drenagem | R$ 120 | |
+  | Drenagem | R$ 150 | |
   | Epilação de buço | R$ 20 | |
 
   Pacotes: Hidragloss labial (R$ 140 avulsa; 3 sessões R$ 345), Drenagem linfática (R$ 150 avulsa; 5 sessões R$ 675), Brow Therapy (R$ 150 avulsa; 4 sessões R$ 520).
-  **Conflitos a confirmar:** o PDF diz manutenção "de 15 a 20 dias", e ela respondeu 21 a 25 dias; o PDF lista drenagem a R$ 120 nos serviços e R$ 150 nos pacotes.
+  **Duração:** cílios 1h30; sobrancelhas 40 min; buço 20 min; Hidragloss 45 min. Limpeza de pele, dermaplan, drenagem, spa das sobrancelhas, lash lifting e manutenções: **[A DEFINIR]**.
+  **Equipe:** ela faz tudo, menos **drenagem** e **limpeza de pele**, que outra pessoa faz (nome e horários **[A DEFINIR]**). Essa pessoa entra em Conta → Equipe só com esses serviços.
 - **Equipe (Atualizado):** por enquanto só ela usa o sistema. Só ela precisa de login.
 - **Número (Atualizado):** o robô vai usar o número atual dela, porque todas as clientes já estão nele. A integração com a Meta **fica para uma fase posterior**; por enquanto o canal é simulado (ver seção 9).
 - Alcance: cerca de 13 mil seguidores no Instagram; tem amigas donas de estabelecimento.
