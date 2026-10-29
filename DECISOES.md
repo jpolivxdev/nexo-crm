@@ -53,3 +53,57 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Teste de catálogo** em `tenant-isolation.test.ts`: falha se alguma chave estrangeira entre tabelas com `tenant_id` não incluir o `tenant_id` dos dois lados.
 - **Criação aninhada no Prisma** (ex.: etapas dentro do funil) herda o `tenant_id` do pai e não aceita o campo repetido.
 - A checagem da cliente no agendamento (E3) continua, para devolver uma mensagem clara em vez de erro do banco.
+
+## E4 (robô)
+
+- **Máquina de estados pura em `@nexo/core/bot`.** Recebe estado salvo, mensagem, contexto e "portas" (funções de agenda) e devolve novo estado, respostas e ações. Testada sem banco e sem Meta.
+- **Passos:** menu, serviço, profissional (só se houver mais de uma), dia, horário, confirmação, meus horários, remarcar, cancelar, dúvidas, falar com a equipe, "parar".
+- **Comandos que valem em qualquer ponto:** "parar"/"sair" (desliga mensagens), "oi"/"menu" (volta ao menu), "cancelar" (abre meus horários), "atendente" (passa para a equipe). Sem acento e sem maiúscula.
+- **Quem pediu para parar não recebe nada** até escrever "oi" de novo. O "parar" vem antes de tudo, até do aviso de privacidade.
+- **Aviso de privacidade na primeira mensagem**, com texto provisório. O texto final depende do advogado (PENDENCIAS.md).
+- **Limites da Cloud API aplicados no código:** até 3 opções com título de até 20 caracteres viram botões; o resto vira lista de até 10 linhas (título de até 24, descrição de até 72), com "Ver mais" para paginar.
+- **Texto livre sem IA:** "Não entendi" e a pergunta de novo. Toque em opção de outra tela também conta como não entendido.
+- **Mensagens padrão editáveis** (`Tenant.botMessages`), no tom da marca, sempre com próximo passo.
+- **IDs vindos do WhatsApp não são confiáveis:** a cliente só remarca e cancela os próprios horários (`bot-ports.ts`).
+- **Simulador vai para a E5**, junto com o canal simulado, para exercitar o fluxo completo (contato, conversa, mensagens).
+
+## E5 (canal)
+
+- **Só a API oficial (WhatsApp Cloud API, Graph v25.0).** `MessagingChannel` esconde o canal: o mesmo fluxo roda com a Meta, com o simulador do terminal e nos testes.
+- **Webhook responde rápido e enfileira.** Confere a assinatura `X-Hub-Signature-256` no corpo bruto (comparação em tempo constante), valida o formato com limites de tamanho, acha o negócio pelo número (`channel_routes`) e coloca na fila. O robô roda no worker.
+- **Formato estranho com assinatura válida recebe 200** e é ignorado, para a Meta não reenviar sem fim. Assinatura inválida recebe 401. Sem `WHATSAPP_APP_SECRET` configurado, o webhook recusa tudo (503).
+- **`channel_routes` fora do RLS**, porque o negócio só é conhecido depois de achar a rota. Em troca, a aplicação só lê essa tabela; quem cria rota é a migração ou o script de implantação.
+- **Fila no próprio Postgres (pg-boss), sem Redis.** A estrutura é criada por `npm run queue:setup` com o papel dono; a aplicação sobe sem permissão de criar ou migrar nada. Mensagens da mesma pessoa saem da fila uma de cada vez, na ordem.
+- **Situação de entrega nunca volta atrás** (enviada → entregue → lida; falhou). Avisos da Meta chegam fora de ordem.
+- **Sem token da Meta, as respostas ficam só no histórico** (situação `not_sent`). Assim dá para testar tudo antes de a conta da Meta ser liberada.
+
+## E6 (CRM básico)
+
+- **Uma mensagem, um ciclo** (`ConversationService.handleInbound`): cliente e conversa no CRM, histórico, robô, etapas automáticas, respostas gravadas, envio e aviso ao painel.
+- **Cada mensagem é respondida uma vez só.** A mensagem recebida é única por wamid; ela só vira `processed` quando as respostas foram gravadas. Se o processo cair no meio, a fila tenta de novo e continua dali.
+- **Gravar antes de enviar.** As respostas são gravadas como `pending` e só depois saem pelo canal. Falha de envio fica marcada (`failed`) sem perder o resto.
+- **Etapas automáticas por regras** (`@nexo/core/crm/classification.ts`): primeiro contato → "Novo contato"; dúvida frequente → "Pediu informação"; marcou → "Agendou"; realizado → "Atendido"; segundo realizado → "Voltou". O cartão só anda para frente e "Não seguiu" fica com a dona. Cada etapa tem uma chave fixa (`Stage.key`), então a dona pode renomear sem quebrar as regras.
+- **Tempo real só depois do commit**, com avisos sem dado pessoal (tipo + id).
+- **Simulador no terminal** (`npm run simulator -w @nexo/api`): conversa com o robô usando o banco local e telefone fictício.
+- **Intervalo entre horários e antecedência mínima por negócio** (`Tenant.slotStepMinutes`, `Tenant.minNoticeMinutes`), padrão 30 e 60 minutos até a piloto responder (PENDENCIAS.md).
+
+## E7 (passar para a equipe, "parar", consentimento)
+
+- **"Falar com a equipe" pausa o robô naquela conversa** (`Conversation.botPausedAt`), cria um "A fazer" ("Responder ... no WhatsApp"), grava o evento e avisa o painel. Enquanto pausada, as mensagens da cliente entram no histórico e o robô fica quieto. A dona devolve para o robô pelo painel.
+- **Fora do horário**, o robô avisa que a dona responde quando voltar (horário calculado pelas janelas de atendimento ativas).
+- **Aviso para a dona pelo WhatsApp fica para depois da E0** (precisa de mensagem de modelo aprovada). Por ora, o aviso é no painel (`OwnerNotifier`).
+- **"Parar" grava a recusa** (`Contact.optedOutAt` + `Consent` OPT_OUT); "oi" depois disso grava OPT_IN. O aviso de privacidade mostrado também fica em `Consent`, e só aparece uma vez por cliente.
+
+## E8 (painel do dono)
+
+- **Sessão no servidor, não JWT.** Cookie `nexo_sessao` HttpOnly, SameSite=Strict (Secure em produção) com token aleatório; no banco fica só o hash. Cai com 12 horas sem uso, 7 dias no máximo, no logout ou quando a senha muda.
+- **Senha com Argon2id** (19 MiB, 2 passadas). Erro de login sempre genérico; 5 erros seguidos bloqueiam a conta por 15 minutos; 10 tentativas por IP a cada 15 minutos.
+- **CSRF:** toda rota que muda dados exige o cabeçalho `x-csrf-token` igual ao da sessão.
+- **2FA obrigatório para admin nexo** (código de app autenticador, segredo criptografado com AES-256-GCM). Admin nexo não abre o painel de um negócio; a entrada com motivo fica para a E9.
+- **Painel e API na mesma origem** (`/api`): no localhost via proxy do Vite, em produção via proxy do provedor. É o que faz o cookie Strict funcionar.
+- **O negócio vem só da sessão.** Nenhuma rota do painel aceita `tenantId`; os testes tentam mandar e confirmam que é ignorado.
+- **Tempo real por Server-Sent Events** (`/panel/events`) com avisos sem dado pessoal; entre processos, pelo LISTEN/NOTIFY do Postgres. Por isso o painel atualiza quando a mensagem chega pelo simulador ou pelo worker.
+- **Telas:** Hoje (clientes esperando resposta, horários com Realizado/Faltou, A fazer), Agenda (dia, semana, lista; marcar horário), Clientes (busca, nova cliente), Ficha (etapa por toque, horários, conversa, responder, devolver ao robô, anotações), Etapas (mover por toque, sem arrastar).
+- **A dona responder pela ficha assume a conversa** (pausa o robô). No WhatsApp, mensagem livre só até 24 horas depois da última mensagem da cliente; depois disso a tela explica que precisa de mensagem de modelo.
+- **PWA:** instalável, abre rápido; o service worker guarda só os arquivos do app, nunca respostas da API.
+- **Medido no navegador a 360 px:** marcar horário pelo painel levou menos de 1 segundo; sem rolagem lateral.

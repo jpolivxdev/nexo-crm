@@ -100,3 +100,15 @@ export function isSlotAvailable(slot: Slot, query: SlotQuery): boolean {
 export function todayIn(timeZone: string, now: Date): LocalDate {
   return utcToZoned(now, timeZone).date;
 }
+
+/** Se o negócio está no horário de atendimento nesse instante (alguma janela cobre agora). */
+export function isOpenAt(
+  availability: readonly WeeklyWindow[],
+  instant: Date,
+  timeZone: string,
+): boolean {
+  const { weekday, minute } = utcToZoned(instant, timeZone);
+  return availability.some(
+    (w) => w.weekday === weekday && w.startMinute <= minute && minute < w.endMinute,
+  );
+}

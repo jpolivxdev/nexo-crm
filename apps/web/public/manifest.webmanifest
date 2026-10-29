@@ -1,0 +1,15 @@
+{
+  "name": "Painel do negócio (nexo)",
+  "short_name": "Painel",
+  "description": "Agenda, clientes e conversas do seu negócio.",
+  "lang": "pt-BR",
+  "start_url": "/#/hoje",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FAF9FD",
+  "theme_color": "#100C24",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

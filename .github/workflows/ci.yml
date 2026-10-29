@@ -44,6 +44,7 @@ jobs:
         run: |
           npm run db:deploy -w @nexo/api
           npm run db:setup-local -w @nexo/api
+          npm run queue:setup -w @nexo/api
       - run: npm test
       - run: npm run build
       - name: Auditoria de dependências (falha em alta ou crítica)

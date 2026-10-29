@@ -14,18 +14,22 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:setup-local": "node --env-file-if-exists=../../.env scripts/setup-local-db.mjs",
-    "db:seed": "node --env-file-if-exists=../../.env dist/seed.js"
+    "queue:setup": "node --env-file-if-exists=../../.env scripts/setup-queue.mjs",
+    "db:seed": "node --env-file-if-exists=../../.env dist/seed.js",
+    "simulator": "node --env-file-if-exists=../../.env dist/simulator.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.2.0",
     "@nestjs/core": "^12.2.0",
     "@nestjs/platform-express": "^12.2.0",
     "@nexo/core": "*",
+    "@node-rs/argon2": "^2.2.2",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "helmet": "^8.3.0",
     "nestjs-pino": "^5.3.1",
     "pg": "^8.23.1",
+    "pg-boss": "^12.38.0",
     "pino": "^10.4.0",
     "pino-http": "^11.0.0",
     "reflect-metadata": "^0.2.2",

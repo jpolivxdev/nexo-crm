@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { availableSlots, dayRangeUtc, type LocalDate, utcToZoned } from '@nexo/core';
 import type { Appointment, AppointmentStatus, Source } from '../generated/prisma/client.js';
+import { type Actor, recordEvent } from '../crm/domain-events.js';
 import { PrismaService } from '../database/prisma.service.js';
+import type { RealtimeBus } from '../realtime/realtime.bus.js';
 import type { TenantTx } from '../database/prisma.js';
 import {
   AppointmentNotFoundError,
@@ -12,11 +14,7 @@ import {
   SlotUnavailableError,
 } from './scheduling.errors.js';
 
-/** Quem fez a ação. Vai para o log de eventos. */
-export interface Actor {
-  type: 'contact' | 'user' | 'system';
-  id?: string;
-}
+export type { Actor };
 
 export interface FreeSlot {
   startsAt: Date;
@@ -46,12 +44,22 @@ const EVENT_BY_STATUS: Record<AppointmentStatus, string> = {
 
 @Injectable()
 export class SchedulingService {
-  constructor(private readonly db: Pick<PrismaService, 'withTenant'>) {}
+  constructor(
+    private readonly db: Pick<PrismaService, 'withTenant'>,
+    private readonly bus?: Pick<RealtimeBus, 'publish'>,
+  ) {}
 
   /** Horários livres de um serviço num dia (no fuso do negócio). */
   listSlots(
     tenantId: string,
-    input: { serviceId: string; date: LocalDate; professionalId?: string; now?: Date },
+    input: {
+      serviceId: string;
+      date: LocalDate;
+      professionalId?: string;
+      now?: Date;
+      /** Na remarcação, o horário atual da cliente não conta como ocupado. */
+      ignoreAppointmentId?: string;
+    },
   ): Promise<FreeSlot[]> {
     return this.db.withTenant(tenantId, (tx) =>
       this.computeSlots(tx, tenantId, { ...input, now: input.now ?? new Date() }),
@@ -71,7 +79,7 @@ export class SchedulingService {
       now?: Date;
     },
   ): Promise<Appointment> {
-    return this.guardOverlap(() =>
+    return this.notify(tenantId, () =>
       this.db.withTenant(tenantId, async (tx) => {
         // Chave estrangeira não passa pelo RLS: confere pelo RLS que a cliente é deste negócio.
         const contact = await tx.contact.findUnique({ where: { id: input.contactId } });
@@ -109,7 +117,7 @@ export class SchedulingService {
     appointmentId: string,
     input: { startsAt: Date; actor: Actor; now?: Date },
   ): Promise<Appointment> {
-    return this.guardOverlap(() =>
+    return this.notify(tenantId, () =>
       this.db.withTenant(tenantId, async (tx) => {
         const current = await this.loadActive(tx, appointmentId, 'SCHEDULED');
         const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
@@ -149,18 +157,23 @@ export class SchedulingService {
     status: Exclude<AppointmentStatus, 'SCHEDULED'>,
     actor: Actor,
   ): Promise<Appointment> {
-    return this.db.withTenant(tenantId, async (tx) => {
-      const current = await tx.appointment.findUnique({ where: { id: appointmentId } });
-      if (!current) throw new AppointmentNotFoundError();
-      if (!TRANSITIONS[current.status].includes(status)) {
-        throw new InvalidAppointmentStateError(current.status, status);
-      }
-      const updated = await tx.appointment.update({ where: { id: current.id }, data: { status } });
-      await this.recordEvent(tx, tenantId, EVENT_BY_STATUS[status], updated, actor, {
-        from: current.status,
-      });
-      return updated;
-    });
+    return this.notify(tenantId, () =>
+      this.db.withTenant(tenantId, async (tx) => {
+        const current = await tx.appointment.findUnique({ where: { id: appointmentId } });
+        if (!current) throw new AppointmentNotFoundError();
+        if (!TRANSITIONS[current.status].includes(status)) {
+          throw new InvalidAppointmentStateError(current.status, status);
+        }
+        const updated = await tx.appointment.update({
+          where: { id: current.id },
+          data: { status },
+        });
+        await this.recordEvent(tx, tenantId, EVENT_BY_STATUS[status], updated, actor, {
+          from: current.status,
+        });
+        return updated;
+      }),
+    );
   }
 
   // ---------- internos ----------
@@ -174,11 +187,10 @@ export class SchedulingService {
       professionalId?: string;
       now: Date;
       ignoreAppointmentId?: string;
-      timeZone?: string;
     },
   ): Promise<FreeSlot[]> {
-    const timeZone =
-      input.timeZone ?? (await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } })).timezone;
+    const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
+    const timeZone = tenant.timezone;
     const service = await tx.service.findFirst({
       where: { id: input.serviceId, active: true },
       include: {
@@ -196,26 +208,25 @@ export class SchedulingService {
 
     const day = dayRangeUtc(input.date, timeZone);
     const professionalIds = service.professionals.map((p) => p.professionalId);
-    const [appointments, timeOff] = await Promise.all([
-      tx.appointment.findMany({
-        where: {
-          professionalId: { in: professionalIds },
-          status: { in: ACTIVE },
-          startsAt: { lt: day.endsAt },
-          endsAt: { gt: day.startsAt },
-          ...(input.ignoreAppointmentId ? { id: { not: input.ignoreAppointmentId } } : {}),
-        },
-        select: { professionalId: true, startsAt: true, endsAt: true },
-      }),
-      tx.timeOff.findMany({
-        where: {
-          OR: [{ professionalId: { in: professionalIds } }, { professionalId: null }],
-          startsAt: { lt: day.endsAt },
-          endsAt: { gt: day.startsAt },
-        },
-        select: { professionalId: true, startsAt: true, endsAt: true },
-      }),
-    ]);
+    // Em sequência: as consultas dividem a mesma conexão da transação.
+    const appointments = await tx.appointment.findMany({
+      where: {
+        professionalId: { in: professionalIds },
+        status: { in: ACTIVE },
+        startsAt: { lt: day.endsAt },
+        endsAt: { gt: day.startsAt },
+        ...(input.ignoreAppointmentId ? { id: { not: input.ignoreAppointmentId } } : {}),
+      },
+      select: { professionalId: true, startsAt: true, endsAt: true },
+    });
+    const timeOff = await tx.timeOff.findMany({
+      where: {
+        OR: [{ professionalId: { in: professionalIds } }, { professionalId: null }],
+        startsAt: { lt: day.endsAt },
+        endsAt: { gt: day.startsAt },
+      },
+      select: { professionalId: true, startsAt: true, endsAt: true },
+    });
 
     const byStart = new Map<number, FreeSlot>();
     for (const { professional } of service.professionals) {
@@ -229,6 +240,8 @@ export class SchedulingService {
         availability: professional.availability,
         busy,
         now: input.now,
+        stepMinutes: tenant.slotStepMinutes,
+        minNoticeMinutes: tenant.minNoticeMinutes,
       });
       for (const slot of slots) {
         const key = slot.startsAt.getTime();
@@ -276,22 +289,28 @@ export class SchedulingService {
     actor: Actor,
     extra: Record<string, string> = {},
   ) {
-    return tx.event.create({
-      data: {
-        tenantId,
-        type,
-        entityType: 'appointment',
-        entityId: appointment.id,
-        actorType: actor.type,
-        actorId: actor.id ?? null,
-        payload: {
-          contactId: appointment.contactId,
-          startsAt: appointment.startsAt.toISOString(),
-          status: appointment.status,
-          ...extra,
-        },
+    return recordEvent(tx, tenantId, {
+      type,
+      entityType: 'appointment',
+      entityId: appointment.id,
+      actor,
+      contactId: appointment.contactId,
+      payload: {
+        startsAt: appointment.startsAt.toISOString(),
+        status: appointment.status,
+        ...extra,
       },
     });
+  }
+
+  /**
+   * Roda a mudança e, só depois do commit, avisa o painel que a agenda mudou.
+   * Também traduz a corrida entre dois pedidos (o banco barra o segundo) em horário ocupado.
+   */
+  private async notify(tenantId: string, fn: () => Promise<Appointment>): Promise<Appointment> {
+    const appointment = await this.guardOverlap(fn);
+    this.bus?.publish(tenantId, { type: 'agenda.changed', id: appointment.id });
+    return appointment;
   }
 
   /** Corrida entre dois pedidos: o banco barra o segundo, e a gente responde como horário ocupado. */

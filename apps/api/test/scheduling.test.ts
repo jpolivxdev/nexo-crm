@@ -188,3 +188,79 @@ describe('agenda: horários livres e agendamento', () => {
     ).rejects.toBeInstanceOf(ContactNotFoundError);
   });
 });
+
+describe('agenda: etapas automáticas e aviso em tempo real', () => {
+  let t: DemoTenant;
+  const notices: { tenantId: string; type: string }[] = [];
+  const live = new SchedulingService(
+    { withTenant: (tenantId, fn) => withTenant(prisma, tenantId, fn) },
+    { publish: (tenantId, notice) => notices.push({ tenantId, type: notice.type }) },
+  );
+
+  beforeEach(async () => {
+    notices.length = 0;
+    t = await createDemoTenant(prisma, DEMO_TENANTS[0]!, NOW);
+  });
+
+  const stageOf = async (contactId: string) =>
+    withTenant(prisma, t.tenantId, async (tx) => {
+      const deal = await tx.deal.findFirstOrThrow({
+        where: { contactId, closedAt: null },
+        include: { stage: true },
+      });
+      return deal.stage.key;
+    });
+
+  const book = (startsAt: Date, contact: number) =>
+    live.book(t.tenantId, {
+      contactId: t.contactIds[contact]!,
+      serviceId: t.serviceIds[0]!,
+      startsAt,
+      source: 'WHATSAPP',
+      actor,
+      now: NOW,
+    });
+
+  it('cliente sem atendimento ganha um ao marcar e vai para "Agendou"', async () => {
+    const contactId = t.contactIds[2]!;
+    await book(at('10:00'), 2);
+    expect(await stageOf(contactId)).toBe('scheduled');
+  });
+
+  it('realizado leva para "Atendido", e o segundo realizado para "Voltou"', async () => {
+    const contactId = t.contactIds[2]!;
+    const first = await book(at('10:00'), 2);
+    await live.setStatus(t.tenantId, first.id, 'DONE', { type: 'user' });
+    expect(await stageOf(contactId)).toBe('attended');
+
+    const second = await book(at('15:00'), 2);
+    expect(await stageOf(contactId)).toBe('attended');
+    await live.setStatus(t.tenantId, second.id, 'DONE', { type: 'user' });
+    expect(await stageOf(contactId)).toBe('returned');
+
+    const changes = await withTenant(prisma, t.tenantId, (tx) =>
+      tx.event.count({ where: { type: 'deal.stage_changed' } }),
+    );
+    expect(changes).toBeGreaterThanOrEqual(3);
+  });
+
+  it('avisa o painel só quando a mudança foi gravada', async () => {
+    await book(at('10:00'), 1);
+    await expect(book(at('10:00'), 2)).rejects.toBeInstanceOf(SlotUnavailableError);
+    expect(notices).toEqual([{ tenantId: t.tenantId, type: 'agenda.changed' }]);
+  });
+
+  it('respeita o intervalo entre horários configurado no negócio', async () => {
+    await withTenant(prisma, t.tenantId, (tx) =>
+      tx.tenant.update({ where: { id: t.tenantId }, data: { slotStepMinutes: 60 } }),
+    );
+    const free = await live.listSlots(t.tenantId, {
+      serviceId: t.serviceIds[0]!,
+      date: TUESDAY,
+      now: NOW,
+    });
+    expect(free.map((s) => s.startsAt)).toEqual(
+      ['09:00', '10:00', '11:00', '13:00', '14:00', '15:00', '16:00', '17:00'].map((h) => at(h)),
+    );
+  });
+});

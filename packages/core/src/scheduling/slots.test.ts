@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { availableSlots, dayRangeUtc, isSlotAvailable, type SlotQuery } from './slots.js';
+import { availableSlots, dayRangeUtc, isOpenAt, isSlotAvailable, type SlotQuery } from './slots.js';
 
 const TZ = 'America/Sao_Paulo';
 // Terça, 03/11/2026. Expediente 9h-12h e 13h-18h (pausa de almoço).
@@ -107,5 +107,15 @@ describe('isSlotAvailable', () => {
     };
     expect(isSlotAvailable(ok, base)).toBe(true);
     expect(isSlotAvailable(fora, base)).toBe(false);
+  });
+});
+
+describe('horário de atendimento agora', () => {
+  it('está aberto dentro da janela e fechado no almoço e fora do dia', () => {
+    const at = (iso: string) => new Date(iso);
+    expect(isOpenAt(base.availability, at('2026-11-03T12:00:00Z'), TZ)).toBe(true); // 9h
+    expect(isOpenAt(base.availability, at('2026-11-03T15:30:00Z'), TZ)).toBe(false); // 12h30
+    expect(isOpenAt(base.availability, at('2026-11-03T21:00:00Z'), TZ)).toBe(false); // 18h
+    expect(isOpenAt(base.availability, at('2026-11-04T13:00:00Z'), TZ)).toBe(false); // quarta
   });
 });
