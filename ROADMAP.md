@@ -21,12 +21,13 @@ Módulos: M1 completo, M2 básico, M3 (funil padrão + modelo por nicho + classi
 | E10 | Lembretes 24h e 1h com confirmar/cancelar | Testes com relógio simulado | Feita (PR #12, juntado em 29/10/2026; no WhatsApp real depende das mensagens de modelo da E0) |
 | E11 | Relatório mínimo, deploy, relatório de custo e onboarding | Definição de pronto da Fase 1 | Feita (PR #13, juntado em 29/10/2026; falta escolher a hospedagem e medir o onboarding com a piloto) |
 | E12 | Página de entrada, criar conta com confirmação de e-mail, esqueci a senha | Fluxo completo testado (API e telas) | Feita (PR #13, juntado em 29/10/2026; envio de e-mail em produção depende do provedor) |
-| E13 | Direitos da cliente (LGPD): baixar e excluir os dados pela ficha | Testes de API (exportar, excluir, isolamento, CSRF) e de tela | Em revisão (PR #15) |
-| E14 | Folgas e bloqueios pela tela (Agenda → Folgas) | Horários somem e voltam; aviso de horários já marcados | Em revisão (PR #15) |
-| E15 | Mensagens do robô editáveis (Conta → Mensagens do robô) | Regras no @nexo/core com teste; API e tela testadas | Em revisão (PR #15) |
-| E18 | Gatilho de fechamento: realizado sem próximo horário vira "a fazer" | Teste de API (cria uma vez; não cria se já marcou) | Em revisão (PR #15) |
-| E17 | Visões de clientes: frequentes, sumidas e faltosas (Clientes) | Regras testadas na API, isolamento e tela | Em revisão (PR #15) |
-| E16 | Regras de etapa da dona (Etapas → Regras automáticas) | Regras no @nexo/core com teste; faltou → "Não seguiu" testado ponta a ponta | Em revisão (PR #15) |
+| E13 | Direitos da cliente (LGPD): baixar e excluir os dados pela ficha | Testes de API (exportar, excluir, isolamento, CSRF) e de tela | Feita (PR #15, juntado em 29/10/2026) |
+| E14 | Folgas e bloqueios pela tela (Agenda → Folgas) | Horários somem e voltam; aviso de horários já marcados | Feita (PR #15, juntado em 29/10/2026) |
+| E15 | Mensagens do robô editáveis (Conta → Mensagens do robô) | Regras no @nexo/core com teste; API e tela testadas | Feita (PR #15, juntado em 29/10/2026) |
+| E18 | Gatilho de fechamento: realizado sem próximo horário vira "a fazer" | Teste de API (cria uma vez; não cria se já marcou) | Feita (PR #15, juntado em 29/10/2026) |
+| E17 | Visões de clientes: frequentes, sumidas e faltosas (Clientes) | Regras testadas na API, isolamento e tela | Feita (PR #15, juntado em 29/10/2026) |
+| E16 | Regras de etapa da dona (Etapas → Regras automáticas) | Regras no @nexo/core com teste; faltou → "Não seguiu" testado ponta a ponta | Feita (PR #15, juntado em 29/10/2026) |
+| E19 | Várias profissionais (Conta → Equipe) e acesso de cada uma só à própria agenda | Testes de API (cópia de serviços e horários, só a própria agenda, tirar acesso) e de tela | Em revisão |
 
 Falta na Fase 1 (conferência do PROMPT 1 em 27/10/2026, previsão ~19 h de código):
 1. ~~Exportar e excluir dados de uma cliente (LGPD), obrigatório antes do piloto.~~ Feito na E13 (29/10/2026).
@@ -35,7 +36,7 @@ Falta na Fase 1 (conferência do PROMPT 1 em 27/10/2026, previsão ~19 h de cód
 4. ~~Regras de etapa criadas pela dona ("se X, colocar em Y").~~ Feito na E16 (29/10/2026).
 5. ~~Visão de clientes frequentes, sumidas e faltosas.~~ Feito na E17 (29/10/2026).
 6. ~~Gatilho de fechamento por regra (realizado → "a fazer" de oferecer o próximo horário).~~ Feito na E18 (29/10/2026).
-7. Mais de uma profissional no assistente e login da profissional.
+7. ~~Mais de uma profissional no assistente e login da profissional.~~ Feito na E19 (29/10/2026), em Conta → Equipe.
 8. Aviso à dona de novo horário/cancelamento e lembrete por e-mail.
 9. REFERENCIAS.md.
 10. Checklist de segurança e backup com restauração (depende da hospedagem).

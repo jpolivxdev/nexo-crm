@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -86,17 +87,45 @@ export class PanelService {
     @Inject(RealtimeBus) private readonly bus: RealtimeBus,
   ) {}
 
-  async today(tenantId: string, now = new Date()) {
+  /**
+   * Profissional da equipe logada. A equipe só vê e mexe na própria agenda; sem profissional
+   * ligada ao login, não entra.
+   */
+  async staffProfessionalId(tenantId: string, userId: string): Promise<string> {
+    const professional = await this.db.withTenant(tenantId, (tx) =>
+      tx.professional.findFirst({ where: { userId, active: true }, select: { id: true } }),
+    );
+    if (!professional) throw new ForbiddenException('Seu acesso não está ligado a uma agenda.');
+    return professional.id;
+  }
+
+  /** Hoje. Com `professionalId` (equipe), só os horários dela e nada de conversas ou "a fazer". */
+  async today(tenantId: string, now = new Date(), professionalId: string | null = null) {
     return this.db.withTenant(tenantId, async (tx) => {
       const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
       const date = todayIn(tenant.timezone, now);
       const day = dayRangeUtc(date, tenant.timezone);
       // Em sequência: as consultas dividem a mesma conexão da transação.
       const appointments = await tx.appointment.findMany({
-        where: { startsAt: { gte: day.startsAt, lt: day.endsAt }, status: { not: 'CANCELLED' } },
+        where: {
+          startsAt: { gte: day.startsAt, lt: day.endsAt },
+          status: { not: 'CANCELLED' },
+          ...(professionalId ? { professionalId } : {}),
+        },
         orderBy: { startsAt: 'asc' },
         select: appointmentSelect,
       });
+      if (professionalId) {
+        return {
+          date,
+          businessName: tenant.name,
+          timeZone: tenant.timezone,
+          appointments,
+          handoffs: [],
+          tasks: [],
+          activity: [],
+        };
+      }
       const handoffs = await tx.conversation.findMany({
         where: { botPausedAt: { not: null } },
         orderBy: { botPausedAt: 'asc' },
@@ -163,13 +192,21 @@ export class PanelService {
     });
   }
 
-  async agenda(tenantId: string, from: LocalDate, days: number) {
+  async agenda(
+    tenantId: string,
+    from: LocalDate,
+    days: number,
+    professionalId: string | null = null,
+  ) {
     return this.db.withTenant(tenantId, async (tx) => {
       const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
       const start = dayRangeUtc(from, tenant.timezone).startsAt;
       const end = dayRangeUtc(addDays(from, days - 1), tenant.timezone).endsAt;
       const appointments = await tx.appointment.findMany({
-        where: { startsAt: { gte: start, lt: end } },
+        where: {
+          startsAt: { gte: start, lt: end },
+          ...(professionalId ? { professionalId } : {}),
+        },
         orderBy: { startsAt: 'asc' },
         select: appointmentSelect,
       });
@@ -609,5 +646,16 @@ export class PanelService {
     );
     this.bus.publish(tenantId, { type: 'conversation.updated', id: conversationId });
     return { id: prepared.message.id, status };
+  }
+
+  /** A equipe só muda horário da própria agenda. */
+  async assertOwnAppointment(tenantId: string, appointmentId: string, professionalId: string) {
+    const found = await this.db.withTenant(tenantId, (tx) =>
+      tx.appointment.findFirst({
+        where: { id: appointmentId, professionalId },
+        select: { id: true },
+      }),
+    );
+    if (!found) throw new NotFoundException('Horário não encontrado.');
   }
 }

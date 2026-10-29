@@ -41,7 +41,7 @@ function formatPrice(cents: number | null): string {
   return `${Math.floor(cents / 100)},${String(cents % 100).padStart(2, '0')}`;
 }
 
-interface DayForm {
+export interface DayForm {
   open: boolean;
   start: string;
   end: string;
@@ -434,20 +434,6 @@ function HoursStep({
   onError: (message: string | null) => void;
 }) {
   const [days, setDays] = useState(() => windowsToDays(data.windows));
-  const update = (weekday: number, patch: Partial<DayForm>) =>
-    setDays((d) => ({ ...d, [weekday]: { ...d[weekday]!, ...patch } }));
-
-  function copyMonday() {
-    const monday = days[1]!;
-    setDays((d) => {
-      const copy = { ...d };
-      for (const { weekday } of WEEK) {
-        if (weekday !== 1 && copy[weekday]!.open) copy[weekday] = { ...monday };
-      }
-      return copy;
-    });
-  }
-
   function submit() {
     const result = daysToWindows(days);
     if (typeof result === 'string') {
@@ -468,6 +454,35 @@ function HoursStep({
       busy={busy}
       onSubmit={submit}
     >
+      <WeekHours days={days} onChange={setDays} />
+    </StepForm>
+  );
+}
+
+/** Semana de trabalho (expediente e pausa por dia). Usada no assistente e na equipe. */
+export function WeekHours({
+  days,
+  onChange,
+}: {
+  days: Record<number, DayForm>;
+  onChange: (update: (d: Record<number, DayForm>) => Record<number, DayForm>) => void;
+}) {
+  const update = (weekday: number, patch: Partial<DayForm>) =>
+    onChange((d) => ({ ...d, [weekday]: { ...d[weekday]!, ...patch } }));
+
+  function copyMonday() {
+    const monday = days[1]!;
+    onChange((d) => {
+      const copy = { ...d };
+      for (const { weekday } of WEEK) {
+        if (weekday !== 1 && copy[weekday]!.open) copy[weekday] = { ...monday };
+      }
+      return copy;
+    });
+  }
+
+  return (
+    <>
       {WEEK.map(({ weekday, label }) => {
         const d = days[weekday]!;
         return (
@@ -529,7 +544,7 @@ function HoursStep({
           </fieldset>
         );
       })}
-    </StepForm>
+    </>
   );
 }
 
