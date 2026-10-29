@@ -10,6 +10,7 @@ import {
 import { type ReactNode, useEffect } from 'react';
 import './App.css';
 import { MadeByNexo, NexoLogo } from './components/Brand';
+import { OwnerToasts } from './components/OwnerToasts';
 import { Sidebar } from './components/Sidebar';
 import { Loading } from './components/ui';
 import { api } from './lib/api';
@@ -19,6 +20,7 @@ import { useRoute } from './lib/hooks';
 import { setThemePref, type ThemePref, useThemePref } from './lib/theme';
 import type { Me } from './lib/types';
 import { Admin } from './screens/Admin';
+import { Alerts } from './screens/Alerts';
 import { Agenda } from './screens/Agenda';
 import { ChangePassword } from './screens/ChangePassword';
 import { ContactFile } from './screens/ContactFile';
@@ -190,6 +192,7 @@ function Panel({ me }: { me: Me }) {
           </button>
         </div>
       </header>
+      {!staff && <OwnerToasts go={go} />}
       <main>
         {me.onboardingPending && !staff && section !== '/configurar' && (
           <section className="card card--highlight" aria-labelledby="configurar-aviso">
@@ -209,6 +212,8 @@ function Panel({ me }: { me: Me }) {
         )}
         {contactMatch ? (
           <ContactFile id={contactMatch[1]!} go={go} />
+        ) : section === '/avisos' ? (
+          <Alerts go={go} />
         ) : section === '/equipe' ? (
           <Team go={go} />
         ) : section === '/regras' ? (
@@ -306,6 +311,9 @@ function Account({
           </button>
           <button type="button" className="button button--ghost" onClick={() => go('/equipe')}>
             Equipe (profissionais e acessos)
+          </button>
+          <button type="button" className="button button--ghost" onClick={() => go('/avisos')}>
+            Avisos e lembrete do próximo horário
           </button>
           <button type="button" className="button button--ghost" onClick={() => go('/mensagens')}>
             Mensagens do robô

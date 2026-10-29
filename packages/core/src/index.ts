@@ -56,6 +56,7 @@ export {
 } from './bot/messages.js';
 export { choices, LIMITS, type Choice, type OutgoingMessage } from './bot/outgoing.js';
 export {
+  localWhen,
   planReminders,
   REMINDER_LATE_TOLERANCE_MS,
   reminderMessage,

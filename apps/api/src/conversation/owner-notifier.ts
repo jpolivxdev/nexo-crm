@@ -2,7 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 
 /**
  * Aviso para a dona quando uma cliente pede para falar com ela.
- * Fase 1: aparece no painel (tempo real + "A fazer"). O aviso pelo WhatsApp da dona entra
+ * Fase 1: aparece no painel (tempo real + "A fazer") e, se a dona ligou, por e-mail
+ * (`OwnerAlerts`). O aviso pelo WhatsApp da dona entra
  * quando a conta da Meta estiver liberada (mensagem de modelo aprovada).
  */
 export interface OwnerNotifier {

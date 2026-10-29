@@ -31,21 +31,28 @@ export function reminderStillUseful(sendAt: Date, startsAt: Date, now: Date): bo
 
 const WEEKDAYS_LONG = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 
+/** Data e hora no fuso do negócio, do jeito que se fala: { data: "quinta, 15/01", hora: "09:00" }. */
+export function localWhen(at: Date, timeZone: string): { data: string; hora: string } {
+  const { date, minute } = utcToZoned(at, timeZone);
+  const [, m, d] = date.split('-');
+  const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
+  return {
+    data: `${WEEKDAYS_LONG[weekday]}, ${d}/${m}`,
+    hora: `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`,
+  };
+}
+
 /** Mensagem do lembrete com até 3 botões (Confirmar, Remarcar, Cancelar). */
 export function reminderMessage(
   kind: ReminderKind,
   appt: { id: string; serviceName: string; startsAt: Date },
   ctx: { businessName: string; ownerName: string; timeZone: string; messages?: MessageOverrides },
 ): OutgoingMessage {
-  const { date, minute } = utcToZoned(appt.startsAt, ctx.timeZone);
-  const [, m, d] = date.split('-');
-  const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
   const vars = {
     negocio: ctx.businessName,
     dona: ctx.ownerName,
     servico: appt.serviceName,
-    data: `${WEEKDAYS_LONG[weekday]}, ${d}/${m}`,
-    hora: `${String(Math.floor(minute / 60)).padStart(2, '0')}:${String(minute % 60).padStart(2, '0')}`,
+    ...localWhen(appt.startsAt, ctx.timeZone),
   };
   const t = (key: Parameters<typeof render>[0]) => render(key, vars, ctx.messages);
   const options =

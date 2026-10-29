@@ -246,3 +246,14 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Tirar o acesso:** apaga o login e derruba as sessões na hora; a agenda e o histórico dela continuam.
 - **Suposição:** a piloto hoje trabalha sozinha (CLAUDE.md, seção 2). A tela existe para as amigas donas de estabelecimento com equipe, sem atrapalhar quem é sozinha.
 
+## E20: avisos para a dona e prazo do próximo horário (29/10/2026)
+
+- **O que vira aviso:** só o que a cliente fez sozinha pelo WhatsApp (marcou, remarcou, cancelou) e o pedido de falar com a dona. O que a dona fez no painel não avisa, porque ela já sabe.
+- **Onde aparece:** (1) no topo do painel aberto, com botão "Ver"; (2) notificação do aparelho, se a dona ligar em Conta → Avisos neste aparelho e o painel estiver em segundo plano; (3) e-mail, desligado por padrão.
+- **Sem dado da cliente fora do painel:** notificação e e-mail dizem só "uma cliente", o serviço, o dia e a hora. Notificação aparece na tela bloqueada e e-mail sai do sistema; quem é a cliente fica no painel, atrás do login (coletar e espalhar o mínimo).
+- **E-mail é melhor esforço:** sai depois do commit, não segura a resposta para a cliente e falha só vai para o log. Em produção fica desligado até o provedor de e-mail ser escolhido; a tela avisa isso.
+- **Fato:** notificação com o painel totalmente fechado precisa de Web Push (service worker + chaves VAPID). Fica para depois; hoje a notificação só aparece com o painel aberto em alguma aba.
+- **Aviso pelo WhatsApp da dona:** entra com a Cloud API (mensagem de modelo aprovada), como já estava previsto.
+- **Prazo do "oferecer o próximo horário":** configurável em Conta → Avisos (padrão: no mesmo dia; desligável). A piloto pediu 10 dias (29/10/2026). O "a fazer" só aparece em Hoje no dia do prazo e fecha sozinho se a cliente marcar antes.
+- **Uma conexão de tempo real só:** as telas dividem a mesma conexão com o servidor em vez de abrir uma cada.
+
