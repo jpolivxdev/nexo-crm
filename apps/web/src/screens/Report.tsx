@@ -1,5 +1,6 @@
 import { ChartColumn } from 'lucide-react';
 import { useState } from 'react';
+import { TrendChart } from '../components/TrendChart';
 import { Banner, Empty, Loading } from '../components/ui';
 import { api } from '../lib/api';
 import { localDateLabel } from '../lib/format';
@@ -94,6 +95,13 @@ function Body({ data }: { data: ReportData }) {
           </p>
         )}
       </section>
+
+      {data.daily.length > 0 && (
+        <section className="card section trend-card" aria-labelledby="por-dia">
+          <h2 id="por-dia">Dia a dia</h2>
+          <TrendChart data={data.daily} title="Horários marcados e realizados por dia" />
+        </section>
+      )}
 
       <section className="section" aria-labelledby="atendimentos">
         <h2 id="atendimentos">Atendimentos</h2>

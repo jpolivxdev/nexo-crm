@@ -1,7 +1,7 @@
 import type { Prisma } from '../src/generated/prisma/client.js';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { createPrismaClient, withTenant } from '../src/database/prisma.js';
-import { noShowRate, ReportService } from '../src/report/report.service.js';
+import { dailySeries, noShowRate, ReportService } from '../src/report/report.service.js';
 import { createDemoTenant, DEMO_TENANTS, type DemoTenant } from '../src/seed/demo-tenant.js';
 import { DATABASE_URL } from './support/app.js';
 
@@ -98,6 +98,19 @@ describe('relatório mínimo (M9)', () => {
       { id: t.professionalId, name: expect.any(String), count: 4 },
     ]);
     expect(week.byStage.length).toBeGreaterThan(0);
+    // Um ponto por dia, com zero nos dias vazios.
+    expect(week.daily).toHaveLength(7);
+    expect(week.daily[0]).toEqual({ date: '2031-01-09', booked: 0, done: 0 });
+    expect(week.daily.find((d) => d.date === '2031-01-15')).toEqual({
+      date: '2031-01-15',
+      booked: 6,
+      done: 0,
+    });
+    expect(week.daily.filter((d) => d.done > 0).map((d) => d.date)).toEqual([
+      '2031-01-12',
+      '2031-01-13',
+      '2031-01-14',
+    ]);
 
     const month = await reports.summary(t.tenantId, 30, NOW);
     expect(month.outcomes.noShow).toBe(2);
@@ -111,6 +124,21 @@ describe('relatório mínimo (M9)', () => {
     expect(mine.booked.total).toBe(0);
     expect(mine.outcomes.noShow).toBe(0);
     expect(mine.handoffs).toBe(0);
+  });
+
+  it('série por dia usa o fuso do negócio', () => {
+    // 01h UTC do dia 16 ainda é dia 15 em São Paulo.
+    const series = dailySeries(
+      '2031-01-15',
+      '2031-01-16',
+      'America/Sao_Paulo',
+      [new Date('2031-01-16T01:00:00Z'), new Date('2031-01-16T12:00:00Z')],
+      [new Date('2031-01-20T12:00:00Z')],
+    );
+    expect(series).toEqual([
+      { date: '2031-01-15', booked: 1, done: 0 },
+      { date: '2031-01-16', booked: 1, done: 0 },
+    ]);
   });
 
   it('taxa de faltas só existe quando já houve atendimento', () => {

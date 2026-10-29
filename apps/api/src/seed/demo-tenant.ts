@@ -125,7 +125,8 @@ export async function createDemoTenant(
         entityType: 'appointment',
         entityId: appointment.id,
         actorType: 'system',
-        payload: { seed: true },
+        // Mesmo formato dos eventos reais: a cliente vai no payload (ficha e "O que aconteceu").
+        payload: { seed: true, contactId: firstContact.id },
       },
     });
 

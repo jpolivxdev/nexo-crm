@@ -73,3 +73,35 @@ export function contactName(c: { name: string | null; phone: string }): string {
 }
 
 export const BUSINESS_TZ_FALLBACK = 'America/Sao_Paulo';
+
+/** "2031-01-07" → "07/01". */
+export function shortDate(date: string): string {
+  return `${date.slice(8, 10)}/${date.slice(5, 7)}`;
+}
+
+/** O que aconteceu, em pt-BR, completando o nome da cliente ("Ana marcou um horário"). */
+export function activityText(type: string, actorType: string): string {
+  const byClient = actorType === 'contact';
+  switch (type) {
+    case 'contact.created':
+      return byClient ? 'mandou a primeira mensagem' : 'foi cadastrada no painel';
+    case 'appointment.created':
+      return byClient ? 'marcou um horário pelo WhatsApp' : 'teve um horário marcado no painel';
+    case 'appointment.rescheduled':
+      return byClient ? 'remarcou o horário' : 'teve o horário remarcado';
+    case 'appointment.confirmed':
+      return byClient ? 'confirmou o horário pelo lembrete' : 'teve o horário confirmado';
+    case 'appointment.cancelled':
+      return byClient ? 'cancelou o horário' : 'teve o horário cancelado';
+    case 'appointment.done':
+      return 'foi atendida';
+    case 'appointment.no_show':
+      return 'faltou ao horário';
+    case 'handoff.requested':
+      return 'pediu para falar com você';
+    case 'contact.opted_out':
+      return 'pediu para não receber mensagens automáticas';
+    default:
+      return 'teve uma atualização';
+  }
+}

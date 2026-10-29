@@ -17,40 +17,46 @@ interface PlanCard {
   current?: boolean;
 }
 
+/*
+ * Divisão pedida pelo Jandoza em 27/10/2026: Grátis (CRM básico), CRM e Completo
+ * (CRM + agenda + robô do WhatsApp). Limites e preços: [A DEFINIR com o Coca].
+ * Hoje todo negócio tem tudo liberado; a trava por plano no servidor ainda não existe.
+ */
 const PLANS: PlanCard[] = [
   {
-    id: 'basico',
-    name: 'Básico',
-    summary: 'Para começar a receber horários pelo WhatsApp.',
+    id: 'gratis',
+    name: 'Grátis',
+    summary: 'Para organizar suas clientes num lugar só.',
+    features: [
+      { text: 'Ficha de cada cliente com o histórico' },
+      { text: 'Etapas de cada cliente' },
+      { text: 'Limite de clientes a definir' },
+    ],
+  },
+  {
+    id: 'crm',
+    name: 'CRM',
+    summary: 'Para acompanhar cada cliente do primeiro contato ao retorno.',
+    features: [
+      { text: 'Tudo do Grátis, sem limite de clientes' },
+      { text: 'Resultados do mês' },
+      { text: 'Lista do que fazer em cada dia' },
+      { text: 'Retornos automáticos para quem sumiu', soon: true },
+      { text: 'Etiquetas e etapas do seu jeito', soon: true },
+    ],
+  },
+  {
+    id: 'completo',
+    name: 'Completo',
+    summary: 'CRM, agenda e robô no WhatsApp trabalhando juntos.',
+    highlight: true,
     current: true,
     features: [
+      { text: 'Tudo do CRM' },
+      { text: 'Agenda com serviços, horários e pausas' },
       { text: 'Robô que marca, remarca e cancela horários' },
-      { text: 'Agenda e ficha de cada cliente' },
       { text: 'Lembretes 24 h e 1 h antes' },
-      { text: 'Resultados do mês' },
-    ],
-  },
-  {
-    id: 'ia',
-    name: 'Com IA',
-    summary: 'Para quem recebe muita mensagem escrita do jeito da cliente.',
-    highlight: true,
-    features: [
-      { text: 'Tudo do Básico' },
-      { text: 'Entende mensagem escrita livre e áudio', soon: true },
-      { text: 'Resumo de cada conversa', soon: true },
-      { text: 'Sugestão de quem chamar de volta', soon: true },
-    ],
-  },
-  {
-    id: 'equipe',
-    name: 'Equipe',
-    summary: 'Para estúdios com mais de uma profissional.',
-    features: [
-      { text: 'Tudo do Com IA' },
-      { text: 'Login e agenda para cada profissional', soon: true },
-      { text: 'Permissões por pessoa', soon: true },
-      { text: 'Resultados por profissional' },
+      { text: 'Conectar o número de WhatsApp do negócio', soon: true },
     ],
   },
 ];

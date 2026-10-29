@@ -111,6 +111,40 @@ describe('login, sessão e painel', () => {
     expect(sneaky.body.businessName).toBe('Estúdio Exemplo (demo)');
   });
 
+  it('o que aconteceu: só eventos do próprio negócio, sem o payload', async () => {
+    const event = (tenant: DemoTenant, contactId: string | undefined) =>
+      withTenant(prisma, tenant.tenantId, (tx) =>
+        tx.event.create({
+          data: {
+            tenantId: tenant.tenantId,
+            type: 'handoff.requested',
+            entityType: 'contact',
+            entityId: tenant.contactIds[0]!,
+            actorType: 'contact',
+            payload: { contactId, segredo: 'não sai' },
+          },
+        }),
+      );
+    const mine = await event(t, t.contactIds[0]);
+    const foreign = await event(other, other.contactIds[0]);
+    // Payload apontando para cliente de outro negócio: o RLS não devolve a cliente.
+    const crossed = await event(t, other.contactIds[0]);
+
+    const { cookie } = await login();
+    const today = await http().get('/panel/today').set('cookie', cookie);
+    const activity = today.body.activity as {
+      id: string;
+      contact: { id: string } | null;
+    }[];
+    const ids = activity.map((a) => a.id);
+    expect(ids).toContain(mine.id);
+    expect(ids).not.toContain(foreign.id);
+    expect(activity.find((a) => a.id === mine.id)?.contact?.id).toBe(t.contactIds[0]);
+    expect(activity.find((a) => a.id === crossed.id)?.contact).toBeNull();
+    expect(JSON.stringify(today.body.activity)).not.toContain('segredo');
+    expect(activity.length).toBeLessThanOrEqual(8);
+  });
+
   it('relatório: exige sessão, aceita só 7, 30 ou 90 dias e mostra o próprio negócio', async () => {
     expect((await http().get('/panel/report')).status).toBe(401);
     const { cookie } = await login();

@@ -45,6 +45,16 @@ export interface Today {
     dueAt: string | null;
     contact: { id: string; name: string | null } | null;
   }[];
+  activity: ActivityItem[];
+}
+
+/** Um acontecimento recente do negócio ("O que aconteceu"). */
+export interface ActivityItem {
+  id: string;
+  type: string;
+  actorType: 'contact' | 'user' | 'system' | string;
+  createdAt: string;
+  contact: ContactRef | null;
 }
 
 export interface Agenda {
@@ -159,4 +169,12 @@ export interface Report {
   confirmedByClient: number;
   byStage: ReportCount[];
   byProfessional: ReportCount[];
+  /** Um ponto por dia do período, no fuso do negócio. */
+  daily: DailyCount[];
+}
+
+export interface DailyCount {
+  date: string;
+  booked: number;
+  done: number;
 }

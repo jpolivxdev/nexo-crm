@@ -10,6 +10,7 @@ import {
 import { type ReactNode, useEffect } from 'react';
 import './App.css';
 import { MadeByNexo, NexoLogo } from './components/Brand';
+import { Sidebar } from './components/Sidebar';
 import { Loading } from './components/ui';
 import { api } from './lib/api';
 import { AuthProvider, useAuth } from './lib/auth';
@@ -140,6 +141,12 @@ function Panel({ me }: { me: Me }) {
 
   return (
     <div className="app app--with-nav">
+      <Sidebar
+        businessName={me.businessName ?? 'nexo'}
+        items={NAV}
+        section={section}
+        onLogout={() => void logout()}
+      />
       {me.acting && (
         <div className="acting" role="status">
           <span>
