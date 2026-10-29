@@ -30,7 +30,16 @@ export async function createDemoTenant(
   const tenantId = randomUUID();
 
   return withTenant(prisma, tenantId, async (tx) => {
-    await tx.tenant.create({ data: { id: tenantId, name: input.name, niche: input.niche } });
+    // Demo já vem configurado: o assistente de configuração não aparece.
+    await tx.tenant.create({
+      data: {
+        id: tenantId,
+        name: input.name,
+        niche: input.niche,
+        onboardingStartedAt: now,
+        onboardingCompletedAt: now,
+      },
+    });
 
     const professional = await tx.professional.create({
       data: { tenantId, name: 'Profissional Exemplo (demo)' },

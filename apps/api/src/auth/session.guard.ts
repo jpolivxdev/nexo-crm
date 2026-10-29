@@ -38,14 +38,31 @@ export class SessionGuard implements CanActivate {
   }
 }
 
-/** Painel do negócio: só dono e equipe, sempre presos ao próprio negócio. */
+/**
+ * Painel do negócio: dono e equipe, sempre presos ao próprio negócio; admin nexo só durante
+ * uma entrada controlada (motivo + 2FA + prazo). Senha provisória precisa ser trocada antes.
+ */
 @Injectable()
 export class TenantGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const auth = context.switchToHttp().getRequest<AuthedRequest>().auth;
-    if (!auth?.tenantId || (auth.role !== 'OWNER' && auth.role !== 'STAFF')) {
-      throw new ForbiddenException();
-    }
+    if (auth?.mustChangePassword)
+      throw new ForbiddenException('Troque a senha provisória primeiro.');
+    const member = auth?.role === 'OWNER' || auth?.role === 'STAFF';
+    const admin = auth?.role === 'NEXO_ADMIN' && auth.acting !== null;
+    if (!auth?.tenantId || !(member || admin)) throw new ForbiddenException();
+    return true;
+  }
+}
+
+/** Área do admin nexo. */
+@Injectable()
+export class AdminGuard implements CanActivate {
+  canActivate(context: ExecutionContext): boolean {
+    const auth = context.switchToHttp().getRequest<AuthedRequest>().auth;
+    if (auth?.role !== 'NEXO_ADMIN') throw new ForbiddenException();
+    if (auth.mustChangePassword)
+      throw new ForbiddenException('Troque a senha provisória primeiro.');
     return true;
   }
 }

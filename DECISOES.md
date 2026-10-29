@@ -107,3 +107,16 @@ Cada decisão com data, quem decidiu e o motivo.
 - **A dona responder pela ficha assume a conversa** (pausa o robô). No WhatsApp, mensagem livre só até 24 horas depois da última mensagem da cliente; depois disso a tela explica que precisa de mensagem de modelo.
 - **PWA:** instalável, abre rápido; o service worker guarda só os arquivos do app, nunca respostas da API.
 - **Medido no navegador a 360 px:** marcar horário pelo painel levou menos de 1 segundo; sem rolagem lateral.
+
+## E9 (assistente de configuração, admin nexo, troca de senha)
+
+- **Assistente em 5 passos** (Negócio → Serviços → Horários → Dúvidas → Pronto), cada passo salva ao avançar. O painel mostra "Falta configurar o negócio" no topo até concluir. Pode voltar depois pela tela Conta.
+- **Horários com uma pausa por dia** (ex.: almoço): no banco viram duas janelas. "Usar o horário de segunda nos outros dias" para preencher rápido.
+- **Serviço que sai da lista é desativado, não apagado**, porque horários antigos apontam para ele.
+- **Cronômetro do onboarding:** começa quando o negócio é criado (`onboardingStartedAt`) e para quando a dona conclui o assistente (`onboardingCompletedAt`). O admin vê os minutos na lista.
+- **Admin nexo cria o negócio** (nome, tipo, dona e e-mail). O tipo escolhe o modelo de etapas. A senha provisória aparece uma vez só na tela; no primeiro acesso o painel obriga a trocar (`User.mustChangePassword`).
+- **Lista de negócios do admin sem abrir o RLS:** tabela `tenant_directory` só com nome, tipo e datas, preenchida por gatilho a partir de `tenants`. A aplicação só tem `SELECT` nela (teste confere colunas e permissões).
+- **Entrada controlada do admin num negócio:** motivo (mín. 10 caracteres) + código do app autenticador, vale 1 hora, guardada na sessão (`Session.actingTenantId`). Fica registrada na auditoria (início e fim). Durante a entrada, uma faixa escura avisa e tem "Sair do negócio". O admin não troca a senha da dona.
+- **Troca de senha** pela tela Conta: pede a atual, encerra as outras sessões e emite um cookie novo.
+- **Primeiro admin** pelo terminal: `npm run admin:create -w @nexo/api -- email "Nome"`. Mostra senha provisória e o segredo do 2FA uma vez.
+- **Medido no navegador a 360 px:** admin cria negócio, entra com motivo e sai; a dona troca a senha provisória e conclui o assistente; o serviço cadastrado aparece no "Marcar horário". Sem rolagem lateral. O tempo real da piloto vai ser medido com ela (o cronômetro já registra).

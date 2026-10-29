@@ -7,6 +7,9 @@ interface AuthState {
   loading: boolean;
   login(email: string, password: string, totp?: string): Promise<void>;
   logout(): Promise<void>;
+  /** Relê a sessão (depois de trocar a senha, entrar ou sair de um negócio, concluir o assistente). */
+  refresh(): Promise<void>;
+  accept(user: Me | null): void;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -39,7 +42,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     accept(null);
   }, [accept]);
 
-  return <AuthContext value={{ me, loading, login, logout }}>{children}</AuthContext>;
+  const refresh = useCallback(async () => {
+    accept(await api<Me>('/auth/me').catch(() => null));
+  }, [accept]);
+
+  return (
+    <AuthContext value={{ me, loading, login, logout, refresh, accept }}>{children}</AuthContext>
+  );
 }
 
 export function useAuth(): AuthState {

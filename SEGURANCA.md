@@ -63,7 +63,8 @@ Legenda STRIDE: **S** falsificação de identidade, **T** adulteração, **R** r
 | Prioridade | Tarefa | Origem |
 |---|---|---|
 | Feita (27/10/2026) | Login: Argon2id, sessão no servidor com cookie HttpOnly/SameSite=Strict, CSRF, bloqueio após 5 erros, limite por IP, 2FA para admin nexo, auditoria de login/logout. | E8 |
-| Aberta | Tela para a dona trocar a senha e para o admin nexo cadastrar o 2FA; entrada controlada do admin num negócio (motivo + prazo). | E9 |
+| Feita (27/10/2026) | Troca de senha pela dona (encerra as outras sessões); senha provisória obrigando troca no primeiro acesso; 2FA do admin cadastrado pelo `admin:create`; entrada controlada do admin num negócio (motivo + código + 1 hora + auditoria de início e fim). | E9 |
+| Feita (27/10/2026) | Tabela `tenant_directory` (lista do admin) fica fora do RLS: só nome, tipo e datas, preenchida por gatilho; a aplicação só lê. Teste confere colunas e permissões. | E9 |
 | Aberta | Exportar e excluir dados de uma cliente final pelo painel (direitos do titular). | Antes do piloto |
 | Feita (27/10/2026) | Tabela `channel_routes` (número do canal → negócio) fica fora do RLS porque o webhook ainda não sabe o negócio. Compensação: a aplicação só tem `SELECT` nela, e o teste de RLS lista as únicas exceções (`users`, `channel_routes`). | E5 |
 | Feita (27/10/2026) | Fila pg-boss: estrutura criada pelo papel dono; a aplicação só usa. Jobs carregam conteúdo de mensagem e telefone, então ficam no máximo 1 hora depois de concluídos e 24 horas se não forem processados. Logs do worker não levam conteúdo. | E5 |

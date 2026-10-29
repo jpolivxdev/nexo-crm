@@ -1,0 +1,4 @@
+# Falsos positivos conferidos à mão. Cada linha é a impressão digital de um achado do gitleaks
+# (commit:arquivo:regra:linha). Só entra aqui dado fictício de teste, nunca segredo real.
+# Senha provisória fictícia num teste de tela (E9); trocada no commit seguinte.
+66aa8ca9f14ab5d125ceb3c4b0a5d2e55f989528:apps/web/src/E9.test.tsx:generic-api-key:227

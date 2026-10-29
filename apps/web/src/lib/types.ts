@@ -4,6 +4,11 @@ export interface Me {
   name: string;
   role: 'OWNER' | 'STAFF' | 'NEXO_ADMIN';
   csrfToken: string;
+  mustChangePassword: boolean;
+  /** Negócio da sessão (para o admin nexo, só durante uma entrada registrada). */
+  businessName: string | null;
+  onboardingPending: boolean;
+  acting: { until: string } | null;
 }
 
 export interface ContactRef {
@@ -97,4 +102,41 @@ export interface Pipeline {
   id: string;
   name: string;
   stages: { id: string; name: string; deals: { id: string; contact: ContactRef }[] }[];
+}
+
+export interface SetupService {
+  id?: string;
+  name: string;
+  durationMinutes: number;
+  priceCents: number | null;
+}
+
+export interface SetupWindow {
+  weekday: number;
+  startMinute: number;
+  endMinute: number;
+}
+
+export interface SetupData {
+  business: {
+    name: string;
+    attendantName: string;
+    timezone: string;
+    slotStepMinutes: number;
+    minNoticeMinutes: number;
+  };
+  services: (SetupService & { id: string })[];
+  windows: SetupWindow[];
+  faq: { question: string; answer: string }[];
+  onboardingCompletedAt: string | null;
+}
+
+export interface TenantRow {
+  id: string;
+  name: string;
+  niche: string;
+  createdAt: string;
+  onboardingStartedAt: string | null;
+  onboardingCompletedAt: string | null;
+  onboardingMinutes: number | null;
 }

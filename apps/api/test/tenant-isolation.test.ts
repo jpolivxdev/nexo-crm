@@ -67,6 +67,24 @@ describe('isolamento entre negócios (RLS)', () => {
     expect(tables.filter((t) => !t.ok).map((t) => t.table)).toEqual([]);
   });
 
+  it('tenant_directory (lista do admin) só tem dados de cadastro e a aplicação não grava nela', async () => {
+    const columns = await prisma.$queryRaw<{ column_name: string }[]>`
+      SELECT column_name FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'tenant_directory' ORDER BY column_name`;
+    expect(columns.map((c) => c.column_name)).toEqual([
+      'created_at',
+      'id',
+      'name',
+      'niche',
+      'onboarding_completed_at',
+      'onboarding_started_at',
+    ]);
+    const grants = await prisma.$queryRaw<{ privilege_type: string }[]>`
+      SELECT privilege_type FROM information_schema.role_table_grants
+      WHERE grantee = 'nexo_app' AND table_name = 'tenant_directory' ORDER BY privilege_type`;
+    expect(grants.map((g) => g.privilege_type)).toEqual(['SELECT']);
+  });
+
   it('sem negócio definido, nenhuma linha de negócio aparece', async () => {
     expect(await prisma.tenant.findMany()).toEqual([]);
     for (const model of TENANT_MODELS) {
