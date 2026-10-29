@@ -6,16 +6,7 @@ import { useAuth } from '../lib/auth';
 import { dateTime } from '../lib/format';
 import { useLoad } from '../lib/hooks';
 import type { TenantRow } from '../lib/types';
-
-const NICHES: { value: string; label: string }[] = [
-  { value: 'cilios', label: 'Estúdio de cílios' },
-  { value: 'salao', label: 'Salão de beleza' },
-  { value: 'barbearia', label: 'Barbearia' },
-  { value: 'estudio', label: 'Estúdio (estética, unhas, sobrancelha)' },
-  { value: 'clinica', label: 'Clínica pequena' },
-  { value: 'pet', label: 'Pet shop' },
-  { value: 'outro', label: 'Outro' },
-];
+import { NICHES } from '../lib/niches';
 
 const NICHE_LABEL = Object.fromEntries(NICHES.map((n) => [n.value, n.label]));
 const ADMIN_TZ = 'America/Sao_Paulo';

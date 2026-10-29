@@ -141,3 +141,38 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Se a dona assumiu a conversa** (robô pausado), o lembrete sai mesmo assim; a resposta da cliente cai para a dona.
 - **Simulador:** `/lembrete` adianta o relógio até o próximo lembrete da cliente do terminal.
 - Textos do lembrete são editáveis pela dona como as outras mensagens (`reminder24h`, `reminder1h`, `reminderConfirmed`, `reminderGone`).
+
+## E11, parte 1: Resultados (M9 mínimo) e modo escuro
+
+- **Tela Resultados** (quinta aba): horários marcados pelo robô e pelo painel, realizados, faltas, cancelados, taxa de faltas, novos contatos, pedidos para falar com a dona, pedidos de "parar", confirmações pelo lembrete, clientes em cada etapa e (com mais de uma profissional) atendimentos por profissional. Períodos de 7, 30 ou 90 dias, contando hoje, no fuso do negócio. São as medidas do portão da piloto.
+- **Calculado na hora, sem tabela de relatório**: contagens agrupadas nas tabelas do próprio negócio (RLS). Para o volume de um estúdio, é rápido; se crescer, vira visão materializada.
+- **Taxa de faltas = faltaram ÷ (realizados + faltaram)**, só com atendimentos que já passaram. Sem base, a tela explica que aparece depois dos primeiros atendimentos.
+- **"Marcados" conta pela data em que a cliente marcou**; realizados, faltas e cancelados contam pela data do horário.
+- **Modo escuro** (pedido do JP em 27/10/2026): em Conta, "Claro", "Escuro" ou "Igual ao celular". Padrão: claro. A escolha fica só no aparelho (`localStorage`), porque é preferência visual.
+- **Cores do tema escuro saem da marca**: fundo Tinta; superfícies são Tinta misturada com um pouco de Lavanda (`color-mix`), como as sombras são derivadas da Tinta. Roxo em texto vira Lavanda; a seleção (abas de período, etapa atual) fica em Lavanda com texto Tinta. Contraste conferido: menor caso 5,2:1 (Lavanda sobre superfície).
+- **As telas usam papéis de cor** (`--cor-fundo`, `--cor-superficie`, `--cor-texto`…), que no tema claro apontam para as cores da marca de sempre. O visual claro não mudou.
+- **Logo no escuro:** o "feito pela nexo" usa a versão oficial para fundo escuro. Cabeçalho e login já usavam essa versão.
+- **Fundo animado no login** (pedido do JP em 27/10/2026): componente "Data Rain" do 21st.dev, só na tela de login. Entrou **sem Tailwind e sem shadcn**: o componente só usa as próprias classes (`dr-*`), que ficaram em `App.css`; trazer Tailwind para um componente mudaria o build inteiro e conviveria mal com os tokens da marca. Ficou em `components/DataRain.tsx`, como os outros componentes do projeto (o `components/ui.tsx` já existe, então uma pasta `ui/` daria conflito de nome no import). Cores trocadas pelas da marca (Lavanda, Azul Elo, Lilás sobre Tinta). Com "reduzir movimento", desenha um quadro parado; com a aba escondida, para de animar. Nos testes (jsdom), o canvas não liga.
+
+## E11, parte 2: imagem de produção e custos
+
+- **Um processo só em produção** (API + worker + painel), numa imagem Docker. O painel é servido pela própria API na raiz e a API fica em `/api` (`WEB_DIST_DIR`). Mesma origem: sem CORS e com o cookie `SameSite=Strict` funcionando. No desenvolvimento nada muda (o Vite continua mandando `/api` para a API).
+- **Duas políticas de CSP:** a API continua com `default-src 'none'`; o painel só aceita arquivos da própria origem, sem script inline (só atributo `style` liberado, para a largura das barras). Teste automatizado confere as duas.
+- **Arquivos com hash ficam em cache por 1 ano; `index.html` e `sw.js` sempre revalidam**, para versão nova chegar na hora.
+- **A imagem roda como `node`, não root**, e traz o CLI do Prisma para migrar com o mesmo build. A CI constrói a imagem a cada PR (não publica).
+- **Hospedagem ainda não escolhida.** Três opções com preço oficial em `CUSTOS.md`; recomendação: Railway no piloto. Decisão do Coca (teto de gasto).
+- **Tela de planos só visual** (pedido do JP em 27/10/2026): inspirada no bloco "Pricing" do 21st.dev, refeita no CSS do projeto, sem as dependências do original (Tailwind, shadcn, Next, framer-motion, confetti, number-flow); a animação de entrada é CSS e some com "reduzir movimento". Preço aparece como "R$ —" e "a definir", os recursos que ainda não existem têm "em breve" e os botões ficam desligados: nada ali é oferta (princípio 7). O que falta para funcionar está na PENDENCIAS.md.
+- **Login em vidro** (pedido do JP em 27/10/2026): o formulário do modelo "login-form" do 21st.dev (cartão translúcido, etiqueta que sobe, ícones, seta no botão) sobre o mesmo fundo Data Rain; o fundo "Smokey" do modelo ficou de fora. Ficaram de fora também "Esqueci a senha", "Entrar com Google" e "Criar conta", porque não existem no sistema (princípio 7); a dona entra com a conta criada pela nexo. Lógica de login, 2FA e mensagens de erro iguais.
+
+## E12: criar conta, esqueci a senha e página de entrada (27/10/2026)
+
+- **Pedido do JP:** "Esqueci a senha" e "Criar conta" com o sistema de verdade por trás, mais uma validação. A validação entendida foi a **confirmação de e-mail** no cadastro: a conta nasce sem confirmação e só entra depois do link.
+- **Criar conta cria o negócio e o login da dona** (mesmo caminho do admin: etapas do nicho e uma profissional com o nome dela) e cai no assistente de configuração, que já mede o tempo de onboarding. Fuso padrão `America/Sao_Paulo`.
+- **Cadastro desligado por padrão** (`SIGNUP_ENABLED`). Na piloto, quem cria a conta é a nexo; abrir o cadastro para qualquer pessoa é decisão dos sócios e depende dos itens abertos no `SEGURANCA.md` (termos, provedor de e-mail, anti-robô). Com ele desligado, a rota não existe e o link "Criar conta" some.
+- **Logins criados pela nexo já nascem confirmados** (coluna com valor padrão); os que existiam foram marcados como confirmados na migração, sem apagar nada.
+- **E-mail atrás de uma interface (`Mailer`).** No desenvolvimento o link aparece no log da API (e numa caixa de saída em memória, usada nos testes). Em produção fica desligado até escolher o provedor: as telas avisam e "Esqueci a senha" some. Provedor: [A DEFINIR] (ver PENDENCIAS.md).
+- **Nova senha não entra direto no painel**: derruba as sessões de todos os aparelhos e pede para entrar com a senha nova. Também destrava a conta bloqueada e conta como e-mail confirmado (a pessoa provou que recebe nele).
+- **Termos:** a caixa "Aceito os termos de uso e a política de privacidade" grava a data do aceite, mas avisa que os textos ainda estão sendo preparados. Texto final com advogado antes de abrir o cadastro.
+- **Página de entrada** (escolha do JP no cartão): o modelo "SaaS template" do 21st.dev refeito no CSS do projeto, sem Tailwind, shadcn nem a fonte Poppins (fica Sora/Inter da marca) e sem imagens externas (a CSP só aceita a própria origem). Mantém a estrutura do modelo: barra fixa translúcida com menu no celular, selo no topo, título em degradê, botão claro em degradê e prévia do painel com brilho atrás. O brilho virou degradê CSS e a prévia é uma captura do painel com dados fictícios, legendada "Painel com dados de exemplo". O selo diz "Em fase de testes" e o texto só fala do que já existe (princípio 7). Os links do menu rolam a página sem mexer no endereço, porque o `#` é a rota do painel.
+- **Rotas sem login:** `#/` página de entrada, `#/entrar`, `#/criar-conta`, `#/esqueci-senha`, `#/nova-senha?token=`, `#/confirmar-email?token=`. Os dois links de e-mail abrem mesmo com alguém logado no aparelho. Uma rota do painel sem sessão (ex.: sessão vencida em `#/agenda`) mostra o login, como antes.
+

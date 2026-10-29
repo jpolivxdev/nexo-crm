@@ -1,3 +1,5 @@
+import { useTheme } from '../lib/theme';
+
 /**
  * Logo oficial da nexo (guia de marca). Mesmo desenho dos SVGs em `assets/brand`, sem alteração.
  * Fica inline (e não como <img>) para o "nexo" usar a fonte Sora carregada pela página.
@@ -70,10 +72,13 @@ export function NexoSymbol({ fundo = 'claro', size = 24 }: { fundo?: Fundo; size
 }
 
 /** "feito pela nexo", discreto, no rodapé do painel. */
-export function MadeByNexo() {
+export function MadeByNexo({ fundo }: { fundo?: Fundo }) {
+  // No tema escuro (ou sobre fundo escuro, como no login), a versão oficial para fundo escuro.
+  const theme = useTheme();
+  const versao = fundo ?? theme;
   return (
-    <footer className="made-by">
-      <NexoSymbol size={24} />
+    <footer className={versao === 'escuro' && fundo ? 'made-by made-by--escuro' : 'made-by'}>
+      <NexoSymbol size={24} fundo={versao} />
       <span>feito pela nexo</span>
     </footer>
   );

@@ -20,4 +20,48 @@
   --sombra-2: 0 2px 6px rgb(16 12 36 / 8%), 0 12px 32px rgb(16 12 36 / 10%);
   --raio: 16px;
   --raio-pequeno: 12px;
+
+  /*
+   * Papéis de cor usados pelas telas. No tema claro, são as cores da marca.
+   * Cores que ficam iguais nos dois temas (texto branco sobre Roxo, Lavanda no cabeçalho)
+   * continuam usando os tokens da marca direto.
+   */
+  color-scheme: light;
+  --cor-fundo: var(--papel);
+  --cor-superficie: var(--branco);
+  --cor-texto: var(--tinta);
+  --cor-texto-suave: var(--grafite);
+  --cor-suave: var(--lilas);
+  --cor-borda: var(--lilas);
+  --cor-contorno: var(--lavanda);
+  --cor-borda-forte: var(--grafite);
+  --cor-destaque-texto: var(--roxo-nexo);
+  --cor-link: var(--azul-elo);
+  --cor-escuro: var(--tinta);
+  --cor-foco: var(--roxo-nexo);
+  --cor-grafico: var(--roxo-nexo);
+}
+
+/*
+ * Tema escuro: fundo Tinta, superfícies são Tinta misturada com um pouco de Lavanda
+ * (derivadas da marca, como as sombras). Roxo em texto vira Lavanda para manter 4,5:1.
+ * Vale quando a pessoa escolhe "Escuro", ou "Igual ao celular" com o celular no escuro.
+ */
+:root[data-theme='escuro'] {
+  color-scheme: dark;
+  --cor-fundo: var(--tinta);
+  --cor-superficie: color-mix(in srgb, var(--tinta) 90%, var(--lavanda));
+  --cor-texto: var(--papel);
+  --cor-texto-suave: color-mix(in srgb, var(--lavanda) 45%, var(--papel));
+  --cor-suave: color-mix(in srgb, var(--tinta) 80%, var(--lavanda));
+  --cor-borda: color-mix(in srgb, var(--tinta) 78%, var(--lavanda));
+  --cor-contorno: color-mix(in srgb, var(--tinta) 55%, var(--lavanda));
+  --cor-borda-forte: color-mix(in srgb, var(--tinta) 35%, var(--lavanda));
+  --cor-destaque-texto: var(--lavanda);
+  --cor-link: var(--lavanda);
+  --cor-escuro: color-mix(in srgb, var(--tinta) 82%, var(--lavanda));
+  --cor-foco: var(--lavanda);
+  --cor-grafico: var(--lavanda);
+  --sombra-1: 0 1px 2px rgb(16 12 36 / 50%);
+  --sombra-2: 0 2px 6px rgb(16 12 36 / 60%), 0 12px 32px rgb(16 12 36 / 50%);
 }

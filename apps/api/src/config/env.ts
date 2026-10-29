@@ -30,6 +30,15 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('true')
     .transform((v) => v === 'true'),
+  // Produção num processo só: a API serve também o painel (build do apps/web) desta pasta,
+  // e as rotas da API passam a ficar em /api (mesma origem, sem CORS). Vazio no desenvolvimento.
+  WEB_DIST_DIR: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+  // Cadastro pelo site ("Criar conta"). Desligado por padrão: só liga quando a nexo decidir
+  // abrir o cadastro (e com o envio de e-mails configurado).
+  SIGNUP_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
   // Liga o worker que processa as mensagens da fila neste processo.
   RUN_WORKER: z
     .enum(['true', 'false'])

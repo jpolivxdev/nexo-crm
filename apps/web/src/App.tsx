@@ -1,5 +1,13 @@
-import { CalendarDays, House, LogOut, SquareKanban, UserRound, Users } from 'lucide-react';
-import { useEffect } from 'react';
+import {
+  CalendarDays,
+  ChartColumn,
+  House,
+  LogOut,
+  SquareKanban,
+  UserRound,
+  Users,
+} from 'lucide-react';
+import { type ReactNode, useEffect } from 'react';
 import './App.css';
 import { MadeByNexo, NexoLogo } from './components/Brand';
 import { Loading } from './components/ui';
@@ -7,14 +15,19 @@ import { api } from './lib/api';
 import { AuthProvider, useAuth } from './lib/auth';
 import { time } from './lib/format';
 import { useRoute } from './lib/hooks';
+import { setThemePref, type ThemePref, useThemePref } from './lib/theme';
 import type { Me } from './lib/types';
 import { Admin } from './screens/Admin';
 import { Agenda } from './screens/Agenda';
 import { ChangePassword } from './screens/ChangePassword';
 import { ContactFile } from './screens/ContactFile';
 import { Contacts } from './screens/Contacts';
+import { ConfirmEmail, ForgotPassword, ResetPassword, Signup } from './screens/AuthPages';
+import { Landing } from './screens/Landing';
 import { Login } from './screens/Login';
 import { Pipeline } from './screens/Pipeline';
+import { Plans } from './screens/Plans';
+import { Report } from './screens/Report';
 import { Setup } from './screens/Setup';
 import { Today } from './screens/Today';
 
@@ -23,6 +36,7 @@ const NAV = [
   { to: '/agenda', label: 'Agenda', Icon: CalendarDays },
   { to: '/clientes', label: 'Clientes', Icon: Users },
   { to: '/etapas', label: 'Etapas', Icon: SquareKanban },
+  { to: '/resultados', label: 'Resultados', Icon: ChartColumn },
 ];
 
 export function App() {
@@ -33,8 +47,24 @@ export function App() {
   );
 }
 
+/** Telas abertas sem login. Os links dos e-mails valem mesmo com alguém logado no aparelho. */
+function publicScreen(route: string, loggedIn: boolean): ReactNode {
+  const [path, query = ''] = route.split('?');
+  const token = new URLSearchParams(query).get('token') ?? '';
+  if (path === '/nova-senha') return <ResetPassword token={token} />;
+  if (path === '/confirmar-email') return <ConfirmEmail token={token} />;
+  if (loggedIn) return null;
+  if (path === '/criar-conta') return <Signup />;
+  if (path === '/esqueci-senha') return <ForgotPassword />;
+  if (path === '/' || path === '') return <Landing />;
+  return <Login />;
+}
+
 function Shell() {
   const { me, loading, logout } = useAuth();
+  const [route] = useRoute();
+  const raw = route === '/hoje' && !window.location.hash.replace(/^#/, '') ? '/' : route;
+  const open = loading ? null : publicScreen(raw, !!me);
 
   if (loading) {
     return (
@@ -43,13 +73,10 @@ function Shell() {
       </div>
     );
   }
-  if (!me) {
-    return (
-      <div className="app app--auth">
-        <Login />
-      </div>
-    );
+  if (open) {
+    return raw === '/' ? open : <div className="app app--auth">{open}</div>;
   }
+  if (!me) return null;
   if (me.mustChangePassword) {
     return (
       <div className="app app--auth">
@@ -168,6 +195,8 @@ function Panel({ me }: { me: Me }) {
           <ContactFile id={contactMatch[1]!} go={go} />
         ) : section === '/configurar' ? (
           <Setup go={go} />
+        ) : section === '/assinatura' ? (
+          <Plans go={go} />
         ) : section === '/conta' ? (
           <Account go={go} acting={Boolean(me.acting)} />
         ) : section === '/agenda' ? (
@@ -176,6 +205,8 @@ function Panel({ me }: { me: Me }) {
           <Contacts go={go} />
         ) : section === '/etapas' ? (
           <Pipeline go={go} />
+        ) : section === '/resultados' ? (
+          <Report />
         ) : (
           <Today go={go} />
         )}
@@ -200,17 +231,51 @@ function Panel({ me }: { me: Me }) {
   );
 }
 
+const THEMES: { id: ThemePref; label: string }[] = [
+  { id: 'claro', label: 'Claro' },
+  { id: 'escuro', label: 'Escuro' },
+  { id: 'sistema', label: 'Igual ao celular' },
+];
+
+/** Aparência do painel: vale só neste aparelho. */
+function ThemePicker() {
+  const pref = useThemePref();
+  return (
+    <section className="card" aria-labelledby="aparencia">
+      <h2 id="aparencia">Aparência</h2>
+      <p className="muted">Escolha as cores do painel neste aparelho.</p>
+      <div className="segmented" role="group" aria-labelledby="aparencia">
+        {THEMES.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            aria-pressed={pref === t.id}
+            className={pref === t.id ? 'on' : ''}
+            onClick={() => setThemePref(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function Account({ go, acting }: { go: (to: string) => void; acting: boolean }) {
   return (
     <>
       <header className="page-header">
         <h1>Conta</h1>
       </header>
-      <section className="section">
+      <section className="section stack">
         <button type="button" className="button button--ghost" onClick={() => go('/configurar')}>
           Configurar o negócio (serviços, horários, dúvidas)
         </button>
+        <button type="button" className="button button--ghost" onClick={() => go('/assinatura')}>
+          Plano e assinatura
+        </button>
       </section>
+      <ThemePicker />
       {!acting && (
         <section className="card">
           <ChangePassword forced={false} />

@@ -50,6 +50,18 @@ jobs:
       - name: Auditoria de dependências (falha em alta ou crítica)
         run: npm audit --audit-level=high
 
+  image:
+    # A imagem de produção precisa construir (Dockerfile). Não publica em lugar nenhum.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t nexo-crm:ci .
+      - name: A imagem tem o painel e a API e não roda como root
+        run: |
+          docker run --rm nexo-crm:ci test -f apps/web/dist/index.html
+          docker run --rm nexo-crm:ci test -f apps/api/dist/main.js
+          docker run --rm nexo-crm:ci whoami | grep -qx node
+
   secrets:
     runs-on: ubuntu-latest
     steps:

@@ -19,7 +19,7 @@ export const ACTING_MS = 60 * 60 * 1000;
 
 export type LoginResult =
   | { ok: true; token: string; auth: AuthContext }
-  | { ok: false; reason: 'invalid' | 'totp_required' };
+  | { ok: false; reason: 'invalid' | 'totp_required' | 'email_not_verified' };
 
 export type PasswordChangeResult =
   | { ok: true; token: string; auth: AuthContext }
@@ -88,6 +88,8 @@ export class AuthService {
       where: { id: user.id },
       data: { failedLoginCount: 0, lockedUntil: null },
     });
+    // Só avisa da confirmação depois da senha certa: quem não sabe a senha não descobre nada.
+    if (!user.emailVerifiedAt) return { ok: false, reason: 'email_not_verified' };
     const { token, auth } = await this.createSession(user, now);
     await this.audit.record({
       tenantId: user.tenantId,

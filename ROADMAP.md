@@ -19,7 +19,22 @@ Módulos: M1 completo, M2 básico, M3 (funil padrão + modelo por nicho + classi
 | E8 | Painel do dono (PWA): login, hoje, agenda, ficha, etapas, tempo real | 360 px, agendamento em até 5 s, acessibilidade | Em revisão (PR #9) |
 | E9 | Onboarding guiado + admin nexo + cronômetro | Negócio demo criado com tempo medido | Em revisão (PR da E9) |
 | E10 | Lembretes 24h e 1h com confirmar/cancelar | Testes com relógio simulado | Em revisão (PR da E10; no WhatsApp real depende das mensagens de modelo da E0) |
-| E11 | Relatório mínimo, deploy, relatório de custo e onboarding | Definição de pronto da Fase 1 | A fazer |
+| E11 | Relatório mínimo, deploy, relatório de custo e onboarding | Definição de pronto da Fase 1 | Em revisão (PR da E11; falta escolher a hospedagem e medir o onboarding com a piloto) |
+| E12 | Página de entrada, criar conta com confirmação de e-mail, esqueci a senha | Fluxo completo testado (API e telas) | Em revisão (PR da E11; envio de e-mail em produção depende do provedor) |
+
+Falta na Fase 1 (conferência do PROMPT 1 em 27/10/2026, previsão ~19 h de código):
+1. Exportar e excluir dados de uma cliente (LGPD), obrigatório antes do piloto.
+2. Tela de folgas e bloqueios (a agenda já respeita).
+3. Tela para a dona editar as mensagens do robô (o robô já aceita).
+4. Regras de etapa criadas pela dona ("se X, colocar em Y").
+5. Visão de clientes frequentes, sumidas e faltosas.
+6. Gatilho de fechamento por regra (realizado → "a fazer" de oferecer o próximo horário).
+7. Mais de uma profissional no assistente e login da profissional.
+8. Aviso à dona de novo horário/cancelamento e lembrete por e-mail.
+9. REFERENCIAS.md.
+10. Checklist de segurança e backup com restauração (depende da hospedagem).
+11. Provedor de e-mail de produção (depende da escolha).
+12. WhatsApp real com a Cloud API e mensagens de modelo (depende da Meta).
 
 Portão: a piloto usa por 2 a 4 semanas com clientes reais. Medir agendamentos pelo robô, faltas, passagens para a equipe e pedidos.
 

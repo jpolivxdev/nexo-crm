@@ -1,0 +1,11 @@
+# Nada de segredo, dependência local ou build antigo dentro da imagem.
+.env
+.env.*
+!.env.example
+.git
+**/node_modules
+**/dist
+**/coverage
+**/*.tsbuildinfo
+apps/api/src/generated
+*.log

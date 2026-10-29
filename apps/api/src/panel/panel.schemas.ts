@@ -8,6 +8,14 @@ export const agendaQuery = z.object({
   days: z.coerce.number().int().min(1).max(42).default(1),
 });
 
+/** Período do relatório, em dias (inclui hoje). */
+export const reportQuery = z.object({
+  days: z.coerce
+    .number()
+    .pipe(z.union([z.literal(7), z.literal(30), z.literal(90)]))
+    .default(30),
+});
+
 export const slotsQuery = z.object({ serviceId: z.uuid(), date: localDate });
 
 export const bookBody = z.object({

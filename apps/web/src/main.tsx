@@ -8,6 +8,10 @@ import './styles/global.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { applyTheme, followSystemTheme } from './lib/theme';
+
+applyTheme();
+followSystemTheme();
 
 const root = document.getElementById('root');
 if (!root) {

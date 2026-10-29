@@ -140,3 +140,23 @@ export interface TenantRow {
   onboardingCompletedAt: string | null;
   onboardingMinutes: number | null;
 }
+
+export interface ReportCount {
+  id: string;
+  name: string;
+  count: number;
+}
+
+export interface Report {
+  from: string;
+  to: string;
+  days: 7 | 30 | 90;
+  newContacts: number;
+  booked: { total: number; byBot: number; byPanel: number };
+  outcomes: { done: number; noShow: number; cancelled: number; noShowRate: number | null };
+  handoffs: number;
+  optOuts: number;
+  confirmedByClient: number;
+  byStage: ReportCount[];
+  byProfessional: ReportCount[];
+}
