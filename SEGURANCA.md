@@ -68,6 +68,8 @@ Legenda STRIDE: **S** falsificação de identidade, **T** adulteração, **R** r
 | Feita (29/10/2026) | Exportar e excluir dados de uma cliente final pela ficha (direitos do titular). Exportar entrega um arquivo com cadastro, conversas, horários, etapa, "a fazer", registros de aviso/opt-out e histórico de eventos, sem IDs do negócio. Excluir pede confirmação dupla na tela e `confirm: true` na API; apaga nome, telefone, etiquetas, anotações, conversas, mensagens e "a fazer"; cancela os horários futuros (e os lembretes) e tira a anotação dos passados; a linha da cliente fica anônima (`erased_at`) para horários passados, etapas e relatórios continuarem certos. Eventos só guardam IDs e tipos. As duas ações vão para a auditoria sem dado pessoal. Só a sessão do negócio, com CSRF; cliente de outro negócio dá 404 (teste). Corrigir: nome, anotações e etiquetas já se editam na ficha. | E13 |
 | Feita (29/10/2026) | Acesso da profissional da equipe (papel `STAFF`) negado por padrão: o guarda de negócio só deixa passar rotas marcadas com `@AllowStaff()` (Hoje, Agenda, marcar realizado/faltou e o aviso em tempo real). O ID da profissional vem da sessão, nunca do navegador; horário de outra profissional dá 404. Senha provisória gerada no servidor, mostrada uma vez, troca obrigatória. Tirar o acesso apaga o login e as sessões. Criar e tirar acesso vão para a auditoria. Teste: `test/team.test.ts`. | E19 |
 | Feita (29/10/2026) | Avisos para a dona sem dado da cliente fora do painel: o aviso em tempo real carrega só tipo e ID; notificação do aparelho e e-mail dizem "uma cliente", serviço, dia e hora, sem nome nem telefone. E-mail só para a dona com e-mail confirmado do próprio negócio. Configuração só pela sessão da dona (equipe não acessa). Teste: `test/owner-alerts.test.ts`. | E20 |
+| Feita (29/10/2026) | Limites contra abuso: geral por IP em toda a API; assinaturas erradas no webhook; mensagens por cliente e por negócio (acima do limite, confirma para a Meta e não processa); teto de envios por hora por número (acima, a mensagem fica como falha no histórico). | Checklist da Fase 1, itens 3 e 8 |
+| Crítica (antes da piloto) | Backup diário agendado na hospedagem, com a chave fora do servidor do banco, e teste de restauração repetido lá. Papel `nexo_backup` (só leitura, BYPASSRLS) criado pelo administrador do Postgres com `apps/api/scripts/setup-backup-role.sql`. Ciclo de retenção: [A DEFINIR]. | Checklist da Fase 1, item 13 |
 | Aberta | Antes de ligar o cadastro aberto (`SIGNUP_ENABLED=true`) em produção: provedor de e-mail com SPF/DKIM, textos de termos e privacidade aprovados [CONFIRMAR COM ADVOGADO/CONTADOR], limpeza de contas nunca confirmadas e proteção contra cadastro em massa (ex.: desafio anti-robô). | Antes de abrir o cadastro |
 | Feita (27/10/2026) | Tabela `channel_routes` (número do canal → negócio) fica fora do RLS porque o webhook ainda não sabe o negócio. Compensação: a aplicação só tem `SELECT` nela, e o teste de RLS lista as únicas exceções (`users`, `channel_routes`). | E5 |
 | Feita (27/10/2026) | Fila pg-boss: estrutura criada pelo papel dono; a aplicação só usa. Jobs carregam conteúdo de mensagem e telefone, então ficam no máximo 1 hora depois de concluídos e 24 horas se não forem processados. Logs do worker não levam conteúdo. | E5 |
@@ -126,21 +128,21 @@ Responder OK / Pendente / Não se aplica, com o motivo. Cada Pendente vira taref
 
 | # | Item | Fase 1 | Motivo |
 |---|---|---|---|
-| 1 | Isolamento entre negócios testado em todas as rotas? | | |
-| 2 | Autorização verificada no backend em toda rota, negando por padrão? | | |
-| 3 | Assinatura de webhook validada com corpo bruto e comparação em tempo constante? | | |
-| 4 | Idempotência de webhooks? | | |
-| 5 | Toda entrada validada com schema e limite de tamanho? | | |
-| 6 | Nenhuma consulta SQL montada por concatenação? | | |
-| 7 | Nenhum segredo no repositório (gitleaks limpo)? | | |
-| 8 | Cabeçalhos de segurança, CORS, CSRF e rate limiting ativos? | | |
-| 9 | Logs sem dados pessoais desnecessários e sem segredos? | | |
-| 10 | Log de auditoria das ações sensíveis? | | |
+| 1 | Isolamento entre negócios testado em todas as rotas? | OK | RLS forçado em todas as tabelas de negócio com papel sem superusuário e sem BYPASSRLS; chaves estrangeiras compostas com `tenant_id`. `test/tenant-isolation.test.ts` confere leitura, escrita e ligação entre negócios e falha se surgir tabela sem RLS. Rotas com ID de outro negócio dão 404 (`team`, `privacy`, `auth-panel`, `time-off`). |
+| 2 | Autorização verificada no backend em toda rota, negando por padrão? | OK | Sessão obrigatória nas rotas do painel; `TenantGuard` nega a equipe por padrão (só passa o que tem `@AllowStaff()`); rotas de admin exigem 2FA e entrada com motivo. `tenant_id` sempre da sessão. Testes: `auth-panel`, `team`, `admin-setup`. |
+| 3 | Assinatura de webhook validada com corpo bruto e comparação em tempo constante? | OK | `signature.ts` (HMAC-SHA256 sobre `rawBody`, `timingSafeEqual`); sem App Secret o webhook recusa tudo (503). 20 assinaturas erradas do mesmo IP em 15 min viram 429. Testes: `whatsapp-channel`, `whatsapp-webhook`. |
+| 4 | Idempotência de webhooks? | OK | `messages` tem chave única (`tenant_id`, `external_id` = wamid); a mesma mensagem não é respondida duas vezes (`conversation.test.ts`). Situação de entrega nunca volta atrás (`whatsapp-webhook.test.ts`). |
+| 5 | Toda entrada validada com schema e limite de tamanho? | OK | Todo corpo e consulta passa por schema zod com tamanho máximo nos textos; payload da Meta tem limite por campo e por lista (texto até 4096). Corpo JSON limitado a 100 KB (padrão do Express). |
+| 6 | Nenhuma consulta SQL montada por concatenação? | OK | Só Prisma. SQL cru só em `prisma.ts` (`set_config` com parâmetro, template marcado) e no `SELECT 1` do health. |
+| 7 | Nenhum segredo no repositório (gitleaks limpo)? | OK | gitleaks na CI em todo PR; `.env` e backups no `.gitignore` e no `.dockerignore`; `.env.example` só com nomes. |
+| 8 | Cabeçalhos de segurança, CORS, CSRF e rate limiting ativos? | OK (29/10/2026) | Helmet com CSP própria para API e painel, CORS só para `WEB_ORIGIN`, CSRF no guarda de sessão, cookie SameSite=Strict. Limites: geral de 300 pedidos por minuto por IP (`RATE_LIMIT_PER_MINUTE`), login e e-mails com limites próprios, webhook com 30 mensagens por minuto por cliente e 600 por negócio, e teto de 200 envios por hora por número. Em memória (um servidor só). Testes: `health`, `rate-limit`, `whatsapp-webhook`, `whatsapp-channel`. |
+| 9 | Logs sem dados pessoais desnecessários e sem segredos? | OK | pino sem corpo de requisição, com `authorization`, `cookie`, assinatura e `set-cookie` ocultos. Avisos do webhook, do worker e dos envios não levam telefone nem texto; erro da Meta só leva o código HTTP. Retenção dos logs: [A DEFINIR] com a hospedagem. |
+| 10 | Log de auditoria das ações sensíveis? | OK | `audit_logs` só de inclusão (o papel da aplicação não tem UPDATE, DELETE nem TRUNCATE): login, bloqueio, logout, senha, cadastro, entrada e saída do admin num negócio, criação de negócio, exportar e excluir cliente, criar e tirar acesso da equipe. Mudanças de horário e etapa ficam em `events`, com quem fez. |
 | 11 | Fluxos de exportação e exclusão de dados do titular funcionando? | Sim (E13, 29/10/2026) | `test/privacy.test.ts`, `E13.test.tsx` |
-| 12 | Opt-out ("parar") respeitado e registrado? | | |
-| 13 | Backups configurados e restauração testada? | | |
-| 14 | Dependências auditadas, sem vulnerabilidade alta ou crítica aberta? | | |
-| 15 | (Fase 3) Allowlist de funções da IA, confirmação humana, schema de saída e limite de custo? | | |
+| 12 | Opt-out ("parar") respeitado e registrado? | OK | "parar"/"sair" grava a recusa, o robô para e os lembretes não saem; "oi" volta a receber. Testes: `conversation.test.ts`, `reminders.test.ts`. |
+| 13 | Backups configurados e restauração testada? | Pendente (crítica) | Pronto: `db:backup` (pg_dump criptografado com AES-256-GCM) e `db:restore-check` (restaura num banco vazio, confere a etiqueta, o RLS e conta as linhas). Testado no banco local em 29/10/2026: 2.093 negócios, 6.216 clientes e 2.975 horários de teste voltaram iguais, em 1,2 s. Falta: agendar o backup diário na hospedagem escolhida, guardar a chave fora do servidor e repetir o teste de restauração lá. |
+| 14 | Dependências auditadas, sem vulnerabilidade alta ou crítica aberta? | OK | `npm audit --audit-level=high` na CI; em 29/10/2026: 0 vulnerabilidades. Dependabot ligado. |
+| 15 | (Fase 3) Allowlist de funções da IA, confirmação humana, schema de saída e limite de custo? | Não se aplica | Fase 1 não tem IA. |
 
 ---
 

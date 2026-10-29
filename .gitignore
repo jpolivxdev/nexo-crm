@@ -13,3 +13,8 @@ coverage/
 # Código gerado pelo Prisma (npm install gera de novo)
 apps/api/src/generated/
 *.tsbuildinfo
+
+# Backups locais do banco (criptografados, mas nunca no git).
+backups/
+*.dump
+*.dump.enc

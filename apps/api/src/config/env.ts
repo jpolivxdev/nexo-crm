@@ -39,6 +39,8 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((v) => v === 'true'),
+  // Limite geral de pedidos por IP por minuto em toda a API (o webhook da Meta tem limites próprios).
+  RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(10).max(10_000).default(300),
   // Liga o worker que processa as mensagens da fila neste processo.
   RUN_WORKER: z
     .enum(['true', 'false'])

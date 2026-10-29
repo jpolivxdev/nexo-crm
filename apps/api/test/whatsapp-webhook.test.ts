@@ -91,6 +91,35 @@ describe('webhook da WhatsApp Cloud API', () => {
     expect(queue.jobs).toEqual([]);
   });
 
+  it('barra quem insiste em assinatura errada (429 depois de 20 tentativas)', async () => {
+    const body = metaWebhook(phoneNumberId, [textMessage('oi')]);
+    const forged = sign(JSON.stringify(body), 'segredo-de-um-atacante-0');
+    const statuses: number[] = [];
+    for (let i = 0; i < 21; i += 1) {
+      const res = await post(body, forged).set('x-forwarded-for', '203.0.113.77');
+      statuses.push(res.status);
+    }
+    expect(statuses.slice(0, 20).every((s) => s === 401)).toBe(true);
+    expect(statuses[20]).toBe(429);
+    // Outro IP segue recebendo 401 normal, e a Meta (assinatura certa) não é afetada.
+    expect((await post(body, forged).set('x-forwarded-for', '203.0.113.78')).status).toBe(401);
+    expect((await post(body).set('x-forwarded-for', '203.0.113.77')).status).toBe(200);
+  });
+
+  it('ignora enxurrada de uma cliente só (mais de 30 por minuto) e confirma para a Meta', async () => {
+    const batch = (n: number, from: string) =>
+      metaWebhook(
+        phoneNumberId,
+        Array.from({ length: n }, (_, i) => textMessage(`oi ${i}`, from)),
+      );
+    expect((await post(batch(20, '5500900000009'))).status).toBe(200);
+    expect((await post(batch(15, '5500900000009'))).status).toBe(200);
+    expect(queue.jobs).toHaveLength(30);
+    // Outra cliente do mesmo negócio continua sendo atendida.
+    expect((await post(batch(1, '5500900000008'))).status).toBe(200);
+    expect(queue.jobs).toHaveLength(31);
+  });
+
   it('ignora número sem negócio ligado e formato inesperado', async () => {
     expect((await post(metaWebhook('999', [textMessage('oi')]))).status).toBe(200);
     expect((await post({ object: 'outra-coisa' })).status).toBe(200);

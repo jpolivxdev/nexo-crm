@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
+import { RateLimiter } from '../src/auth/rate-limiter.js';
+import { limitSends, SendLimitError } from '../src/channel/channel.registry.js';
 import { isValidSignature } from '../src/channel/whatsapp/signature.js';
 import { parseWebhook } from '../src/channel/whatsapp/webhook-payload.js';
 import { toGraphPayload } from '../src/channel/whatsapp/graph-payload.js';
@@ -136,5 +138,23 @@ describe('envio pela WhatsApp Cloud API', () => {
     const error = await channel.send('5500900000001', { type: 'text', body: 'oi' }).catch((e) => e);
     expect(error).toBeInstanceOf(ChannelSendError);
     expect(String(error.message)).not.toContain('5500900000001');
+  });
+});
+
+describe('teto de envios por número', () => {
+  it('recusa o envio acima do teto sem chamar a Meta, separado por número', async () => {
+    const send = vi.fn().mockResolvedValue({ externalId: 'wamid.X' });
+    const limiter = new RateLimiter(2, 60 * 60 * 1000);
+    const onLimit = vi.fn();
+    const a = limitSends({ name: 'whatsapp', send }, limiter, 'numero-a', onLimit);
+    const b = limitSends({ name: 'whatsapp', send }, limiter, 'numero-b', onLimit);
+    const msg = { type: 'text' as const, body: 'oi' };
+
+    await a.send('5500900000001', msg);
+    await a.send('5500900000001', msg);
+    await expect(a.send('5500900000001', msg)).rejects.toBeInstanceOf(SendLimitError);
+    expect(onLimit).toHaveBeenCalledTimes(1);
+    await expect(b.send('5500900000001', msg)).resolves.toEqual({ externalId: 'wamid.X' });
+    expect(send).toHaveBeenCalledTimes(3);
   });
 });
