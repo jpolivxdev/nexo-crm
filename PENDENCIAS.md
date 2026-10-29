@@ -7,7 +7,10 @@ Lista do que depende dos sócios. Atualizada em 29/10/2026. Quando um item for r
 Respostas recebidas em 29/10/2026 (pelo Jandoza e pelo JP) estão em `CLAUDE.md`, seção 2. Ainda falta:
 - O robô pode marcar uma cliente logo depois da outra, sem intervalo entre os atendimentos? (hoje marca seguido)
 - OK dela no rascunho do recado antes do horário (em `CLAUDE.md`, seção 2).
-- Preço por serviço: ela só deu a faixa de R$ 160 a R$ 230. Na Fase 1 o preço é opcional; sem ele, o robô não fala de preço.
+- Catálogo (PDF de 29/10): confirmar os preços da tabela em `CLAUDE.md`, a duração de cada serviço além dos cílios, se o robô agenda todos os serviços ou só cílios, e se manutenção é 15 a 20 dias (PDF) ou 21 a 25 (resposta dela).
+- Nome no robô: "Falar com a Lígia" ou "Falar com a Lika" (a marca é "by Lika")?
+- Quem pergunta de curso: o robô passa o número do curso ou passa para ela?
+- Fotos do PDF: o produto não usa fotos na Fase 1. Para usar as fotos do espaço depois (link público na Fase 2 ou divulgação da nexo), precisa do OK dela por escrito. As fotos de rosto parecem de banco de imagem: não usar sem saber a licença.
 - Ela volta na semana de 02/11/2026. Acertar o sistema com ela e depois marcar a data do piloto.
 - Qual é o aplicativo de agenda que ela usa hoje, e se quer trazer os horários já marcados de lá.
 - Se ela tem MEI ou CNPJ (vai pesar quando a Meta entrar). Não respondeu.

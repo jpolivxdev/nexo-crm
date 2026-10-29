@@ -34,6 +34,25 @@ Arquiteto de software, dev full-stack sênior e product manager de SaaS B2B para
   > • venha sem maquiagem nos olhos (rímel, delineador e sombra);
   > • se for a sua primeira vez, ou se tiver alergia ou sensibilidade nos olhos, me avise antes por aqui.
   > Você confirma?
+- **Catálogo dela (PDF de 29/10/2026, em `/mnt/project-files/nexo/CRM/piloto/instituto-star-catalogo.pdf`):** marca "Instituto Star **by Lika**". Endereço: R. José Maria Hannickel, 150, Sorocaba. Instagram @institutostarsorocaba. Tem um número para agendamento e outro para **curso** (ela dá curso). Preços abaixo são do PDF; duração só conhecemos a dos cílios (1h30). **Falta confirmar com ela** antes de cadastrar.
+
+  | Serviço | Aplicação | Manutenção |
+  |---|---|---|
+  | Star Glamour (visual discreto e natural) | R$ 230 | R$ 150 |
+  | Star Clássica (curvado, volume na medida) | R$ 160 | R$ 110 |
+  | Star Charmosa (volumoso, 3D) | R$ 190 | R$ 130 |
+  | Volume Híbrido | R$ 240 | R$ 140 |
+  | Efeito Molhado | R$ 170 | R$ 119 (confirmar) |
+  | Star Natural (lash lifting) | R$ 190 | não tem |
+  | Limpeza de pele | R$ 130 | |
+  | Design de sobrancelha | R$ 50 | |
+  | Spa das sobrancelhas | R$ 70 | |
+  | Dermaplan | R$ 130 | |
+  | Drenagem | R$ 120 | |
+  | Epilação de buço | R$ 20 | |
+
+  Pacotes: Hidragloss labial (R$ 140 avulsa; 3 sessões R$ 345), Drenagem linfática (R$ 150 avulsa; 5 sessões R$ 675), Brow Therapy (R$ 150 avulsa; 4 sessões R$ 520).
+  **Conflitos a confirmar:** o PDF diz manutenção "de 15 a 20 dias", e ela respondeu 21 a 25 dias; o PDF lista drenagem a R$ 120 nos serviços e R$ 150 nos pacotes.
 - **Equipe (Atualizado):** por enquanto só ela usa o sistema. Só ela precisa de login.
 - **Número (Atualizado):** o robô vai usar o número atual dela, porque todas as clientes já estão nele. A integração com a Meta **fica para uma fase posterior**; por enquanto o canal é simulado (ver seção 9).
 - Alcance: cerca de 13 mil seguidores no Instagram; tem amigas donas de estabelecimento.
