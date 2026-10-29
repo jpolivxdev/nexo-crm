@@ -265,3 +265,9 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Cartão:** nome, há quanto tempo está na etapa e o próximo horário (se tiver). Um botão leva para a próxima etapa com um toque; o "⋯" abre as outras etapas. No computador também dá para arrastar. O seletor de formulário saiu.
 - **Coluna vazia:** diz quem vai aparecer ali, pela chave fixa da etapa (o nome a dona pode trocar).
 - Só tela e leitura: a API do quadro passou a mandar `key`, `kind`, `since` e `nextAt`. Nada mudou em regra nem no banco.
+
+## Agenda em calendário do mês (29/10/2026)
+
+- **Pedido do JP:** trocar a visão "Dia" por um calendário, inspirado num componente do 21st.dev.
+- **Como foi feito:** o componente original usa Next.js, Tailwind e shadcn, e marca dias ao acaso. O painel é Vite com CSS próprio. Por isso o calendário foi refeito no nosso CSS, com as cores da marca e dados reais: o dia com horário marcado aparece destacado, com o número de horários, e ao tocar num dia os horários dele aparecem ao lado (embaixo no celular). Sem dependência nova.
+- **Visões:** Mês (padrão), Semana e Lista. A API da agenda já aceitava até 42 dias, o que cobre a grade de 6 semanas.

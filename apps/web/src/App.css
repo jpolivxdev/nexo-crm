@@ -2720,3 +2720,157 @@ input[type='time'] {
 .toast .icon-button {
   color: inherit;
 }
+
+/* Agenda: calendário do mês + horários do dia escolhido */
+.month {
+  display: grid;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+@media (min-width: 900px) {
+  .month {
+    grid-template-columns: minmax(320px, 420px) 1fr;
+    align-items: start;
+  }
+
+  .month__calendar {
+    position: sticky;
+    top: 16px;
+  }
+}
+
+.month__calendar {
+  padding: 16px;
+  margin: 0;
+}
+
+.month__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.month__head h2 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.month__head h2::first-letter {
+  text-transform: uppercase;
+}
+
+.month__nav {
+  gap: 4px;
+  align-items: center;
+}
+
+.month__nav .icon-button {
+  color: var(--cor-texto);
+}
+
+.month__nav .icon-button:hover {
+  background: var(--cor-suave);
+}
+
+.month__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.month__weekday {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+  padding-bottom: 4px;
+}
+
+.month__day {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-bottom: 6px;
+  justify-content: center;
+  aspect-ratio: 1;
+  min-height: 44px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--cor-texto);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.month__day:hover {
+  background: var(--cor-suave);
+}
+
+.month__day--out {
+  color: var(--cor-texto-suave);
+  opacity: 0.55;
+}
+
+.month__day--busy {
+  background: var(--cor-suave);
+  font-weight: 700;
+}
+
+.month__day--today {
+  border-color: var(--lavanda);
+}
+
+.month__day--selected,
+.month__day--selected:hover {
+  background: var(--roxo-nexo);
+  color: var(--branco);
+  opacity: 1;
+}
+
+.month__count {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--roxo-nexo);
+  color: var(--branco);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.month__day--selected .month__count {
+  background: var(--branco);
+  color: var(--roxo-nexo);
+}
+
+.month__legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.month__swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--cor-suave);
+  border: 1px solid var(--cor-borda);
+}
+
+.month__day-panel .day-title {
+  margin-top: 0;
+}
