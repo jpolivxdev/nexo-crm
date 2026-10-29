@@ -5,6 +5,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
+import { RateLimiter } from './auth/rate-limiter.js';
 import type { Env } from './config/env.js';
 
 /** A API só devolve JSON: nada pode carregar dela. */
@@ -51,6 +52,7 @@ export function setupApp(app: INestApplication, env: Env): INestApplication {
   app.useLogger(app.get(Logger));
   const express = app as NestExpressApplication;
   express.set('trust proxy', env.TRUST_PROXY);
+  app.use(rateLimit(env.RATE_LIMIT_PER_MINUTE, Boolean(env.WEB_DIST_DIR)));
   if (env.WEB_DIST_DIR) {
     serveWeb(express, resolve(env.WEB_DIST_DIR));
   } else {
@@ -59,6 +61,26 @@ export function setupApp(app: INestApplication, env: Env): INestApplication {
   app.enableCors({ origin: env.WEB_ORIGIN, credentials: true });
   app.enableShutdownHooks();
   return app;
+}
+
+/**
+ * Limite geral por IP, em memória (Fase 1 tem um servidor só; SEGURANCA.md, seção 3, item 10).
+ * Fica fora o POST do webhook da Meta: lá a assinatura é conferida e há limites por contato e
+ * por negócio. Com o painel servido junto, só as rotas da API contam.
+ */
+function rateLimit(perMinute: number, apiUnderPrefix: boolean) {
+  const limiter = new RateLimiter(perMinute, 60_000);
+  return (req: Request, res: Response, next: NextFunction) => {
+    const path = apiUnderPrefix ? req.path.replace(/^\/api(?=\/|$)/, '') : req.path;
+    if (apiUnderPrefix && path === req.path) return next();
+    if (req.method === 'POST' && path === '/webhooks/whatsapp') return next();
+    if (limiter.take(req.ip ?? 'desconhecido')) return next();
+    res.setHeader('Retry-After', '60');
+    res.status(429).json({
+      statusCode: 429,
+      message: 'Muitas tentativas. Espere um minuto e tente de novo.',
+    });
+  };
 }
 
 /** Um processo só: painel na raiz, API em /api. O painel usa rotas com #, então basta o index. */

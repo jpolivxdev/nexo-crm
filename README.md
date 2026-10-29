@@ -75,6 +75,15 @@ A CI também roda o gitleaks para procurar segredos. Para rodar antes de cada co
 - O banco recusa dois horários ativos sobrepostos para a mesma profissional.
 - O teste `apps/api/test/tenant-isolation.test.ts` falha se alguma tabela com `tenant_id` ficar sem RLS.
 
+## Backup e restauração
+
+Precisa do `pg_dump` e do `pg_restore` (vêm com o Postgres).
+
+1. Uma vez, como superusuário do Postgres, crie o papel só de leitura do backup (o RLS forçado esconde os dados até do dono das tabelas): `psql -U postgres -d nexo -v senha="'uma-senha-forte'" -f apps/api/scripts/setup-backup-role.sql`
+2. No `.env`: `BACKUP_DATABASE_URL`, `BACKUP_ENCRYPTION_KEY` e `BACKUP_DIR` (veja `.env.example`). Guarde a chave fora do servidor do banco.
+3. Backup: `npm run db:backup -w @nexo/api` (gera um `.dump.enc` criptografado).
+4. Teste de restauração: crie um banco vazio, aponte `BACKUP_RESTORE_URL` para ele e rode `npm run db:restore-check -w @nexo/api -- caminho/do/arquivo.dump.enc`. O script recusa banco com tabelas.
+
 ## Documentos
 
 - [ROADMAP.md](ROADMAP.md): todas as fases e entregas.

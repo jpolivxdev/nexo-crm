@@ -5,6 +5,8 @@ import {
   Get,
   Headers,
   HttpCode,
+  HttpException,
+  HttpStatus,
   Inject,
   Logger,
   Post,
@@ -15,6 +17,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Request } from 'express';
+import { RateLimiter } from '../../auth/rate-limiter.js';
 import { ENV, type Env } from '../../config/env.js';
 import { JOB_QUEUE, type JobQueue } from '../../queue/queues.js';
 import { ChannelRouter } from '../channel.router.js';
@@ -30,6 +33,11 @@ import { parseWebhook } from './webhook-payload.js';
 @Controller('webhooks/whatsapp')
 export class WhatsAppWebhookController {
   private readonly logger = new Logger(WhatsAppWebhookController.name);
+  /** Assinaturas erradas por IP: quem tenta forjar é barrado (SEGURANCA.md, A1). */
+  private readonly badSignatures = new RateLimiter(20, 15 * 60 * 1000);
+  /** Enxurrada de uma cliente só, ou num negócio só, não trava o robô (SEGURANCA.md, A4). */
+  private readonly perContact = new RateLimiter(30, 60 * 1000);
+  private readonly perTenant = new RateLimiter(600, 60 * 1000);
 
   constructor(
     @Inject(ENV) private readonly env: Env,
@@ -64,6 +72,9 @@ export class WhatsAppWebhookController {
     if (!secret) throw new ServiceUnavailableException();
     if (!isValidSignature(req.rawBody, signature, secret)) {
       this.logger.warn('Webhook com assinatura inválida recusado.');
+      if (!this.badSignatures.take(req.ip ?? 'desconhecido')) {
+        throw new HttpException('Muitas tentativas.', HttpStatus.TOO_MANY_REQUESTS);
+      }
       throw new UnauthorizedException();
     }
 
@@ -78,6 +89,11 @@ export class WhatsAppWebhookController {
       const tenantId = await this.router.tenantFor('whatsapp', message.businessExternalId);
       if (!tenantId) {
         this.logger.warn('Mensagem para um número sem negócio ligado ignorada.');
+        continue;
+      }
+      // Confirma para a Meta (200) mas não processa: evita reenvio e protege o robô.
+      if (!this.perContact.take(`${tenantId}:${message.from}`) || !this.perTenant.take(tenantId)) {
+        this.logger.warn('Mensagem acima do limite por contato ou por negócio ignorada.');
         continue;
       }
       await this.queue.enqueueInbound({ tenantId, message });
