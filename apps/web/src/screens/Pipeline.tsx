@@ -225,23 +225,29 @@ function DealCard({
         </button>
       </div>
       {menu && (
-        <ul id={menuId} className="deal__menu" aria-label={`Mover ${name} para`}>
-          {stages
-            .filter((s) => s.id !== stage.id)
-            .map((s) => (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenu(false);
-                    onMove(s.id);
-                  }}
-                >
-                  Mover para {s.name}
-                </button>
-              </li>
-            ))}
-        </ul>
+        <div id={menuId} className="deal__menu">
+          <p className="deal__menu-title" aria-hidden="true">
+            Mover para
+          </p>
+          <ul aria-label={`Mover ${name} para`}>
+            {stages
+              .filter((s) => s.id !== stage.id)
+              .map((s) => (
+                <li key={s.id} className={s.kind === 'LOST' ? 'deal__menu-lost' : undefined}>
+                  <button
+                    type="button"
+                    aria-label={`Mover para ${s.name}`}
+                    onClick={() => {
+                      setMenu(false);
+                      onMove(s.id);
+                    }}
+                  >
+                    {s.name}
+                  </button>
+                </li>
+              ))}
+          </ul>
+        </div>
       )}
     </li>
   );
