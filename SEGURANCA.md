@@ -65,7 +65,7 @@ Legenda STRIDE: **S** falsificação de identidade, **T** adulteração, **R** r
 | Feita (27/10/2026) | Login: Argon2id, sessão no servidor com cookie HttpOnly/SameSite=Strict, CSRF, bloqueio após 5 erros, limite por IP, 2FA para admin nexo, auditoria de login/logout. | E8 |
 | Feita (27/10/2026) | Troca de senha pela dona (encerra as outras sessões); senha provisória obrigando troca no primeiro acesso; 2FA do admin cadastrado pelo `admin:create`; entrada controlada do admin num negócio (motivo + código + 1 hora + auditoria de início e fim). | E9 |
 | Feita (27/10/2026) | Tabela `tenant_directory` (lista do admin) fica fora do RLS: só nome, tipo e datas, preenchida por gatilho; a aplicação só lê. Teste confere colunas e permissões. | E9 |
-| Aberta | Exportar e excluir dados de uma cliente final pelo painel (direitos do titular). | Antes do piloto |
+| Feita (29/10/2026) | Exportar e excluir dados de uma cliente final pela ficha (direitos do titular). Exportar entrega um arquivo com cadastro, conversas, horários, etapa, "a fazer", registros de aviso/opt-out e histórico de eventos, sem IDs do negócio. Excluir pede confirmação dupla na tela e `confirm: true` na API; apaga nome, telefone, etiquetas, anotações, conversas, mensagens e "a fazer"; cancela os horários futuros (e os lembretes) e tira a anotação dos passados; a linha da cliente fica anônima (`erased_at`) para horários passados, etapas e relatórios continuarem certos. Eventos só guardam IDs e tipos. As duas ações vão para a auditoria sem dado pessoal. Só a sessão do negócio, com CSRF; cliente de outro negócio dá 404 (teste). Corrigir: nome, anotações e etiquetas já se editam na ficha. | E13 |
 | Aberta | Antes de ligar o cadastro aberto (`SIGNUP_ENABLED=true`) em produção: provedor de e-mail com SPF/DKIM, textos de termos e privacidade aprovados [CONFIRMAR COM ADVOGADO/CONTADOR], limpeza de contas nunca confirmadas e proteção contra cadastro em massa (ex.: desafio anti-robô). | Antes de abrir o cadastro |
 | Feita (27/10/2026) | Tabela `channel_routes` (número do canal → negócio) fica fora do RLS porque o webhook ainda não sabe o negócio. Compensação: a aplicação só tem `SELECT` nela, e o teste de RLS lista as únicas exceções (`users`, `channel_routes`). | E5 |
 | Feita (27/10/2026) | Fila pg-boss: estrutura criada pelo papel dono; a aplicação só usa. Jobs carregam conteúdo de mensagem e telefone, então ficam no máximo 1 hora depois de concluídos e 24 horas se não forem processados. Logs do worker não levam conteúdo. | E5 |
@@ -134,7 +134,7 @@ Responder OK / Pendente / Não se aplica, com o motivo. Cada Pendente vira taref
 | 8 | Cabeçalhos de segurança, CORS, CSRF e rate limiting ativos? | | |
 | 9 | Logs sem dados pessoais desnecessários e sem segredos? | | |
 | 10 | Log de auditoria das ações sensíveis? | | |
-| 11 | Fluxos de exportação e exclusão de dados do titular funcionando? | | |
+| 11 | Fluxos de exportação e exclusão de dados do titular funcionando? | Sim (E13, 29/10/2026) | `test/privacy.test.ts`, `E13.test.tsx` |
 | 12 | Opt-out ("parar") respeitado e registrado? | | |
 | 13 | Backups configurados e restauração testada? | | |
 | 14 | Dependências auditadas, sem vulnerabilidade alta ou crítica aberta? | | |

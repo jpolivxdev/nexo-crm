@@ -29,6 +29,7 @@ import {
   bookBody,
   contactsQuery,
   createContactBody,
+  eraseContactBody,
   moveDealBody,
   replyBody,
   reportQuery,
@@ -39,6 +40,7 @@ import {
 } from './panel.schemas.js';
 import { ReportService } from '../report/report.service.js';
 import { PanelService } from './panel.service.js';
+import { PrivacyService } from './privacy.service.js';
 
 function parse<T extends z.ZodType>(schema: T, value: unknown): z.infer<T> {
   const result = schema.safeParse(value);
@@ -61,6 +63,7 @@ export class PanelController {
     @Inject(ConversationService) private readonly conversations: ConversationService,
     @Inject(RealtimeBus) private readonly bus: RealtimeBus,
     @Inject(ReportService) private readonly reports: ReportService,
+    @Inject(PrivacyService) private readonly privacy: PrivacyService,
   ) {}
 
   private tenant(req: AuthedRequest): string {
@@ -69,6 +72,10 @@ export class PanelController {
 
   private actor(req: AuthedRequest) {
     return { type: 'user' as const, id: req.auth!.userId };
+  }
+
+  private privacyActor(req: AuthedRequest) {
+    return { userId: req.auth!.userId, ip: req.ip ?? null };
   }
 
   @Get('today')
@@ -151,6 +158,19 @@ export class PanelController {
   @Patch('contacts/:id')
   updateContact(@Req() req: AuthedRequest, @Param('id', uuid) id: string, @Body() body: unknown) {
     return this.panel.updateContact(this.tenant(req), id, parse(updateContactBody, body));
+  }
+
+  /** Direitos da cliente (LGPD): tudo o que o negócio guarda sobre ela. */
+  @Get('contacts/:id/export')
+  exportContact(@Req() req: AuthedRequest, @Param('id', uuid) id: string) {
+    return this.privacy.export(this.tenant(req), id, this.privacyActor(req));
+  }
+
+  @Post('contacts/:id/erase')
+  @HttpCode(200)
+  eraseContact(@Req() req: AuthedRequest, @Param('id', uuid) id: string, @Body() body: unknown) {
+    parse(eraseContactBody, body);
+    return this.privacy.erase(this.tenant(req), id, this.privacyActor(req));
   }
 
   @Get('pipeline')

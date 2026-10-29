@@ -46,6 +46,11 @@ export const updateContactBody = z.object({
   tags: z.array(z.string().trim().min(1).max(40)).max(20).optional(),
 });
 
+/** Excluir é para sempre: o painel manda a confirmação explícita. */
+export const eraseContactBody = z.object({
+  confirm: z.literal(true, { error: 'Confirme que quer excluir os dados da cliente.' }),
+});
+
 export const moveDealBody = z.object({ stageId: z.uuid() });
 
 export const replyBody = z.object({ text: z.string().trim().min(1).max(4096) });

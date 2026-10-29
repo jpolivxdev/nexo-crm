@@ -5,6 +5,7 @@ import { BUSINESS_TZ_FALLBACK, contactName, dateTime, localDate, phone } from '.
 import { useLoad, useRealtime } from '../lib/hooks';
 import type { ContactFile as ContactFileData, Message } from '../lib/types';
 import { BookForm } from './BookForm';
+import { ContactPrivacy } from './ContactPrivacy';
 
 /** Ficha da cliente: etapa, horários, conversa (responder / devolver ao robô) e anotações. */
 export function ContactFile({ id, go }: { id: string; go: (to: string) => void }) {
@@ -141,6 +142,7 @@ export function ContactFile({ id, go }: { id: string; go: (to: string) => void }
       )}
 
       <Notes id={data.id} initial={data.notes ?? ''} onSaved={() => void reload()} />
+      <ContactPrivacy id={data.id} name={contactName(data)} onErased={() => go('/clientes')} />
     </>
   );
 }

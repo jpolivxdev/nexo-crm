@@ -162,12 +162,13 @@ export class PanelService {
       tx.contact.findMany({
         where: q
           ? {
+              erasedAt: null,
               OR: [
                 { name: { contains: q, mode: 'insensitive' } },
                 ...(digits.length >= 3 ? [{ phone: { contains: digits } }] : []),
               ],
             }
-          : {},
+          : { erasedAt: null },
         orderBy: { updatedAt: 'desc' },
         take: 50,
         select: {
@@ -215,8 +216,8 @@ export class PanelService {
 
   async contact(tenantId: string, contactId: string) {
     return this.db.withTenant(tenantId, async (tx) => {
-      const contact = await tx.contact.findUnique({
-        where: { id: contactId },
+      const contact = await tx.contact.findFirst({
+        where: { id: contactId, erasedAt: null },
         select: {
           id: true,
           name: true,
@@ -298,7 +299,10 @@ export class PanelService {
     input: { name?: string; notes?: string | null; tags?: string[] },
   ) {
     const updated = await this.db.withTenant(tenantId, async (tx) => {
-      const found = await tx.contact.findUnique({ where: { id: contactId }, select: { id: true } });
+      const found = await tx.contact.findFirst({
+        where: { id: contactId, erasedAt: null },
+        select: { id: true },
+      });
       if (!found) throw new NotFoundException('Cliente não encontrada.');
       return tx.contact.update({
         where: { id: contactId },

@@ -186,3 +186,14 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Série por dia sai do relatório** (`daily` em `/panel/report`): um ponto por dia do período, com zero nos dias vazios, no fuso do negócio. "Marcados" conta pela data em que a cliente marcou; "realizados", pela data do horário, igual aos totais.
 - **"O que aconteceu"** (`activity` em `/panel/today`): os 8 últimos eventos de uma lista fechada (cliente nova, horário marcado, remarcado, confirmado, cancelado, realizado, faltou, pediu você, pediu para parar). Só sai tipo, quem fez, data e a cliente; o payload do evento não vai para a tela. A cliente é lida do payload só se for um ID válido e buscada com RLS: cliente de outro negócio vira "Uma cliente". Teste automatizado confere as três coisas.
 - **Planos (tela ainda só visual):** Grátis (CRM básico, limite de clientes a definir), CRM (sem limite, resultados, retornos) e Completo (CRM + agenda + robô no WhatsApp). Preços e limites: [A DEFINIR com o Coca]. Hoje todo negócio tem tudo liberado: a trava por plano no servidor é o próximo passo (ver PENDENCIAS.md).
+
+## E13: baixar e excluir os dados de uma cliente (29/10/2026)
+
+- **Onde fica:** no fim da ficha da cliente, seção "Dados da cliente", com "Baixar dados" e "Excluir dados". É a dona quem atende o pedido da cliente; a nexo não mexe nisso sem ela.
+- **Baixar dados gera um arquivo `.json`** com tudo o que o negócio guarda sobre a cliente (cadastro, conversas completas, horários com serviço e profissional, etapa, "a fazer", registros de aviso e de "parar" e a lista de acontecimentos). Formato aberto, que dá para ler num editor de texto; um PDF bonito pode vir depois, se a piloto pedir.
+- **Excluir anonimiza em vez de apagar a linha.** A cliente perde nome, telefone, etiquetas e anotações, e as conversas, mensagens e "a fazer" dela são apagados de verdade. A linha fica, marcada com `erased_at`, porque os horários passados e as etapas apontam para ela: assim os relatórios (faltas, realizados, novos contatos) continuam certos, como pede o item 9 da seção 3 do `SEGURANCA.md`. Os eventos já guardam só IDs e tipos, então não precisam de limpeza.
+- **Horários futuros são cancelados** e voltam a ficar livres, com os lembretes cancelados juntos. Os passados ficam, sem a anotação.
+- **Se a cliente mandar mensagem de novo depois**, ela entra como cliente nova: o telefone antigo não existe mais no sistema. Isso inclui o pedido de "parar", que se perde junto. Ver PENDENCIAS.md: [CONFIRMAR COM ADVOGADO/CONTADOR] se dá para guardar só o telefone em lista de bloqueio.
+- **Duas confirmações:** na tela, um segundo passo explica o que some e diz que não dá para desfazer; na API, o corpo precisa de `confirm: true`. As duas ações (baixar e excluir) entram na auditoria só com o ID da cliente e as contagens.
+- **Backups:** quando a hospedagem existir, a exclusão chega aos backups só quando eles vencerem. Prazo [CONFIRMAR COM ADVOGADO/CONTADOR] (já está na lista para o advogado, item 6).
+

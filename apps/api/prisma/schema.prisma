@@ -346,6 +346,8 @@ model Contact {
   notes          String?
   /// Recusou mensagens automáticas ("parar"/"sair").
   optedOutAt     DateTime? @map("opted_out_at") @db.Timestamptz
+  /// Dados apagados a pedido da cliente (LGPD). Fica só o registro anônimo, para os números continuarem certos.
+  erasedAt       DateTime? @map("erased_at") @db.Timestamptz
   source         Source
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz

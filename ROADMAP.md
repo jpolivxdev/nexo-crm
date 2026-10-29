@@ -12,18 +12,19 @@ Módulos: M1 completo, M2 básico, M3 (funil padrão + modelo por nicho + classi
 | E1 | Esqueleto: monorepo, Postgres local, lint, testes, CI, documentação | CI verde e `/health` respondendo | Feita |
 | E2 | Banco multi-negócio: Prisma, modelo de dados, RLS, papéis do banco, seed demo | Teste prova que um negócio não vê o outro | Feita |
 | E3 | Disponibilidade e agendamento, sem horário duplo | Testes de regras e de concorrência | Feita |
-| E4 | Robô (máquina de estados pura) | Teste para cada estado e transição | Em revisão (PR #9) |
-| E5 | Canal: interface + adaptador simulado + simulador + webhook da Cloud API | Testes com payloads simulados; ponta a ponta real depende de E0 | Em revisão (PR #9) |
-| E6 | CRM básico: contato automático, histórico, eventos, funil, classificação | Conversa simulada gera ficha e etapa certas | Em revisão (PR #9) |
-| E7 | Passar para a equipe, "parar", fora do horário | Testes + aviso ao dono | Em revisão (PR #9; aviso pelo WhatsApp da dona depende de E0) |
-| E8 | Painel do dono (PWA): login, hoje, agenda, ficha, etapas, tempo real | 360 px, agendamento em até 5 s, acessibilidade | Em revisão (PR #9) |
-| E9 | Onboarding guiado + admin nexo + cronômetro | Negócio demo criado com tempo medido | Em revisão (PR da E9) |
-| E10 | Lembretes 24h e 1h com confirmar/cancelar | Testes com relógio simulado | Em revisão (PR da E10; no WhatsApp real depende das mensagens de modelo da E0) |
-| E11 | Relatório mínimo, deploy, relatório de custo e onboarding | Definição de pronto da Fase 1 | Em revisão (PR da E11; falta escolher a hospedagem e medir o onboarding com a piloto) |
-| E12 | Página de entrada, criar conta com confirmação de e-mail, esqueci a senha | Fluxo completo testado (API e telas) | Em revisão (PR da E11; envio de e-mail em produção depende do provedor) |
+| E4 | Robô (máquina de estados pura) | Teste para cada estado e transição | Feita (PR #9, juntado em 29/10/2026) |
+| E5 | Canal: interface + adaptador simulado + simulador + webhook da Cloud API | Testes com payloads simulados; ponta a ponta real depende de E0 | Feita (PR #9, juntado em 29/10/2026) |
+| E6 | CRM básico: contato automático, histórico, eventos, funil, classificação | Conversa simulada gera ficha e etapa certas | Feita (PR #9, juntado em 29/10/2026) |
+| E7 | Passar para a equipe, "parar", fora do horário | Testes + aviso ao dono | Feita (PR #9, juntado em 29/10/2026; aviso pelo WhatsApp da dona depende de E0) |
+| E8 | Painel do dono (PWA): login, hoje, agenda, ficha, etapas, tempo real | 360 px, agendamento em até 5 s, acessibilidade | Feita (PR #9, juntado em 29/10/2026) |
+| E9 | Onboarding guiado + admin nexo + cronômetro | Negócio demo criado com tempo medido | Feita (PR #10, juntado em 29/10/2026) |
+| E10 | Lembretes 24h e 1h com confirmar/cancelar | Testes com relógio simulado | Feita (PR #12, juntado em 29/10/2026; no WhatsApp real depende das mensagens de modelo da E0) |
+| E11 | Relatório mínimo, deploy, relatório de custo e onboarding | Definição de pronto da Fase 1 | Feita (PR #13, juntado em 29/10/2026; falta escolher a hospedagem e medir o onboarding com a piloto) |
+| E12 | Página de entrada, criar conta com confirmação de e-mail, esqueci a senha | Fluxo completo testado (API e telas) | Feita (PR #13, juntado em 29/10/2026; envio de e-mail em produção depende do provedor) |
+| E13 | Direitos da cliente (LGPD): baixar e excluir os dados pela ficha | Testes de API (exportar, excluir, isolamento, CSRF) e de tela | Em revisão (PR da E13) |
 
 Falta na Fase 1 (conferência do PROMPT 1 em 27/10/2026, previsão ~19 h de código):
-1. Exportar e excluir dados de uma cliente (LGPD), obrigatório antes do piloto.
+1. ~~Exportar e excluir dados de uma cliente (LGPD), obrigatório antes do piloto.~~ Feito na E13 (29/10/2026).
 2. Tela de folgas e bloqueios (a agenda já respeita).
 3. Tela para a dona editar as mensagens do robô (o robô já aceita).
 4. Regras de etapa criadas pela dona ("se X, colocar em Y").

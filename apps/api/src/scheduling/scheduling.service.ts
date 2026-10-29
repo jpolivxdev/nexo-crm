@@ -84,7 +84,7 @@ export class SchedulingService {
       this.db.withTenant(tenantId, async (tx) => {
         // Chave estrangeira não passa pelo RLS: confere pelo RLS que a cliente é deste negócio.
         const contact = await tx.contact.findUnique({ where: { id: input.contactId } });
-        if (!contact) throw new ContactNotFoundError();
+        if (!contact || contact.erasedAt) throw new ContactNotFoundError();
 
         const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
         const slot = await this.findFreeSlot(tx, tenantId, {
