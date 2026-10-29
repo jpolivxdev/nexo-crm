@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { Banner, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { useLoad } from '../lib/hooks';
@@ -97,20 +97,26 @@ export function BotMessages({ go }: { go: (to: string) => void }) {
     () => api<{ messages: BotMessage[] }>('/panel/setup/messages'),
     '',
   );
-  const [texts, setTexts] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState(false);
-  const [saveError, setSaveError] = useState<{ key?: string; message: string } | null>(null);
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    if (data)
-      setTexts(Object.fromEntries(data.messages.map((m) => [m.key, m.custom ?? m.default])));
-  }, [data]);
-
   if (loading && !data) return <Loading />;
   if (error && !data) return <Banner>{error}</Banner>;
   if (!data) return null;
-  const byKey = new Map(data.messages.map((m) => [m.key, m]));
+  return <MessagesForm messages={data.messages} go={go} />;
+}
+
+function MessagesForm({
+  messages: list,
+  go,
+}: {
+  messages: BotMessage[];
+  go: (to: string) => void;
+}) {
+  const [texts, setTexts] = useState<Record<string, string>>(() =>
+    Object.fromEntries(list.map((m) => [m.key, m.custom ?? m.default])),
+  );
+  const [busy, setBusy] = useState(false);
+  const [saveError, setSaveError] = useState<{ key?: string; message: string } | null>(null);
+  const [saved, setSaved] = useState(false);
+  const byKey = new Map(list.map((m) => [m.key, m]));
 
   function edit(key: string, value: string) {
     setTexts((t) => ({ ...t, [key]: value }));
@@ -142,7 +148,7 @@ export function BotMessages({ go }: { go: (to: string) => void }) {
     }
   }
 
-  const changed = data.messages.filter((m) => (texts[m.key] ?? '').trim() !== m.default).length;
+  const changed = list.filter((m) => (texts[m.key] ?? '').trim() !== m.default).length;
 
   return (
     <>

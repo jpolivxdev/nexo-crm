@@ -40,7 +40,8 @@ const RULES = {
 
 describe('regras automáticas de etapa (E16)', () => {
   it('mostra o padrão, deixa trocar e manda só o que não é padrão', async () => {
-    const fetchMock = vi.fn(async (url: string, _init?: RequestInit) => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      void init;
       const path = String(url).replace(/^\/api/, '');
       return json(path === '/auth/me' ? OWNER : RULES);
     });

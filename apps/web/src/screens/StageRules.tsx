@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 import { Banner, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { useLoad } from '../lib/hooks';
@@ -35,25 +35,23 @@ const KEEP = '__manter';
 /** "Se X, colocar em Y": a dona escolhe para onde cada acontecimento leva a cliente. */
 export function StageRules({ go }: { go: (to: string) => void }) {
   const { data, error, loading } = useLoad(() => api<RulesData>('/panel/pipeline/rules'), '');
-  const [choice, setChoice] = useState<Record<string, string>>({});
-  const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
-
-  useEffect(() => {
-    if (!data) return;
-    setChoice(
-      Object.fromEntries(
-        data.rules.map((r) => [
-          r.event,
-          r.stageId === undefined ? DEFAULT : r.stageId === null ? KEEP : r.stageId,
-        ]),
-      ),
-    );
-  }, [data]);
-
   if (loading && !data) return <Loading />;
   if (error && !data) return <Banner>{error}</Banner>;
   if (!data) return null;
+  return <RulesForm data={data} go={go} />;
+}
+
+function RulesForm({ data, go }: { data: RulesData; go: (to: string) => void }) {
+  const [choice, setChoice] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      data.rules.map((r) => [
+        r.event,
+        r.stageId === undefined ? DEFAULT : r.stageId === null ? KEEP : r.stageId,
+      ]),
+    ),
+  );
+  const [busy, setBusy] = useState(false);
+  const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const stageName = (id: string | null) => data.stages.find((s) => s.id === id)?.name;
 
   async function submit(event: FormEvent) {
