@@ -49,6 +49,13 @@ export {
   type MessageOverrides,
 } from './bot/messages.js';
 export { choices, LIMITS, type Choice, type OutgoingMessage } from './bot/outgoing.js';
+export {
+  planReminders,
+  REMINDER_LATE_TOLERANCE_MS,
+  reminderMessage,
+  reminderStillUseful,
+  type ReminderKind,
+} from './bot/reminders.js';
 export { globalCommand, normalize } from './bot/text.js';
 export {
   classify,

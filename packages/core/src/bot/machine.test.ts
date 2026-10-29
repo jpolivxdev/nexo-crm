@@ -60,6 +60,10 @@ class FakePorts implements BotPorts {
   cancel = async (id: string) => {
     this.cancelled.push(id);
   };
+  confirmed: string[] = [];
+  confirm = async (id: string) => {
+    this.confirmed.push(id);
+  };
 }
 
 const say = (t: string): BotInput => ({ kind: 'text', text: t });
@@ -353,5 +357,55 @@ describe('robô: máquina de estados', () => {
     if (msg?.type !== 'list') throw new Error('esperava lista');
     expect(msg.rows.length).toBeLessThanOrEqual(10);
     for (const row of msg.rows) expect([...row.title].length).toBeLessThanOrEqual(24);
+  });
+
+  describe('botões do lembrete', () => {
+    const appt: AppointmentSummary = {
+      id: 'a1',
+      serviceId: 's1',
+      serviceName: 'Aplicação de cílios',
+      startsAt: new Date('2026-11-03T12:00:00Z'), // terça, 09:00 em São Paulo
+    };
+
+    it('confirmar funciona de qualquer passo e confirma o horário certo', async () => {
+      ports.appointments = [appt];
+      state = { step: 'faq' };
+      const r = await send(tap('rem:confirm:a1'));
+      expect(ports.confirmed).toEqual(['a1']);
+      expect(last(r)?.body).toBe('Combinado! Até terça, 03/11 às 09:00.');
+      expect(state).toEqual({ step: 'start' });
+    });
+
+    it('cancelar pede confirmação antes', async () => {
+      ports.appointments = [appt];
+      const r = await send(tap('rem:cancel:a1'));
+      expect(ids(last(r))).toEqual(['cancel:yes', 'cancel:no']);
+      expect(ports.cancelled).toEqual([]);
+      await send(tap('cancel:yes'));
+      expect(ports.cancelled).toEqual(['a1']);
+    });
+
+    it('remarcar abre os dias livres para o mesmo serviço', async () => {
+      ports.appointments = [appt];
+      const r = await send(tap('rem:reschedule:a1'));
+      expect(state).toMatchObject({ step: 'date', flow: 'reschedule', appointmentId: 'a1' });
+      expect(ids(last(r))[0]).toBe('date:2026-11-03');
+    });
+
+    it('horário de outra pessoa ou já cancelado: não mexe em nada', async () => {
+      ports.appointments = [];
+      const r = await send(tap('rem:confirm:a1'));
+      expect(ports.confirmed).toEqual([]);
+      expect(bodies(r)).toContain(
+        'Esse horário não está mais marcado. Para ver seus horários, escreva "menu".',
+      );
+    });
+
+    it('ação inventada é tratada como não entendida', async () => {
+      ports.appointments = [appt];
+      const r = await send(tap('rem:apagar:a1'));
+      expect(bodies(r)[0]).toBe('Não entendi. Escolha uma das opções abaixo.');
+      expect(ports.confirmed).toEqual([]);
+    });
   });
 });

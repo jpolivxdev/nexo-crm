@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react';
 import { ApiError } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { MadeByNexo, NexoLogo } from '../components/Brand';
 import { Banner } from '../components/ui';
 
 export function Login() {
@@ -32,47 +33,53 @@ export function Login() {
 
   return (
     <main className="login">
-      <h1>Entrar no painel</h1>
-      <p className="muted">Agenda, clientes e conversas do seu negócio.</p>
-      <form onSubmit={submit} className="form" noValidate>
-        <label>
-          E-mail
-          <input
-            type="email"
-            autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </label>
-        <label>
-          Senha
-          <input
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </label>
-        {needsTotp && (
+      <div className="login__hero">
+        <NexoLogo fundo="escuro" height={36} />
+        <p>Agenda, clientes e conversas do seu negócio, num lugar só.</p>
+      </div>
+      <div className="auth-card">
+        <h1>Entrar no painel</h1>
+        <form onSubmit={submit} className="form" noValidate>
           <label>
-            Código do app autenticador
+            E-mail
             <input
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              pattern="\d{6}"
-              maxLength={6}
-              value={totp}
-              onChange={(e) => setTotp(e.target.value.replace(/\D/g, ''))}
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
             />
           </label>
-        )}
-        {error && <Banner>{error}</Banner>}
-        <button type="submit" className="button" disabled={busy}>
-          {busy ? 'Entrando…' : 'Entrar'}
-        </button>
-      </form>
+          <label>
+            Senha
+            <input
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </label>
+          {needsTotp && (
+            <label>
+              Código do app autenticador
+              <input
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="\d{6}"
+                maxLength={6}
+                value={totp}
+                onChange={(e) => setTotp(e.target.value.replace(/\D/g, ''))}
+              />
+            </label>
+          )}
+          {error && <Banner>{error}</Banner>}
+          <button type="submit" className="button" disabled={busy}>
+            {busy ? 'Entrando…' : 'Entrar'}
+          </button>
+        </form>
+      </div>
+      <MadeByNexo />
     </main>
   );
 }

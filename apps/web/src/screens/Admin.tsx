@@ -1,3 +1,4 @@
+import { Store } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { Banner, Empty, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
@@ -92,7 +93,7 @@ export function Admin() {
         ) : error && !data ? (
           <Banner>{error}</Banner>
         ) : !data?.length ? (
-          <Empty title="Nenhum negócio ainda">
+          <Empty title="Nenhum negócio ainda" icon={<Store size={24} />}>
             Crie o primeiro negócio; o tempo de configuração aparece aqui quando a dona concluir o
             assistente.
           </Empty>

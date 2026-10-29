@@ -1,3 +1,4 @@
+import { CalendarX2, ListTodo } from 'lucide-react';
 import { useState } from 'react';
 import { AppointmentCard } from '../components/AppointmentCard';
 import { Banner, Empty, Loading } from '../components/ui';
@@ -36,6 +37,20 @@ export function Today({ go }: { go: (to: string) => void }) {
         <h1>Seu dia de hoje</h1>
         <p className="muted">{localDateLabel(data.date)}</p>
       </header>
+      <dl className="stats" aria-label="Resumo do dia">
+        <div className="stat">
+          <dt>Horários</dt>
+          <dd>{data.appointments.filter((a) => a.status !== 'CANCELLED').length}</dd>
+        </div>
+        <div className={data.handoffs.length ? 'stat stat--attention' : 'stat'}>
+          <dt>Esperando você</dt>
+          <dd>{data.handoffs.length}</dd>
+        </div>
+        <div className="stat">
+          <dt>A fazer</dt>
+          <dd>{data.tasks.length}</dd>
+        </div>
+      </dl>
       {actionError && <Banner>{actionError}</Banner>}
 
       {data.handoffs.length > 0 && (
@@ -83,7 +98,7 @@ export function Today({ go }: { go: (to: string) => void }) {
       <section aria-labelledby="horarios" className="section">
         <h2 id="horarios">Horários marcados</h2>
         {data.appointments.length === 0 ? (
-          <Empty title="Nenhum horário hoje">
+          <Empty title="Nenhum horário hoje" icon={<CalendarX2 size={24} />}>
             Quando uma cliente marcar pelo WhatsApp, o horário aparece aqui na hora.
           </Empty>
         ) : (
@@ -107,7 +122,9 @@ export function Today({ go }: { go: (to: string) => void }) {
       <section aria-labelledby="afazer" className="section">
         <h2 id="afazer">A fazer</h2>
         {data.tasks.length === 0 ? (
-          <Empty title="Nada pendente" />
+          <Empty title="Nada pendente" icon={<ListTodo size={24} />}>
+            Quando uma cliente pedir para falar com você, o lembrete aparece aqui.
+          </Empty>
         ) : (
           <ul className="list">
             {data.tasks.map((t) => (

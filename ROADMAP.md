@@ -18,7 +18,7 @@ Módulos: M1 completo, M2 básico, M3 (funil padrão + modelo por nicho + classi
 | E7 | Passar para a equipe, "parar", fora do horário | Testes + aviso ao dono | Em revisão (PR #9; aviso pelo WhatsApp da dona depende de E0) |
 | E8 | Painel do dono (PWA): login, hoje, agenda, ficha, etapas, tempo real | 360 px, agendamento em até 5 s, acessibilidade | Em revisão (PR #9) |
 | E9 | Onboarding guiado + admin nexo + cronômetro | Negócio demo criado com tempo medido | Em revisão (PR da E9) |
-| E10 | Lembretes 24h e 1h com confirmar/cancelar | Testes com relógio simulado | A fazer |
+| E10 | Lembretes 24h e 1h com confirmar/cancelar | Testes com relógio simulado | Em revisão (PR da E10; no WhatsApp real depende das mensagens de modelo da E0) |
 | E11 | Relatório mínimo, deploy, relatório de custo e onboarding | Definição de pronto da Fase 1 | A fazer |
 
 Portão: a piloto usa por 2 a 4 semanas com clientes reais. Medir agendamentos pelo robô, faltas, passagens para a equipe e pedidos.

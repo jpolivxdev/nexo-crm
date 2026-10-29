@@ -5,6 +5,7 @@ import { type Actor, recordEvent } from '../crm/domain-events.js';
 import { PrismaService } from '../database/prisma.service.js';
 import type { RealtimeBus } from '../realtime/realtime.bus.js';
 import type { TenantTx } from '../database/prisma.js';
+import { cancelReminders, syncReminders } from './reminder-plan.js';
 import {
   AppointmentNotFoundError,
   ContactNotFoundError,
@@ -106,6 +107,7 @@ export class SchedulingService {
           },
         });
         await this.recordEvent(tx, tenantId, 'appointment.created', appointment, input.actor);
+        await syncReminders(tx, tenantId, appointment, input.now ?? new Date());
         return appointment;
       }),
     );
@@ -145,6 +147,7 @@ export class SchedulingService {
         await this.recordEvent(tx, tenantId, 'appointment.rescheduled', updated, input.actor, {
           from: current.startsAt.toISOString(),
         });
+        await syncReminders(tx, tenantId, updated, input.now ?? new Date());
         return updated;
       }),
     );
@@ -171,6 +174,7 @@ export class SchedulingService {
         await this.recordEvent(tx, tenantId, EVENT_BY_STATUS[status], updated, actor, {
           from: current.status,
         });
+        if (status !== 'CONFIRMED') await cancelReminders(tx, updated.id);
         return updated;
       }),
     );

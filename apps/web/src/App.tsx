@@ -1,5 +1,7 @@
+import { CalendarDays, House, LogOut, SquareKanban, UserRound, Users } from 'lucide-react';
 import { useEffect } from 'react';
 import './App.css';
+import { MadeByNexo, NexoLogo } from './components/Brand';
 import { Loading } from './components/ui';
 import { api } from './lib/api';
 import { AuthProvider, useAuth } from './lib/auth';
@@ -17,10 +19,10 @@ import { Setup } from './screens/Setup';
 import { Today } from './screens/Today';
 
 const NAV = [
-  { to: '/hoje', label: 'Hoje' },
-  { to: '/agenda', label: 'Agenda' },
-  { to: '/clientes', label: 'Clientes' },
-  { to: '/etapas', label: 'Etapas' },
+  { to: '/hoje', label: 'Hoje', Icon: House },
+  { to: '/agenda', label: 'Agenda', Icon: CalendarDays },
+  { to: '/clientes', label: 'Clientes', Icon: Users },
+  { to: '/etapas', label: 'Etapas', Icon: SquareKanban },
 ];
 
 export function App() {
@@ -43,29 +45,40 @@ function Shell() {
   }
   if (!me) {
     return (
-      <div className="app">
+      <div className="app app--auth">
         <Login />
-        <footer className="app__footer">feito pela nexo</footer>
       </div>
     );
   }
   if (me.mustChangePassword) {
     return (
-      <div className="app">
-        <ChangePassword forced />
-        <footer className="app__footer">feito pela nexo</footer>
+      <div className="app app--auth">
+        <div className="auth-card">
+          <ChangePassword forced />
+        </div>
+        <MadeByNexo />
       </div>
     );
   }
   if (me.role === 'NEXO_ADMIN' && !me.acting) {
     return (
       <div className="app">
-        <div className="topbar">
-          <span className="brand">nexo · admin</span>
-          <button type="button" className="link" onClick={() => void logout()}>
-            Sair
-          </button>
-        </div>
+        <header className="appbar">
+          <div className="appbar__inner">
+            <div className="appbar__title">
+              <NexoLogo fundo="escuro" height={28} />
+              <span className="appbar__eyebrow">Admin</span>
+            </div>
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="Sair"
+              onClick={() => void logout()}
+            >
+              <LogOut aria-hidden="true" size={22} />
+            </button>
+          </div>
+        </header>
         <main>
           <Admin />
         </main>
@@ -111,20 +124,32 @@ function Panel({ me }: { me: Me }) {
           </button>
         </div>
       )}
-      <div className="topbar">
-        <span className="brand">{me.businessName ?? 'nexo'}</span>
-        <div className="row">
-          <a href="#/conta" className="link">
-            Conta
+      <header className="appbar">
+        <div className="appbar__inner">
+          <div className="appbar__title">
+            <span className="appbar__eyebrow">Seu painel</span>
+            <strong>{me.businessName ?? 'nexo'}</strong>
+          </div>
+          <a
+            href="#/conta"
+            className={section === '/conta' ? 'icon-button on' : 'icon-button'}
+            aria-label="Conta"
+          >
+            <UserRound aria-hidden="true" size={22} />
           </a>
-          <button type="button" className="link" onClick={() => void logout()}>
-            Sair
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Sair"
+            onClick={() => void logout()}
+          >
+            <LogOut aria-hidden="true" size={22} />
           </button>
         </div>
-      </div>
+      </header>
       <main>
         {me.onboardingPending && section !== '/configurar' && (
-          <section className="card card--attention" aria-labelledby="configurar-aviso">
+          <section className="card card--highlight" aria-labelledby="configurar-aviso">
             <h2 id="configurar-aviso">Falta configurar o negócio</h2>
             <p className="muted">
               Cadastre serviços e horários para o robô começar a oferecer horários. Leva poucos
@@ -155,16 +180,19 @@ function Panel({ me }: { me: Me }) {
           <Today go={go} />
         )}
       </main>
-      <footer className="app__footer">feito pela nexo</footer>
+      <MadeByNexo />
       <nav className="tabbar" aria-label="Seções do painel">
-        {NAV.map((item) => (
+        {NAV.map(({ to, label, Icon }) => (
           <a
-            key={item.to}
-            href={`#${item.to}`}
-            aria-current={section === item.to ? 'page' : undefined}
-            className={section === item.to ? 'on' : ''}
+            key={to}
+            href={`#${to}`}
+            aria-current={section === to ? 'page' : undefined}
+            className={section === to ? 'on' : ''}
           >
-            {item.label}
+            <span className="tabbar__icon">
+              <Icon aria-hidden="true" size={22} strokeWidth={section === to ? 2.4 : 2} />
+            </span>
+            {label}
           </a>
         ))}
       </nav>
