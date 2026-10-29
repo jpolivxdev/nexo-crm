@@ -230,3 +230,10 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Ordem:** quem mais se encaixa primeiro (mais atendimentos, mais tempo sumida, mais faltas). Busca por nome funciona dentro da visão.
 - Cliente excluída (E13) não aparece em nenhuma visão.
 
+## E18: gatilho de fechamento (29/10/2026)
+
+- **Regra:** quando a dona marca "realizado" e a cliente não tem nenhum horário marcado para frente, nasce um "a fazer" **"Oferecer o próximo horário"** para hoje, ligado à cliente. Aparece no Hoje com o nome dela e some quando a dona marca como feito.
+- **Não repete:** se já existe um aberto para a mesma cliente, não cria outro; se ela já marcou o próximo, não cria.
+- **Por que "a fazer" e não mensagem automática:** mandar mensagem sozinho para oferecer horário, fora da conversa, é marketing e no WhatsApp oficial exige modelo aprovado e cuidado com opt-in. Na Fase 1 a dona decide quando e como chamar (princípio 6, humano no controle). Mensagem automática de retorno entra com o M5 (Fase 2).
+- **Sempre ligado na Fase 1.** Ligar e desligar, e o prazo (ex.: oferecer manutenção em 3 semanas), ficam para quando a piloto disser o que faz sentido.
+
