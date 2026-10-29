@@ -74,6 +74,8 @@ export interface Service {
 export interface ContactListItem extends ContactRef {
   optedOutAt: string | null;
   deals: { stage: { id: string; name: string } }[];
+  /** Só nas visões (frequentes, sumidas, faltosas): o número que explica a cliente estar ali. */
+  stats?: { doneCount?: number; noShowCount?: number; lastDoneAt?: string };
 }
 
 export interface Message {

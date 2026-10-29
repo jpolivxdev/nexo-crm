@@ -65,3 +65,39 @@ describe('regras automáticas de etapa (E16)', () => {
     });
   });
 });
+
+describe('visões de clientes (E17)', () => {
+  it('troca para "Sumidas", explica a regra e mostra há quantos dias', async () => {
+    const lastDoneAt = new Date(Date.now() - 62 * 86_400_000).toISOString();
+    const fetchMock = vi.fn(async (url: string) => {
+      const u = new URL(String(url), 'http://x');
+      if (u.pathname.endsWith('/auth/me')) return json(OWNER);
+      if (u.searchParams.get('segment') === 'missing') {
+        return json([
+          {
+            id: 'c1',
+            name: 'Cliente Sumida (demo)',
+            phone: '5500900000001',
+            optedOutAt: null,
+            deals: [],
+            stats: { lastDoneAt },
+          },
+        ]);
+      }
+      return json([]);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    window.location.hash = '#/clientes';
+    render(<App />);
+
+    expect(await screen.findByText('Nenhuma cliente ainda')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Sumidas' }));
+    expect(await screen.findByText('Cliente Sumida (demo)')).toBeInTheDocument();
+    expect(screen.getByText('Última vez há 62 dias')).toBeInTheDocument();
+    expect(screen.getByText(/há mais de 45 dias/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sumidas' })).toHaveAttribute('aria-pressed', 'true');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Faltosas' }));
+    expect(await screen.findByText('Nenhuma cliente em "Faltosas"')).toBeInTheDocument();
+  });
+});

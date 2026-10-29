@@ -140,7 +140,8 @@ export class PanelController {
 
   @Get('contacts')
   contacts(@Req() req: AuthedRequest, @Query() query: unknown) {
-    return this.panel.contacts(this.tenant(req), parse(contactsQuery, query).q || undefined);
+    const { q, segment } = parse(contactsQuery, query);
+    return this.panel.contacts(this.tenant(req), q || undefined, segment);
   }
 
   @Post('contacts')

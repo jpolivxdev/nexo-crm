@@ -2504,3 +2504,10 @@ input[type='time'] {
   display: grid;
   gap: 8px;
 }
+
+/* Visões de clientes: o número que explica a cliente estar ali */
+.tag--info {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-contorno);
+  color: var(--cor-destaque-texto);
+}

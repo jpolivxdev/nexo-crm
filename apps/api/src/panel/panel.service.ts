@@ -18,6 +18,8 @@ import { ChannelRegistry } from '../channel/channel.registry.js';
 import type { ChannelName } from '../channel/channel.types.js';
 import { recordEvent } from '../crm/domain-events.js';
 import { readStageRules } from '../crm/stage-rules.js';
+import type { ContactSegment } from './panel.schemas.js';
+import type { TenantTx } from '../database/prisma.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { RealtimeBus } from '../realtime/realtime.bus.js';
 
@@ -37,6 +39,20 @@ export const ACTIVITY_TYPES = [
 ] as const;
 
 const ACTIVITY_LIMIT = 8;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+/**
+ * Regras das visões de clientes (Fase 1, fixas; ver DECISOES.md, E17).
+ * Frequente: 3+ atendimentos realizados nos últimos 180 dias.
+ * Sumida: já foi atendida, mas o último atendimento foi há mais de 45 dias e não tem horário marcado.
+ * Faltosa: 2+ faltas nos últimos 180 dias.
+ */
+export const SEGMENT_RULES = {
+  windowDays: 180,
+  frequentMinDone: 3,
+  missingAfterDays: 45,
+  noShowMin: 2,
+} as const;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -171,21 +187,23 @@ export class PanelService {
     );
   }
 
-  contacts(tenantId: string, q?: string) {
+  async contacts(tenantId: string, q?: string, segment?: ContactSegment, now = new Date()) {
     const digits = q?.replace(/\D/g, '') ?? '';
-    return this.db.withTenant(tenantId, (tx) =>
-      tx.contact.findMany({
+    return this.db.withTenant(tenantId, async (tx) => {
+      const segmentIds = segment ? await this.segmentStats(tx, segment, now) : null;
+      const list = await tx.contact.findMany({
         where: q
           ? {
+              ...(segmentIds ? { id: { in: [...segmentIds.keys()] } } : {}),
               erasedAt: null,
               OR: [
                 { name: { contains: q, mode: 'insensitive' } },
                 ...(digits.length >= 3 ? [{ phone: { contains: digits } }] : []),
               ],
             }
-          : { erasedAt: null },
+          : { erasedAt: null, ...(segmentIds ? { id: { in: [...segmentIds.keys()] } } : {}) },
         orderBy: { updatedAt: 'desc' },
-        take: 50,
+        take: segmentIds ? 200 : 50,
         select: {
           id: true,
           name: true,
@@ -198,8 +216,59 @@ export class PanelService {
             select: { stage: { select: { id: true, name: true } } },
           },
         },
-      }),
-    );
+      });
+      if (!segmentIds) return list;
+      // Na visão, quem mais se encaixa vem primeiro (mais atendimentos, mais tempo sumida, mais faltas).
+      return list
+        .map((c) => ({ ...c, stats: segmentIds.get(c.id)! }))
+        .sort((a, b) => b.stats.score - a.stats.score);
+    });
+  }
+
+  /** Clientes de uma visão, com os números que explicam por que estão nela. */
+  private async segmentStats(tx: TenantTx, segment: ContactSegment, now: Date) {
+    const since = new Date(now.getTime() - SEGMENT_RULES.windowDays * DAY_MS);
+    const out = new Map<
+      string,
+      { score: number; doneCount?: number; noShowCount?: number; lastDoneAt?: Date }
+    >();
+    if (segment === 'frequent' || segment === 'no_show') {
+      const status = segment === 'frequent' ? 'DONE' : 'NO_SHOW';
+      const min = segment === 'frequent' ? SEGMENT_RULES.frequentMinDone : SEGMENT_RULES.noShowMin;
+      const groups = await tx.appointment.groupBy({
+        by: ['contactId'],
+        where: { status, startsAt: { gte: since, lte: now } },
+        _count: { _all: true },
+      });
+      for (const g of groups) {
+        if (g._count._all < min) continue;
+        out.set(g.contactId, {
+          score: g._count._all,
+          ...(segment === 'frequent'
+            ? { doneCount: g._count._all }
+            : { noShowCount: g._count._all }),
+        });
+      }
+      return out;
+    }
+    const cutoff = new Date(now.getTime() - SEGMENT_RULES.missingAfterDays * DAY_MS);
+    const last = await tx.appointment.groupBy({
+      by: ['contactId'],
+      where: { status: 'DONE', startsAt: { lte: now } },
+      _max: { startsAt: true },
+    });
+    const upcoming = await tx.appointment.findMany({
+      where: { status: { in: ['SCHEDULED', 'CONFIRMED'] }, startsAt: { gt: now } },
+      select: { contactId: true },
+      distinct: ['contactId'],
+    });
+    const booked = new Set(upcoming.map((u) => u.contactId));
+    for (const g of last) {
+      const lastDoneAt = g._max.startsAt;
+      if (!lastDoneAt || lastDoneAt >= cutoff || booked.has(g.contactId)) continue;
+      out.set(g.contactId, { score: now.getTime() - lastDoneAt.getTime(), lastDoneAt });
+    }
+    return out;
   }
 
   async createContact(

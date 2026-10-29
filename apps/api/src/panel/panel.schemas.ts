@@ -31,7 +31,13 @@ export const statusBody = z.object({
 
 export const rescheduleBody = z.object({ startsAt: z.iso.datetime() });
 
-export const contactsQuery = z.object({ q: z.string().trim().max(100).optional() });
+export const CONTACT_SEGMENTS = ['frequent', 'missing', 'no_show'] as const;
+export type ContactSegment = (typeof CONTACT_SEGMENTS)[number];
+
+export const contactsQuery = z.object({
+  q: z.string().trim().max(100).optional(),
+  segment: z.enum(CONTACT_SEGMENTS).optional(),
+});
 
 export const createContactBody = z.object({
   name: z.string().trim().min(1).max(120),

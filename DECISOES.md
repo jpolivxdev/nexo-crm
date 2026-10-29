@@ -222,3 +222,11 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Guardadas como JSON no funil (`pipelines.rules`)**, validadas ao ler e ao salvar (Zod), em vez de tabela nova: são no máximo 10 linhas, sempre lidas junto com o funil, e o RLS da tabela de funis já cobre. Regra que aponta para etapa que não existe mais é ignorada e vale a padrão.
 - **Lógica no `@nexo/core` (`classify` com `rules`)**, com teste; a API só lê e grava.
 
+## E17: clientes frequentes, sumidas e faltosas (29/10/2026)
+
+- **Onde fica:** na tela Clientes, botões "Todas · Frequentes · Sumidas · Faltosas". Cada visão diz a regra em uma frase e cada cliente mostra o número que a colocou ali ("5 vezes em 6 meses", "Última vez há 62 dias", "Faltou 2 vezes").
+- **Regras fixas na Fase 1 (`SEGMENT_RULES` na API):** frequente = 3+ atendimentos realizados em 180 dias; sumida = já foi atendida, o último atendimento foi há mais de 45 dias e não tem horário marcado; faltosa = 2+ faltas em 180 dias. Os 45 dias pensam na manutenção de cílios (2 a 4 semanas, ver CLAUDE.md, seção 2): passou disso, vale chamar. Ajustar com a piloto; deixar a dona mudar fica para a Fase 2, junto com os retornos (M5).
+- **Calculado na hora** (agrupando os horários com RLS), sem tabela nova nem tarefa agendada. Com poucos milhares de horários por negócio, é rápido; se crescer, vira visão materializada.
+- **Ordem:** quem mais se encaixa primeiro (mais atendimentos, mais tempo sumida, mais faltas). Busca por nome funciona dentro da visão.
+- Cliente excluída (E13) não aparece em nenhuma visão.
+
