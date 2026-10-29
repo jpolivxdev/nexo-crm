@@ -197,3 +197,12 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Duas confirmações:** na tela, um segundo passo explica o que some e diz que não dá para desfazer; na API, o corpo precisa de `confirm: true`. As duas ações (baixar e excluir) entram na auditoria só com o ID da cliente e as contagens.
 - **Backups:** quando a hospedagem existir, a exclusão chega aos backups só quando eles vencerem. Prazo [CONFIRMAR COM ADVOGADO/CONTADOR] (já está na lista para o advogado, item 6).
 
+## E14: folgas e bloqueios (29/10/2026)
+
+- **Onde fica:** botão "Folgas" na Agenda (e em Conta). Uma tela com "Marcar folga ou bloqueio" e a lista dos próximos, cada um com "Remover".
+- **Dia todo ou algumas horas.** Dia todo pode ser um período (férias); com horas, é um dia só, para a tela continuar simples. Guardado em UTC a partir do fuso do negócio.
+- **Sem profissional = o negócio inteiro fecha.** O seletor "Quem" só aparece quando houver mais de uma profissional.
+- **Horários já marcados no período não mudam sozinhos.** Cancelar a cliente sem avisar seria pior: a tela lista quem está marcado, com link para a ficha, para a dona remarcar ou cancelar.
+- **Remover apaga de verdade** o bloqueio: não é dado pessoal e não entra em relatório. O motivo é opcional, curto (80 caracteres) e só a dona vê; a tela sugere exemplos que não são de saúde.
+- **Limites:** no máximo um ano por bloqueio; período que já passou é recusado.
+

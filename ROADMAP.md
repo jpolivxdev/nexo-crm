@@ -21,11 +21,12 @@ Módulos: M1 completo, M2 básico, M3 (funil padrão + modelo por nicho + classi
 | E10 | Lembretes 24h e 1h com confirmar/cancelar | Testes com relógio simulado | Feita (PR #12, juntado em 29/10/2026; no WhatsApp real depende das mensagens de modelo da E0) |
 | E11 | Relatório mínimo, deploy, relatório de custo e onboarding | Definição de pronto da Fase 1 | Feita (PR #13, juntado em 29/10/2026; falta escolher a hospedagem e medir o onboarding com a piloto) |
 | E12 | Página de entrada, criar conta com confirmação de e-mail, esqueci a senha | Fluxo completo testado (API e telas) | Feita (PR #13, juntado em 29/10/2026; envio de e-mail em produção depende do provedor) |
-| E13 | Direitos da cliente (LGPD): baixar e excluir os dados pela ficha | Testes de API (exportar, excluir, isolamento, CSRF) e de tela | Em revisão (PR da E13) |
+| E13 | Direitos da cliente (LGPD): baixar e excluir os dados pela ficha | Testes de API (exportar, excluir, isolamento, CSRF) e de tela | Em revisão (PR #15) |
+| E14 | Folgas e bloqueios pela tela (Agenda → Folgas) | Horários somem e voltam; aviso de horários já marcados | Em revisão (PR #15) |
 
 Falta na Fase 1 (conferência do PROMPT 1 em 27/10/2026, previsão ~19 h de código):
 1. ~~Exportar e excluir dados de uma cliente (LGPD), obrigatório antes do piloto.~~ Feito na E13 (29/10/2026).
-2. Tela de folgas e bloqueios (a agenda já respeita).
+2. ~~Tela de folgas e bloqueios (a agenda já respeita).~~ Feito na E14 (29/10/2026).
 3. Tela para a dona editar as mensagens do robô (o robô já aceita).
 4. Regras de etapa criadas pela dona ("se X, colocar em Y").
 5. Visão de clientes frequentes, sumidas e faltosas.

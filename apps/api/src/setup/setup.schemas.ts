@@ -67,3 +67,24 @@ export const faqBody = z.object({
     )
     .max(9),
 });
+
+const localDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Data inválida.');
+const clock = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Hora no formato 09:30.')
+  .transform((v) => Number(v.slice(0, 2)) * 60 + Number(v.slice(3)));
+
+/** Folga ou bloqueio. Sem horas = dia todo. Sem profissional = o negócio inteiro fecha. */
+export const timeOffBody = z
+  .object({
+    startDate: localDate,
+    endDate: localDate,
+    startTime: clock.nullable().optional(),
+    endTime: clock.nullable().optional(),
+    professionalId: z.uuid().nullable().optional(),
+    reason: z.string().trim().max(80).nullable().optional(),
+  })
+  .refine((v) => (v.startTime == null) === (v.endTime == null), {
+    message: 'Informe as duas horas, ou marque o dia todo.',
+  })
+  .refine((v) => v.endDate >= v.startDate, { message: 'O fim precisa ser depois do início.' });
