@@ -110,10 +110,28 @@ export interface ContactFile extends ContactRef {
   tasks: { id: string; title: string; dueAt: string | null }[];
 }
 
+export interface PipelineDeal {
+  id: string;
+  /** Desde quando está nesta etapa. */
+  since: string;
+  /** Próximo horário marcado da cliente, se tiver. */
+  nextAt: string | null;
+  contact: ContactRef;
+}
+
+export interface PipelineStage {
+  id: string;
+  name: string;
+  key: string | null;
+  kind: 'OPEN' | 'WON' | 'LOST';
+  deals: PipelineDeal[];
+}
+
 export interface Pipeline {
   id: string;
   name: string;
-  stages: { id: string; name: string; deals: { id: string; contact: ContactRef }[] }[];
+  timeZone: string;
+  stages: PipelineStage[];
 }
 
 export interface SetupService {

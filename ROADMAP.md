@@ -28,7 +28,7 @@ Módulos: M1 completo, M2 básico, M3 (funil padrão + modelo por nicho + classi
 | E17 | Visões de clientes: frequentes, sumidas e faltosas (Clientes) | Regras testadas na API, isolamento e tela | Feita (PR #15, juntado em 29/10/2026) |
 | E16 | Regras de etapa da dona (Etapas → Regras automáticas) | Regras no @nexo/core com teste; faltou → "Não seguiu" testado ponta a ponta | Feita (PR #15, juntado em 29/10/2026) |
 | E19 | Várias profissionais (Conta → Equipe) e acesso de cada uma só à própria agenda | Testes de API (cópia de serviços e horários, só a própria agenda, tirar acesso) e de tela | Feita (PR #16, juntado em 29/10/2026) |
-| E20 | Avisos para a dona (tela, notificação do aparelho e e-mail opcional) e prazo do "oferecer o próximo horário" (Conta → Avisos) | Testes de API (aviso só do que a cliente fez, e-mail sem dado da cliente, prazo e fechamento sozinho) e de tela | Em revisão (PR #17) |
+| E20 | Avisos para a dona (tela, notificação do aparelho e e-mail opcional) e prazo do "oferecer o próximo horário" (Conta → Avisos) | Testes de API (aviso só do que a cliente fez, e-mail sem dado da cliente, prazo e fechamento sozinho) e de tela | Feita (PR #17, juntado em 29/10/2026) |
 
 Falta na Fase 1 (conferência do PROMPT 1 em 27/10/2026, previsão ~19 h de código):
 1. ~~Exportar e excluir dados de uma cliente (LGPD), obrigatório antes do piloto.~~ Feito na E13 (29/10/2026).
