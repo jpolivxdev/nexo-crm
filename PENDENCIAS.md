@@ -7,9 +7,10 @@ Lista do que depende dos sócios. Atualizada em 29/10/2026. Quando um item for r
 Respostas recebidas em 29/10/2026 (pelo Jandoza e pelo JP) estão em `CLAUDE.md`, seção 2. Ainda falta:
 - O robô pode marcar uma cliente logo depois da outra, sem intervalo entre os atendimentos? (hoje marca seguido)
 - OK dela no rascunho do recado antes do horário (em `CLAUDE.md`, seção 2).
-- Catálogo (PDF de 29/10): confirmar os preços da tabela em `CLAUDE.md`, a duração de cada serviço além dos cílios, se o robô agenda todos os serviços ou só cílios, e se manutenção é 15 a 20 dias (PDF) ou 21 a 25 (resposta dela).
-- Nome no robô: "Falar com a Lígia" ou "Falar com a Lika" (a marca é "by Lika")?
-- Quem pergunta de curso: o robô passa o número do curso ou passa para ela?
+- Botão do robô: ela quer "Falar com Instituto Star", mas o WhatsApp só aceita 20 letras no botão (esse tem 24). Proposta: botão "Falar com a equipe" e, nas mensagens, "a equipe do Instituto Star" (ex.: "Avisei a equipe do Instituto Star"). Confirmar com ela.
+- Duração que falta: limpeza de pele, dermaplan, drenagem, spa das sobrancelhas, lash lifting e as manutenções de cílios (levam 1h30 também?).
+- Quem faz drenagem e limpeza de pele: nome, dias e horários dessa pessoa, e se ela precisa de acesso ao painel.
+- Mostrar a lista do robô por categoria (Cílios, Sobrancelhas, Pele e corpo) ou tudo numa lista só? Ainda sem resposta.
 - Fotos do PDF: o produto não usa fotos na Fase 1. Para usar as fotos do espaço depois (link público na Fase 2 ou divulgação da nexo), precisa do OK dela por escrito. As fotos de rosto parecem de banco de imagem: não usar sem saber a licença.
 - Ela volta na semana de 02/11/2026. Acertar o sistema com ela e depois marcar a data do piloto.
 - Qual é o aplicativo de agenda que ela usa hoje, e se quer trazer os horários já marcados de lá.
