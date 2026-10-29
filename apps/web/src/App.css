@@ -2511,3 +2511,16 @@ input[type='time'] {
   border: 1px solid var(--cor-contorno);
   color: var(--cor-destaque-texto);
 }
+
+/* Equipe */
+.stack-tight {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tags {
+  flex-wrap: wrap;
+  gap: 6px;
+}

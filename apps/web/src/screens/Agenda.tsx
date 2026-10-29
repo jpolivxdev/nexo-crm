@@ -15,7 +15,7 @@ const VIEWS: { id: View; label: string; days: number }[] = [
   { id: 'list', label: 'Lista', days: 30 },
 ];
 
-export function Agenda({ go }: { go: (to: string) => void }) {
+export function Agenda({ go, staff = false }: { go: (to: string) => void; staff?: boolean }) {
   const [view, setView] = useState<View>('day');
   const [from, setFrom] = useState(() => localDate(new Date(), BUSINESS_TZ_FALLBACK));
   const [booking, setBooking] = useState(false);
@@ -56,10 +56,12 @@ export function Agenda({ go }: { go: (to: string) => void }) {
       <header className="page-header row row--between">
         <h1>Agenda</h1>
         <div className="row page-header__actions">
-          <button type="button" className="button button--ghost" onClick={() => go('/folgas')}>
-            Folgas
-          </button>
-          {!booking && (
+          {!staff && (
+            <button type="button" className="button button--ghost" onClick={() => go('/folgas')}>
+              Folgas
+            </button>
+          )}
+          {!booking && !staff && (
             <button type="button" className="button" onClick={() => setBooking(true)}>
               Marcar horário
             </button>
@@ -141,7 +143,7 @@ export function Agenda({ go }: { go: (to: string) => void }) {
                     appointment={a}
                     timeZone={tz}
                     busy={busy}
-                    onOpenContact={(id) => go(`/clientes/${id}`)}
+                    onOpenContact={staff ? undefined : (id) => go(`/clientes/${id}`)}
                     onStatus={(id, status) => void setStatus(id, status)}
                   />
                 ))

@@ -93,3 +93,31 @@ export const timeOffBody = z
 export const messagesBody = z.object({
   messages: z.record(z.string().max(40), z.string().max(2000)),
 });
+
+const windowSchema = z
+  .object({
+    weekday: z.number().int().min(0).max(6),
+    startMinute: z
+      .number()
+      .int()
+      .min(0)
+      .max(24 * 60),
+    endMinute: z
+      .number()
+      .int()
+      .min(0)
+      .max(24 * 60),
+  })
+  .refine((w) => w.endMinute > w.startMinute, 'O fim precisa ser depois do início.');
+
+/** Equipe: nova profissional (os serviços e horários começam iguais aos da dona). */
+export const newProfessionalBody = z.object({ name: z.string().trim().min(2).max(60) });
+
+export const professionalBody = z.object({
+  name: z.string().trim().min(2).max(60),
+  active: z.boolean(),
+  serviceIds: z.array(z.uuid()).max(30),
+  windows: z.array(windowSchema).max(7 * 6),
+});
+
+export const staffLoginBody = z.object({ email: z.email().max(200) });

@@ -20,7 +20,7 @@ import {
 import { interval, map, merge, Observable } from 'rxjs';
 import type { z } from 'zod';
 import type { AuthedRequest } from '../auth/auth.types.js';
-import { SessionGuard, TenantGuard } from '../auth/session.guard.js';
+import { AllowStaff, SessionGuard, TenantGuard } from '../auth/session.guard.js';
 import { ConversationService } from '../conversation/conversation.service.js';
 import { RealtimeBus, type RealtimeNotice } from '../realtime/realtime.bus.js';
 import { SchedulingService } from '../scheduling/scheduling.service.js';
@@ -80,9 +80,16 @@ export class PanelController {
     return { userId: req.auth!.userId, ip: req.ip ?? null };
   }
 
+  /** Profissional da equipe logada, ou null para a dona (e o admin numa entrada controlada). */
+  private async staffScope(req: AuthedRequest): Promise<string | null> {
+    if (req.auth!.role !== 'STAFF') return null;
+    return this.panel.staffProfessionalId(this.tenant(req), req.auth!.userId);
+  }
+
   @Get('today')
-  today(@Req() req: AuthedRequest) {
-    return this.panel.today(this.tenant(req));
+  @AllowStaff()
+  async today(@Req() req: AuthedRequest) {
+    return this.panel.today(this.tenant(req), new Date(), await this.staffScope(req));
   }
 
   @Get('report')
@@ -92,9 +99,10 @@ export class PanelController {
   }
 
   @Get('agenda')
-  agenda(@Req() req: AuthedRequest, @Query() query: unknown) {
+  @AllowStaff()
+  async agenda(@Req() req: AuthedRequest, @Query() query: unknown) {
     const { from, days } = parse(agendaQuery, query);
-    return this.panel.agenda(this.tenant(req), from, days);
+    return this.panel.agenda(this.tenant(req), from, days, await this.staffScope(req));
   }
 
   @Get('services')
@@ -123,8 +131,11 @@ export class PanelController {
 
   @Post('appointments/:id/status')
   @HttpCode(200)
-  setStatus(@Req() req: AuthedRequest, @Param('id', uuid) id: string, @Body() body: unknown) {
+  @AllowStaff()
+  async setStatus(@Req() req: AuthedRequest, @Param('id', uuid) id: string, @Body() body: unknown) {
     const { status } = parse(statusBody, body);
+    const professionalId = await this.staffScope(req);
+    if (professionalId) await this.panel.assertOwnAppointment(this.tenant(req), id, professionalId);
     return this.scheduling.setStatus(this.tenant(req), id, status, this.actor(req));
   }
 
@@ -220,6 +231,7 @@ export class PanelController {
 
   /** Avisos em tempo real (Server-Sent Events). Só tipo e id; o painel busca o resto. */
   @Sse('events')
+  @AllowStaff()
   events(@Req() req: AuthedRequest): Observable<MessageEvent> {
     const tenantId = this.tenant(req);
     const notices = new Observable<RealtimeNotice>((subscriber) =>

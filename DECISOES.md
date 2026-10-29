@@ -237,3 +237,12 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Por que "a fazer" e não mensagem automática:** mandar mensagem sozinho para oferecer horário, fora da conversa, é marketing e no WhatsApp oficial exige modelo aprovado e cuidado com opt-in. Na Fase 1 a dona decide quando e como chamar (princípio 6, humano no controle). Mensagem automática de retorno entra com o M5 (Fase 2).
 - **Sempre ligado na Fase 1.** Ligar e desligar, e o prazo (ex.: oferecer manutenção em 3 semanas), ficam para quando a piloto disser o que faz sentido.
 
+## E19: várias profissionais e acesso da equipe (29/10/2026)
+
+- **Onde:** Conta → Equipe. A primeira profissional é a agenda da dona (criada no assistente) e não pode ser desativada por aqui. Uma profissional nova começa com os serviços e horários da dona; depois a dona ajusta nome, serviços, horários e se ela está atendendo.
+- **Robô:** com mais de uma profissional ativa, o passo "profissional" da máquina de estados (que já existia) entra sozinho e só oferece os horários livres de cada uma.
+- **Acesso:** a dona cria o acesso pelo e-mail da profissional; o sistema gera uma senha provisória mostrada uma única vez, e a troca é obrigatória no primeiro acesso. Não mandamos e-mail com senha (o provedor de e-mail ainda não existe, e senha por e-mail é pior). A dona repassa por um canal dela.
+- **O que a profissional vê:** só Hoje e Agenda, filtrados para os horários dela, e pode marcar realizado ou faltou só nos horários dela. Não vê clientes, conversas, "a fazer", etapas, resultados nem configurações. A ficha da cliente fica fechada para ela na Fase 1; abrir a ficha das clientes que ela atende fica para quando a piloto tiver equipe e pedir (seção A3 do SEGURANCA.md permite).
+- **Tirar o acesso:** apaga o login e derruba as sessões na hora; a agenda e o histórico dela continuam.
+- **Suposição:** a piloto hoje trabalha sozinha (CLAUDE.md, seção 2). A tela existe para as amigas donas de estabelecimento com equipe, sem atrapalhar quem é sozinha.
+

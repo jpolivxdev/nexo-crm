@@ -5,8 +5,10 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  SetMetadata,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { AuthService } from './auth.service.js';
 import type { AuthedRequest } from './auth.types.js';
 import { readCookie, SESSION_COOKIE } from './cookies.js';
@@ -38,17 +40,31 @@ export class SessionGuard implements CanActivate {
   }
 }
 
+const ALLOW_STAFF = 'nexo:allow-staff';
 /**
- * Painel do negócio: dono e equipe, sempre presos ao próprio negócio; admin nexo só durante
+ * Libera a rota para a profissional da equipe (STAFF). Sem isto, só a dona (e o admin nexo
+ * numa entrada controlada) passa: a equipe vê só a própria agenda (CLAUDE.md, seção 8.1).
+ */
+export const AllowStaff = () => SetMetadata(ALLOW_STAFF, true);
+
+/**
+ * Painel do negócio: dona e equipe, sempre presas ao próprio negócio; admin nexo só durante
  * uma entrada controlada (motivo + 2FA + prazo). Senha provisória precisa ser trocada antes.
+ * A equipe só entra nas rotas marcadas com @AllowStaff().
  */
 @Injectable()
 export class TenantGuard implements CanActivate {
+  constructor(@Inject(Reflector) private readonly reflector: Reflector) {}
+
   canActivate(context: ExecutionContext): boolean {
     const auth = context.switchToHttp().getRequest<AuthedRequest>().auth;
     if (auth?.mustChangePassword)
       throw new ForbiddenException('Troque a senha provisória primeiro.');
-    const member = auth?.role === 'OWNER' || auth?.role === 'STAFF';
+    const staffAllowed = this.reflector.getAllAndOverride<boolean>(ALLOW_STAFF, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    const member = auth?.role === 'OWNER' || (auth?.role === 'STAFF' && staffAllowed === true);
     const admin = auth?.role === 'NEXO_ADMIN' && auth.acting !== null;
     if (!auth?.tenantId || !(member || admin)) throw new ForbiddenException();
     return true;

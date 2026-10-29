@@ -33,6 +33,7 @@ import { Setup } from './screens/Setup';
 import { TimeOff } from './screens/TimeOff';
 import { BotMessages } from './screens/BotMessages';
 import { StageRules } from './screens/StageRules';
+import { Team } from './screens/Team';
 import { Today } from './screens/Today';
 
 const NAV = [
@@ -139,14 +140,19 @@ function Panel({ me }: { me: Me }) {
     await refresh();
   }
 
-  const contactMatch = /^\/clientes\/([0-9a-f-]{36})$/.exec(route);
-  const section = '/' + (route.split('/')[1] ?? 'hoje');
+  // Profissional da equipe: só a própria agenda (o servidor também barra o resto).
+  const staff = me.role === 'STAFF';
+  const nav = staff ? NAV.filter((n) => n.to === '/hoje' || n.to === '/agenda') : NAV;
+  const rawSection = '/' + (route.split('/')[1] ?? 'hoje');
+  const section =
+    staff && !['/hoje', '/agenda', '/conta'].includes(rawSection) ? '/hoje' : rawSection;
+  const contactMatch = staff ? null : /^\/clientes\/([0-9a-f-]{36})$/.exec(route);
 
   return (
     <div className="app app--with-nav">
       <Sidebar
         businessName={me.businessName ?? 'nexo'}
-        items={NAV}
+        items={nav}
         section={section}
         onLogout={() => void logout()}
       />
@@ -185,7 +191,7 @@ function Panel({ me }: { me: Me }) {
         </div>
       </header>
       <main>
-        {me.onboardingPending && section !== '/configurar' && (
+        {me.onboardingPending && !staff && section !== '/configurar' && (
           <section className="card card--highlight" aria-labelledby="configurar-aviso">
             <h2 id="configurar-aviso">Falta configurar o negócio</h2>
             <p className="muted">
@@ -203,6 +209,8 @@ function Panel({ me }: { me: Me }) {
         )}
         {contactMatch ? (
           <ContactFile id={contactMatch[1]!} go={go} />
+        ) : section === '/equipe' ? (
+          <Team go={go} />
         ) : section === '/regras' ? (
           <StageRules go={go} />
         ) : section === '/mensagens' ? (
@@ -214,9 +222,9 @@ function Panel({ me }: { me: Me }) {
         ) : section === '/assinatura' ? (
           <Plans go={go} />
         ) : section === '/conta' ? (
-          <Account go={go} acting={Boolean(me.acting)} />
+          <Account go={go} acting={Boolean(me.acting)} staff={staff} />
         ) : section === '/agenda' ? (
-          <Agenda go={go} />
+          <Agenda go={go} staff={staff} />
         ) : section === '/clientes' ? (
           <Contacts go={go} />
         ) : section === '/etapas' ? (
@@ -224,12 +232,12 @@ function Panel({ me }: { me: Me }) {
         ) : section === '/resultados' ? (
           <Report />
         ) : (
-          <Today go={go} />
+          <Today go={go} staff={staff} />
         )}
       </main>
       <MadeByNexo />
       <nav className="tabbar" aria-label="Seções do painel">
-        {NAV.map(({ to, label, Icon }) => (
+        {nav.map(({ to, label, Icon }) => (
           <a
             key={to}
             href={`#${to}`}
@@ -277,26 +285,39 @@ function ThemePicker() {
   );
 }
 
-function Account({ go, acting }: { go: (to: string) => void; acting: boolean }) {
+function Account({
+  go,
+  acting,
+  staff,
+}: {
+  go: (to: string) => void;
+  acting: boolean;
+  staff: boolean;
+}) {
   return (
     <>
       <header className="page-header">
         <h1>Conta</h1>
       </header>
-      <section className="section stack">
-        <button type="button" className="button button--ghost" onClick={() => go('/configurar')}>
-          Configurar o negócio (serviços, horários, dúvidas)
-        </button>
-        <button type="button" className="button button--ghost" onClick={() => go('/mensagens')}>
-          Mensagens do robô
-        </button>
-        <button type="button" className="button button--ghost" onClick={() => go('/folgas')}>
-          Folgas e bloqueios
-        </button>
-        <button type="button" className="button button--ghost" onClick={() => go('/assinatura')}>
-          Plano e assinatura
-        </button>
-      </section>
+      {!staff && (
+        <section className="section stack">
+          <button type="button" className="button button--ghost" onClick={() => go('/configurar')}>
+            Configurar o negócio (serviços, horários, dúvidas)
+          </button>
+          <button type="button" className="button button--ghost" onClick={() => go('/equipe')}>
+            Equipe (profissionais e acessos)
+          </button>
+          <button type="button" className="button button--ghost" onClick={() => go('/mensagens')}>
+            Mensagens do robô
+          </button>
+          <button type="button" className="button button--ghost" onClick={() => go('/folgas')}>
+            Folgas e bloqueios
+          </button>
+          <button type="button" className="button button--ghost" onClick={() => go('/assinatura')}>
+            Plano e assinatura
+          </button>
+        </section>
+      )}
       <ThemePicker />
       {!acting && (
         <section className="card">

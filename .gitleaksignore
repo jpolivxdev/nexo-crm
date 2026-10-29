@@ -13,3 +13,5 @@ e730dd8f5deaee2ca5fbcd9025647f680f79fe30:apps/web/src/E12.test.tsx:generic-api-k
 e730dd8f5deaee2ca5fbcd9025647f680f79fe30:apps/web/src/E12.test.tsx:generic-api-key:99
 e730dd8f5deaee2ca5fbcd9025647f680f79fe30:apps/web/src/E12.test.tsx:generic-api-key:115
 e730dd8f5deaee2ca5fbcd9025647f680f79fe30:apps/web/src/E12.test.tsx:generic-api-key:130
+# Senha fictícia de teste da E19 (team.test.ts), não é segredo
+d5919857fd1b8ba9ed2d9a2075264430ca4c7d1b:apps/api/test/team.test.ts:generic-api-key:55

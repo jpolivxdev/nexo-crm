@@ -16,10 +16,14 @@ import { activityText, contactName, dateTime, localDateLabel } from '../lib/form
 import { useLoad, useRealtime } from '../lib/hooks';
 import type { ActivityItem, Report, Today as TodayData } from '../lib/types';
 
-export function Today({ go }: { go: (to: string) => void }) {
+/** Hoje. Para a profissional da equipe, só os horários dela (sem conversas, "a fazer" e gráfico). */
+export function Today({ go, staff = false }: { go: (to: string) => void; staff?: boolean }) {
   const { data, error, loading, reload } = useLoad(() => api<TodayData>('/panel/today'), 'today');
   // O gráfico vem do relatório de 30 dias. Se falhar, o resto do dia continua aparecendo.
-  const trend = useLoad(() => api<Report>('/panel/report?days=30'), 'today-trend');
+  const trend = useLoad(
+    () => (staff ? Promise.resolve(null) : api<Report>('/panel/report?days=30')),
+    `today-trend:${staff}`,
+  );
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   useRealtime((n) => {
@@ -56,13 +60,17 @@ export function Today({ go }: { go: (to: string) => void }) {
       </header>
       <dl className="kpis" aria-label="Resumo do dia">
         <Kpi label="Horários" value={active.length} Icon={CalendarDays} />
-        <Kpi
-          label="Esperando você"
-          value={data.handoffs.length}
-          Icon={MessageCircle}
-          attention={data.handoffs.length > 0}
-        />
-        <Kpi label="A fazer" value={data.tasks.length} Icon={ListTodo} />
+        {!staff && (
+          <>
+            <Kpi
+              label="Esperando você"
+              value={data.handoffs.length}
+              Icon={MessageCircle}
+              attention={data.handoffs.length > 0}
+            />
+            <Kpi label="A fazer" value={data.tasks.length} Icon={ListTodo} />
+          </>
+        )}
         <Kpi label="Realizados" value={done} Icon={CircleCheck} />
       </dl>
       {actionError && <Banner>{actionError}</Banner>}
@@ -133,7 +141,7 @@ export function Today({ go }: { go: (to: string) => void }) {
                   appointment={a}
                   timeZone={tz}
                   busy={busy}
-                  onOpenContact={(id) => go(`/clientes/${id}`)}
+                  onOpenContact={staff ? undefined : (id) => go(`/clientes/${id}`)}
                   onStatus={(id, status) =>
                     act(() =>
                       api(`/panel/appointments/${id}/status`, {
@@ -148,49 +156,65 @@ export function Today({ go }: { go: (to: string) => void }) {
           </section>
         </div>
 
-        <div className="dash__side">
-          <section aria-labelledby="afazer" className="section">
-            <h2 id="afazer">A fazer</h2>
-            {data.tasks.length === 0 ? (
-              <Empty title="Nada pendente" icon={<ListTodo size={24} />}>
-                Quando uma cliente pedir para falar com você, o lembrete aparece aqui.
-              </Empty>
-            ) : (
-              <ul className="list">
-                {data.tasks.map((t) => (
-                  <li key={t.id} className="card row row--between">
-                    <span>{t.title}</span>
-                    <button
-                      type="button"
-                      className="button button--small button--ghost"
-                      disabled={busy}
-                      onClick={() =>
-                        act(() => api(`/panel/tasks/${t.id}/done`, { method: 'POST' }))
-                      }
-                    >
-                      Feito
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+        {!staff && (
+          <div className="dash__side">
+            <section aria-labelledby="afazer" className="section">
+              <h2 id="afazer">A fazer</h2>
+              {data.tasks.length === 0 ? (
+                <Empty title="Nada pendente" icon={<ListTodo size={24} />}>
+                  Quando uma cliente pedir para falar com você, o lembrete aparece aqui.
+                </Empty>
+              ) : (
+                <ul className="list">
+                  {data.tasks.map((t) => (
+                    <li key={t.id} className="card row row--between">
+                      <span>
+                        {t.title}
+                        {t.contact && (
+                          <>
+                            {' · '}
+                            <button
+                              type="button"
+                              className="link"
+                              onClick={() => go(`/clientes/${t.contact!.id}`)}
+                            >
+                              {t.contact.name?.trim() || 'Ver cliente'}
+                            </button>
+                          </>
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        className="button button--small button--ghost"
+                        disabled={busy}
+                        onClick={() =>
+                          act(() => api(`/panel/tasks/${t.id}/done`, { method: 'POST' }))
+                        }
+                      >
+                        Feito
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
 
-          <section aria-labelledby="aconteceu" className="section">
-            <h2 id="aconteceu">O que aconteceu</h2>
-            {data.activity.length === 0 ? (
-              <Empty title="Nada por aqui ainda" icon={<History size={24} />}>
-                Cada horário marcado, remarcado ou cancelado pelo WhatsApp aparece aqui.
-              </Empty>
-            ) : (
-              <ol className="activity card">
-                {data.activity.map((item) => (
-                  <Activity key={item.id} item={item} timeZone={tz} go={go} />
-                ))}
-              </ol>
-            )}
-          </section>
-        </div>
+            <section aria-labelledby="aconteceu" className="section">
+              <h2 id="aconteceu">O que aconteceu</h2>
+              {data.activity.length === 0 ? (
+                <Empty title="Nada por aqui ainda" icon={<History size={24} />}>
+                  Cada horário marcado, remarcado ou cancelado pelo WhatsApp aparece aqui.
+                </Empty>
+              ) : (
+                <ol className="activity card">
+                  {data.activity.map((item) => (
+                    <Activity key={item.id} item={item} timeZone={tz} go={go} />
+                  ))}
+                </ol>
+              )}
+            </section>
+          </div>
+        )}
       </div>
     </>
   );
