@@ -39,7 +39,7 @@ Falta na Fase 1 (conferência do PROMPT 1 em 27/10/2026, previsão ~19 h de cód
 6. ~~Gatilho de fechamento por regra (realizado → "a fazer" de oferecer o próximo horário).~~ Feito na E18 (29/10/2026).
 7. ~~Mais de uma profissional no assistente e login da profissional.~~ Feito na E19 (29/10/2026), em Conta → Equipe.
 8. ~~Aviso à dona de novo horário/cancelamento~~ Feito na E20 (29/10/2026). Lembrete por e-mail para a cliente final: em aberto (ela não tem e-mail no cadastro; ver PENDENCIAS.md).
-9. REFERENCIAS.md.
+9. ~~REFERENCIAS.md.~~ Feito em 29/10/2026. As ideias aproveitáveis (ação por etapa, selo "parado há X dias", origem do contato, selo de demonstração, pontuação explicada) ficam para as fases 2 e 3, só com pedido real.
 10. Checklist de segurança e backup com restauração (depende da hospedagem).
 11. Provedor de e-mail de produção (depende da escolha).
 12. WhatsApp real com a Cloud API e mensagens de modelo (depende da Meta).
