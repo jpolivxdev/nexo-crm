@@ -10,6 +10,8 @@ Lista do que depende dos sócios. Atualizada em 26/10/2026. Quando um item for r
 - Como ela agenda hoje (caderno, app, só WhatsApp) e quantas clientes atende por semana.
 - O que ela quer que o robô diga antes do horário (cuidados, chegar sem rímel, teste de sensibilidade). Texto dela, não nosso.
 - Se ela tem MEI ou CNPJ (vai pesar quando a Meta entrar).
+- Depois de quantos dias sem vir ela considera que a cliente sumiu (a tela usa 45 dias por enquanto).
+- Se quer o lembrete de oferecer o próximo horário depois do atendimento, e em quantos dias.
 - Data para começar o piloto.
 
 ## Dos sócios
