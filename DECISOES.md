@@ -257,3 +257,11 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Prazo do "oferecer o próximo horário":** configurável em Conta → Avisos (padrão: no mesmo dia; desligável). A piloto pediu 10 dias (29/10/2026). O "a fazer" só aparece em Hoje no dia do prazo e fecha sozinho se a cliente marcar antes.
 - **Uma conexão de tempo real só:** as telas dividem a mesma conexão com o servidor em vez de abrir uma cada.
 
+
+## Etapas em quadro (29/10/2026)
+
+- **Pedido do JP:** a tela de Etapas não agradava visualmente. Escolheu "quadro em colunas, mais limpo" entre duas opções.
+- **Como ficou:** todas as etapas numa linha, com a mesma altura. No computador dividem a largura; no celular deslizam para o lado, com atalhos por etapa no topo. "Não seguiu" fica no fim, separada e tracejada, como saída do funil.
+- **Cartão:** nome, há quanto tempo está na etapa e o próximo horário (se tiver). Um botão leva para a próxima etapa com um toque; o "⋯" abre as outras etapas. No computador também dá para arrastar. O seletor de formulário saiu.
+- **Coluna vazia:** diz quem vai aparecer ali, pela chave fixa da etapa (o nome a dona pode trocar).
+- Só tela e leitura: a API do quadro passou a mandar `key`, `kind`, `since` e `nextAt`. Nada mudou em regra nem no banco.

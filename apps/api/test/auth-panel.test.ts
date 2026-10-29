@@ -245,6 +245,12 @@ describe('login, sessão e painel', () => {
     const stages = pipeline.body.stages as { id: string; name: string; deals: { id: string }[] }[];
     const deal = stages.flatMap((s) => s.deals)[0]!;
     const lost = stages.find((s) => s.name === 'Não seguiu')!;
+    // Cartão do quadro: desde quando está na etapa e o próximo horário (ou nulo).
+    expect(pipeline.body.timeZone).toBe('America/Sao_Paulo');
+    expect(lost).toMatchObject({ key: 'lost', kind: 'LOST' });
+    expect(deal).toEqual(
+      expect.objectContaining({ since: expect.any(String), nextAt: expect.anything() }),
+    );
     const moved = await http()
       .post(`/panel/deals/${deal.id}/stage`)
       .set('cookie', cookie)

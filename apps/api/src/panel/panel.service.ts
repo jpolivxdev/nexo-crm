@@ -436,8 +436,13 @@ export class PanelService {
     return updated;
   }
 
-  pipeline(tenantId: string) {
+  /** Quadro de etapas. Cada cartão traz desde quando está na etapa e o próximo horário marcado. */
+  pipeline(tenantId: string, now = new Date()) {
     return this.db.withTenant(tenantId, async (tx) => {
+      const tenant = await tx.tenant.findUniqueOrThrow({
+        where: { id: tenantId },
+        select: { timezone: true },
+      });
       const pipeline = await tx.pipeline.findFirst({
         where: { isDefault: true },
         select: {
@@ -448,18 +453,51 @@ export class PanelService {
             select: {
               id: true,
               name: true,
+              key: true,
+              kind: true,
               deals: {
                 where: { closedAt: null },
                 orderBy: { updatedAt: 'desc' },
                 take: 100,
-                select: { id: true, contact: { select: { id: true, name: true, phone: true } } },
+                select: {
+                  id: true,
+                  updatedAt: true,
+                  contact: {
+                    select: {
+                      id: true,
+                      name: true,
+                      phone: true,
+                      appointments: {
+                        where: {
+                          status: { in: ['SCHEDULED', 'CONFIRMED'] },
+                          startsAt: { gt: now },
+                        },
+                        orderBy: { startsAt: 'asc' },
+                        take: 1,
+                        select: { startsAt: true },
+                      },
+                    },
+                  },
+                },
               },
             },
           },
         },
       });
       if (!pipeline) throw new NotFoundException('Nenhuma etapa configurada.');
-      return pipeline;
+      return {
+        ...pipeline,
+        timeZone: tenant.timezone,
+        stages: pipeline.stages.map((stage) => ({
+          ...stage,
+          deals: stage.deals.map(({ id, updatedAt, contact: { appointments, ...contact } }) => ({
+            id,
+            since: updatedAt,
+            nextAt: appointments[0]?.startsAt ?? null,
+            contact,
+          })),
+        })),
+      };
     });
   }
 

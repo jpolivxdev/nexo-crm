@@ -643,34 +643,110 @@ textarea:focus-visible {
   font-weight: 600;
 }
 
+/* Etapas: quadro em colunas, todas na mesma linha */
+.stage-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 12px 0 0;
+  padding-bottom: 4px;
+}
+
+.stage-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--cor-borda);
+  border-radius: 999px;
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.stage-chip--exit {
+  color: var(--cor-texto-suave);
+}
+
 .board {
-  display: grid;
+  display: flex;
+  align-items: stretch;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 12px;
+  min-height: 320px;
 }
 
 .column {
+  flex: 0 0 min(280px, 85%);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
   background: var(--cor-suave);
+  border: 2px solid transparent;
   border-radius: var(--raio);
   padding: 12px;
 }
 
-.column h2 {
+.column--exit {
+  background: transparent;
+  border: 2px dashed var(--cor-borda);
+}
+
+.column--drop {
+  border-color: var(--roxo-nexo);
+}
+
+.column__title {
   font-size: 1rem;
   margin: 0 0 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
-.column .empty {
-  background: transparent;
-  padding: 8px 4px;
-  border: none;
+.column--exit .column__title {
+  color: var(--cor-texto-suave);
 }
 
-.column .card:last-child {
-  margin-bottom: 0;
+.column__empty {
+  margin: 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.875rem;
+}
+
+/* No computador as colunas dividem a largura e os atalhos de etapa somem. */
+@media (min-width: 900px) {
+  .stage-chips {
+    display: none;
+  }
+
+  .column {
+    flex: 1 1 0;
+    min-width: 150px;
+  }
+}
+
+.column__cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.board__divider {
+  flex: 0 0 1px;
+  background: var(--cor-borda);
+  margin: 8px 4px;
 }
 
 .count {
@@ -683,9 +759,107 @@ textarea:focus-visible {
   padding: 2px 10px;
 }
 
-.move {
+.stage-chip .count {
+  background: var(--cor-suave);
+}
+
+.deal {
+  position: relative;
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  box-shadow: var(--sombra-1);
+  padding: 12px;
+  cursor: grab;
+}
+
+.deal__name {
   display: block;
-  margin-top: 8px;
+  width: 100%;
+  min-height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--cor-texto);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.deal__name:hover {
+  color: var(--roxo-nexo);
+}
+
+.deal__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 2px 0 10px;
+  font-size: 0.8125rem;
+  color: var(--cor-texto-suave);
+}
+
+.deal__meta span {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.deal__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.deal__advance {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  padding: 0 10px;
+}
+
+.deal__advance svg,
+.deal__meta svg {
+  flex: none;
+}
+
+.deal__more {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  color: var(--cor-texto-suave);
+}
+
+.deal__menu {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 4px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.deal__menu button {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--cor-texto);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.deal__menu button:hover,
+.deal__menu button:focus-visible {
+  background: var(--cor-suave);
 }
 
 /* Conversa */
@@ -1754,11 +1928,6 @@ textarea:focus-visible {
     max-width: 1100px;
   }
 
-  .board {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    align-items: start;
-  }
-
   .login__hero,
   .auth-card {
     max-width: 480px;
@@ -1866,19 +2035,6 @@ textarea:focus-visible {
 
 .card--attention .row > .button {
   flex: 1 1 auto;
-}
-
-.column .empty h3 {
-  font-family: var(--fonte-texto);
-  font-weight: 500;
-  font-size: 0.875rem;
-  color: var(--cor-texto-suave);
-}
-
-.column .card .link {
-  min-height: 32px;
-  color: var(--cor-texto);
-  text-decoration: none;
 }
 
 .row--fields > label,
