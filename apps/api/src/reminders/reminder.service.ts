@@ -1,5 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
+  hasFeature,
   type OutgoingMessage,
   reminderMessage,
   reminderStillUseful,
@@ -149,6 +150,11 @@ export class ReminderService {
       await cancel('too_late');
       return 'skipped';
     }
+    const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
+    if (!hasFeature(tenant.plan, tenant.features, 'reminders')) {
+      await cancel('not_in_plan');
+      return 'skipped';
+    }
     // "Parar" vale também para lembrete.
     if (appt.contact.optedOutAt) {
       await cancel('opted_out');
@@ -169,7 +175,6 @@ export class ReminderService {
     });
     const channel = (conversation?.channel ?? 'whatsapp') as ChannelName;
     const lastInbound = conversation?.messages[0]?.createdAt;
-    const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
     const summary = { id: appt.id, serviceName: appt.service.name, startsAt: appt.startsAt };
     // Fora da janela de 24 h o WhatsApp só aceita mensagem de modelo aprovada na Meta.
     const outsideWindow =

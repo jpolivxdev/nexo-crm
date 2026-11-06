@@ -1,3 +1,4 @@
+import { featuresOf } from '@nexo/core';
 import {
   BadRequestException,
   Body,
@@ -99,7 +100,7 @@ export class AuthController {
       ? await this.db.withTenant(auth.tenantId, (tx) =>
           tx.tenant.findUnique({
             where: { id: auth.tenantId! },
-            select: { name: true, onboardingCompletedAt: true },
+            select: { name: true, onboardingCompletedAt: true, plan: true, features: true },
           }),
         )
       : null;
@@ -110,6 +111,9 @@ export class AuthController {
       mustChangePassword: auth.mustChangePassword,
       businessName: tenant?.name ?? null,
       onboardingPending: tenant ? tenant.onboardingCompletedAt === null : false,
+      // Só para a tela esconder o que o plano não tem; quem trava de verdade é o PlanGuard.
+      plan: tenant?.plan ?? null,
+      features: tenant ? featuresOf(tenant.plan, tenant.features) : [],
       acting: auth.acting ? { until: auth.acting.until } : null,
     };
   }

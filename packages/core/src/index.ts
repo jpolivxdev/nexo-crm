@@ -86,3 +86,11 @@ export {
   type StageRule,
 } from './crm/classification.js';
 export type { StageKey } from './crm/pipeline-templates.js';
+export {
+  FEATURES,
+  featuresOf,
+  hasFeature,
+  PLAN_FEATURES,
+  type Feature,
+  type PlanId,
+} from './plans/features.js';

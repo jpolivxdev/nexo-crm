@@ -18,7 +18,7 @@ import { AuthProvider, useAuth } from './lib/auth';
 import { time } from './lib/format';
 import { useRoute } from './lib/hooks';
 import { setThemePref, type ThemePref, useThemePref } from './lib/theme';
-import type { Me } from './lib/types';
+import type { Feature, Me } from './lib/types';
 import { Admin } from './screens/Admin';
 import { Alerts } from './screens/Alerts';
 import { Agenda } from './screens/Agenda';
@@ -29,7 +29,7 @@ import { ConfirmEmail, ForgotPassword, ResetPassword, Signup } from './screens/A
 import { Landing } from './screens/Landing';
 import { Login } from './screens/Login';
 import { Pipeline } from './screens/Pipeline';
-import { Plans } from './screens/Plans';
+import { NotInPlan, Plans } from './screens/Plans';
 import { Report } from './screens/Report';
 import { Setup } from './screens/Setup';
 import { TimeOff } from './screens/TimeOff';
@@ -38,13 +38,20 @@ import { StageRules } from './screens/StageRules';
 import { Team } from './screens/Team';
 import { Today } from './screens/Today';
 
-const NAV = [
+const NAV: { to: string; label: string; Icon: typeof House; feature?: Feature }[] = [
   { to: '/hoje', label: 'Hoje', Icon: House },
-  { to: '/agenda', label: 'Agenda', Icon: CalendarDays },
+  { to: '/agenda', label: 'Agenda', Icon: CalendarDays, feature: 'agenda' },
   { to: '/clientes', label: 'Clientes', Icon: Users },
   { to: '/etapas', label: 'Etapas', Icon: SquareKanban },
-  { to: '/resultados', label: 'Resultados', Icon: ChartColumn },
+  { to: '/resultados', label: 'Resultados', Icon: ChartColumn, feature: 'report' },
 ];
+
+/** Seções que dependem do plano (o servidor também barra). */
+const SECTION_FEATURE: Record<string, { feature: Feature; name: string }> = {
+  '/agenda': { feature: 'agenda', name: 'A agenda' },
+  '/folgas': { feature: 'agenda', name: 'Folgas e bloqueios' },
+  '/resultados': { feature: 'report', name: 'Resultados' },
+};
 
 export function App() {
   return (
@@ -144,7 +151,11 @@ function Panel({ me }: { me: Me }) {
 
   // Profissional da equipe: só a própria agenda (o servidor também barra o resto).
   const staff = me.role === 'STAFF';
-  const nav = staff ? NAV.filter((n) => n.to === '/hoje' || n.to === '/agenda') : NAV;
+  // Sem a lista (versão antiga da API), mostra tudo e deixa o servidor decidir.
+  const has = (f: Feature) => !me.features || me.features.includes(f);
+  const nav = (staff ? NAV.filter((n) => n.to === '/hoje' || n.to === '/agenda') : NAV).filter(
+    (n) => !n.feature || has(n.feature),
+  );
   const rawSection = '/' + (route.split('/')[1] ?? 'hoje');
   const section =
     staff && !['/hoje', '/agenda', '/conta'].includes(rawSection) ? '/hoje' : rawSection;
@@ -210,7 +221,9 @@ function Panel({ me }: { me: Me }) {
             </button>
           </section>
         )}
-        {contactMatch ? (
+        {SECTION_FEATURE[section] && !has(SECTION_FEATURE[section].feature) ? (
+          <NotInPlan go={go} name={SECTION_FEATURE[section].name} />
+        ) : contactMatch ? (
           <ContactFile id={contactMatch[1]!} go={go} />
         ) : section === '/avisos' ? (
           <Alerts go={go} />

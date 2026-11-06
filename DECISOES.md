@@ -265,3 +265,13 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Cartão:** nome, há quanto tempo está na etapa e o próximo horário (se tiver). Um botão leva para a próxima etapa com um toque; o "⋯" abre as outras etapas. No computador também dá para arrastar. O seletor de formulário saiu.
 - **Coluna vazia:** diz quem vai aparecer ali, pela chave fixa da etapa (o nome a dona pode trocar).
 - Só tela e leitura: a API do quadro passou a mandar `key`, `kind`, `since` e `nextAt`. Nada mudou em regra nem no banco.
+
+## Lembretes por mensagem de modelo e trava por plano (06/11/2026)
+
+- **Mensagem de modelo:** fora da janela de 24 h o lembrete sai pelos modelos `lembrete_horario_24h` e `lembrete_horario_1h`, com o texto padrão do robô e as variáveis numeradas. Os botões são de resposta rápida e voltam pelo webhook com o mesmo retorno do lembrete normal, então o robô não muda.
+- **Ligado por configuração** (`WHATSAPP_REMINDER_TEMPLATES`), desligado por padrão: modelo não aprovado faria a Meta recusar o envio. Vale para todos os negócios do servidor; na Fase 1 há um número só. Com vários números, vira opção por negócio.
+- **O texto editado pela dona** vale só dentro da janela de 24 h; o modelo é o texto aprovado na Meta.
+- **Planos:** Grátis (clientes, ficha, etapas, "a fazer"), CRM (+ resultados) e Completo (+ agenda, folgas, robô e lembretes). A divisão é a do Jandoza (27/10/2026); o que entra em cada um pode mudar com o Coca, num lugar só (`packages/core/src/plans/features.ts`).
+- **Quem trava é o servidor:** rotas marcadas com `@RequiresFeature` dão 403 com aviso claro. Sem o robô no plano, a mensagem da cliente fica registrada e o robô não responde (como uma conversa passada para a dona). Sem lembretes, o lembrete é cancelado. A tela só esconde o que o plano não tem.
+- **Negócios que já existiam** viraram Completo (o antigo BASIC), então nada muda para eles. Recurso liberado à parte (feature flag) soma ao plano.
+- **Quem troca o plano:** o admin nexo, na lista de negócios. Vai para a auditoria do negócio. Cobrança e troca pela própria dona ficam para quando houver provedor de pagamento.

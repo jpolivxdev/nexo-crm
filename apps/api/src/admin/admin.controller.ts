@@ -8,10 +8,12 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
   Req,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { FEATURES } from '@nexo/core';
 import { z } from 'zod';
 import type { AuthedRequest } from '../auth/auth.types.js';
 import { AdminGuard, SessionGuard } from '../auth/session.guard.js';
@@ -35,6 +37,11 @@ const createTenantBody = z.object({
     .default('America/Sao_Paulo'),
   ownerName: z.string().trim().min(2).max(120),
   ownerEmail: z.email().max(254),
+});
+
+const planBody = z.object({
+  plan: z.enum(['FREE', 'CRM', 'COMPLETE']),
+  features: z.array(z.enum(FEATURES)).max(FEATURES.length).default([]),
 });
 
 const accessBody = z.object({
@@ -63,6 +70,16 @@ export class AdminController {
   @Post('tenants')
   createTenant(@Req() req: AuthedRequest, @Body() body: unknown) {
     return this.admin.createTenant(req.auth!, parse(createTenantBody, body), req.ip ?? null);
+  }
+
+  /** Troca o plano (e os recursos liberados à parte) de um negócio. Vai para a auditoria. */
+  @Put('tenants/:id/plan')
+  setPlan(
+    @Req() req: AuthedRequest,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() body: unknown,
+  ) {
+    return this.admin.setPlan(req.auth!, id, parse(planBody, body), req.ip ?? null);
   }
 
   @Post('tenants/:id/access')

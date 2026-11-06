@@ -1,6 +1,6 @@
 # Pendências do nexo CRM
 
-Lista do que depende dos sócios. Atualizada em 29/10/2026. Quando um item for respondido, ele sai daqui e vai para `CLAUDE.md` ou `DECISOES.md`.
+Lista do que depende dos sócios. Atualizada em 06/11/2026. Quando um item for respondido, ele sai daqui e vai para `CLAUDE.md` ou `DECISOES.md`.
 
 ## Da cliente-piloto
 
@@ -20,6 +20,7 @@ Respostas recebidas em 29/10/2026 (pelo Jandoza e pelo JP) estão em `CLAUDE.md`
 - Lembrete por e-mail para a cliente final (item da seção M4): as clientes não têm e-mail no cadastro, só WhatsApp, e pedir e-mail vai contra coletar o mínimo. Proposta: lembrete só pelo WhatsApp e tirar o e-mail da cliente do escopo da Fase 1. Confirmar com o JP.
 - Teto de gasto mensal com hospedagem (Coca).
 - Modelo de planos: grátis + IA paga x implantação + mensalidade (Coca).
+- Quando a conta da Meta destravar: cadastrar os dois modelos de lembrete (`docs/modelos-whatsapp.md`) e ligar `WHATSAPP_REMINDER_TEMPLATES`.
 - Destravar a conta da Meta: forma de pagamento, perfil da empresa, verificação, e de quem fica a conta (usar o MEI do Jandoza ou o da piloto).
 - Regras dos dados das clientes dela (onde ficam, quem acessa, o que acontece no fim do contrato), escritas antes do piloto e confirmadas com advogado.
 
@@ -50,10 +51,6 @@ Respostas recebidas em 29/10/2026 (pelo Jandoza e pelo JP) estão em `CLAUDE.md`
 13. Usar o número pessoal de trabalho da dona na API da Meta: há algum cuidado contratual sobre perda ou bloqueio do número?
 14. Quando a cliente pede para excluir os dados, perdemos também o pedido de "parar" dela. Podemos guardar só o telefone (ou um hash dele) numa lista de bloqueio, para o robô não mandar mensagem automática de novo? Por quanto tempo?
 
-## Do JP
-- Criar o repositório `nexo-crm` no seu GitHub (eu não consigo criar repositórios daqui) e avisar.
-- Aprovar o plano (arquitetura + segurança) para começar o código.
-
 ## Planos (27/10/2026)
 - Divisão escolhida pelo Jandoza: Grátis / CRM / Completo (CRM + agenda + robô). Falta o Coca definir preço, desconto anual e o limite de clientes do Grátis.
-- Trava por plano no servidor: hoje a tela de planos é só visual e todo negócio tem tudo. Antes de abrir o Grátis, cada rota da agenda e do robô precisa checar o plano na API (não basta esconder o botão na tela).
+- Trava por plano no servidor: feita em 06/11/2026 (Grátis = clientes e etapas; CRM = + resultados; Completo = + agenda, robô e lembretes). Confirmar com o Coca se a divisão fica assim e qual o limite de clientes do Grátis.

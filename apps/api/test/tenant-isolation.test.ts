@@ -78,6 +78,7 @@ describe('isolamento entre negócios (RLS)', () => {
       'niche',
       'onboarding_completed_at',
       'onboarding_started_at',
+      'plan',
     ]);
     const grants = await prisma.$queryRaw<{ privilege_type: string }[]>`
       SELECT privilege_type FROM information_schema.role_table_grants

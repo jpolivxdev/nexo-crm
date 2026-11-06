@@ -4,6 +4,7 @@ import {
   type BotContext,
   type BotState,
   handleBotMessage,
+  hasFeature,
   isOpenAt,
   type OutgoingMessage,
 } from '@nexo/core';
@@ -196,7 +197,9 @@ export class ConversationService implements InboundHandler {
         conversationId: conversation.id,
         inboundId: inbound.id,
         state: state && typeof state === 'object' && 'step' in state ? state : null,
-        paused: conversation.botPausedAt !== null,
+        // Sem o robô no plano, a conversa só fica registrada no CRM e a dona responde.
+        paused:
+          conversation.botPausedAt !== null || !hasFeature(tenant.plan, tenant.features, 'bot'),
         ctx: {
           businessName: tenant.name,
           ownerName: tenant.attendantName,

@@ -156,6 +156,9 @@ describe('teto de envios por número', () => {
     expect(onLimit).toHaveBeenCalledTimes(1);
     await expect(b.send('5500900000001', msg)).resolves.toEqual({ externalId: 'wamid.X' });
     expect(send).toHaveBeenCalledTimes(3);
+  });
+});
+
 describe('mensagem de modelo na Graph API', () => {
   it('monta o template com variáveis do corpo e botões de resposta rápida', () => {
     const payload = toGraphPayload('5500900000001', {

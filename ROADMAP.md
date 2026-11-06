@@ -40,9 +40,10 @@ Falta na Fase 1 (conferência do PROMPT 1 em 27/10/2026, previsão ~19 h de cód
 7. ~~Mais de uma profissional no assistente e login da profissional.~~ Feito na E19 (29/10/2026), em Conta → Equipe.
 8. ~~Aviso à dona de novo horário/cancelamento~~ Feito na E20 (29/10/2026). Lembrete por e-mail para a cliente final: em aberto (ela não tem e-mail no cadastro; ver PENDENCIAS.md).
 9. ~~REFERENCIAS.md.~~ Feito em 29/10/2026. As ideias aproveitáveis (ação por etapa, selo "parado há X dias", origem do contato, selo de demonstração, pontuação explicada) ficam para as fases 2 e 3, só com pedido real.
-10. Checklist de segurança e backup com restauração (depende da hospedagem).
+10. ~~Checklist de segurança~~ Feito (PR #23, 29/10/2026). Backup diário na hospedagem: depende da escolha da hospedagem (script e teste de restauração prontos).
 11. Provedor de e-mail de produção (depende da escolha).
-12. WhatsApp real com a Cloud API e mensagens de modelo (depende da Meta).
+12. WhatsApp real com a Cloud API (depende da Meta). Lembretes por mensagem de modelo: código pronto em 06/11/2026, liga depois que a Meta aprovar os modelos (`docs/modelos-whatsapp.md`).
+13. ~~Trava por plano no servidor (Grátis / CRM / Completo).~~ Feita em 06/11/2026. Preços e limites: Coca.
 
 Portão: a piloto usa por 2 a 4 semanas com clientes reais. Medir agendamentos pelo robô, faltas, passagens para a equipe e pedidos.
 
