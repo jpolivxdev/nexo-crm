@@ -51,6 +51,8 @@ model Tenant {
   notifyEmail      Boolean @default(false) @map("notify_email")
   /// Dias depois do atendimento para o "a fazer" de oferecer o próximo horário. Nulo = não criar.
   nextVisitDays    Int?    @default(0) @map("next_visit_days")
+  /// Metas do mês: { doneCount?, revenueCents? }. Vazio = sem meta.
+  goals            Json    @default("{}")
   /// Cronômetro do onboarding: quando o negócio foi criado pela nexo e quando a dona terminou de configurar.
   onboardingStartedAt   DateTime? @map("onboarding_started_at") @db.Timestamptz
   onboardingCompletedAt DateTime? @map("onboarding_completed_at") @db.Timestamptz
@@ -63,6 +65,7 @@ model Tenant {
   contacts      Contact[]
   pipelines     Pipeline[]
   channelRoutes ChannelRoute[]
+  supportTickets SupportTicket[]
 
   @@map("tenants")
 }
@@ -403,6 +406,8 @@ model Conversation {
   /// Preenchido quando a conversa passou para a equipe (robô pausado).
   botPausedAt   DateTime? @map("bot_paused_at") @db.Timestamptz
   lastMessageAt DateTime? @map("last_message_at") @db.Timestamptz
+  /// Arquivada pela dona (some de "Abertas"). Mensagem nova da cliente tira do arquivo.
+  archivedAt    DateTime? @map("archived_at") @db.Timestamptz
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -411,6 +416,7 @@ model Conversation {
 
   @@unique([tenantId, contactId, channel])
   @@unique([tenantId, id])
+  @@index([tenantId, lastMessageAt(sort: Desc)])
   @@map("conversations")
 }
 
@@ -557,4 +563,77 @@ model AuditLog {
 
   @@index([tenantId, createdAt])
   @@map("audit_logs")
+}
+
+// ---------- Suporte (negócio ↔ nexo) ----------
+
+enum SupportStatus {
+  /// Aberto, esperando a nexo.
+  OPEN
+  /// A nexo respondeu; esperando a dona.
+  ANSWERED
+  /// Resolvido.
+  CLOSED
+}
+
+/// Chamado aberto pelo negócio para a nexo. RLS: o negócio vê só os seus; o painel de suporte da
+/// nexo lê todos com `app.support_admin` ligado na transação (nunca dado de cliente final).
+model SupportTicket {
+  id          String        @id @default(uuid()) @db.Uuid
+  tenantId    String        @map("tenant_id") @db.Uuid
+  createdById String        @map("created_by_id") @db.Uuid
+  /// Assunto escolhido numa lista fechada.
+  topic       String
+  /// Resumo em uma linha.
+  subject     String
+  description String
+  status      SupportStatus @default(OPEN)
+  /// Tem resposta da nexo que a dona ainda não viu.
+  ownerUnread Boolean       @default(false) @map("owner_unread")
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant   Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  messages SupportMessage[]
+
+  @@unique([tenantId, id])
+  @@index([status, updatedAt(sort: Desc)])
+  @@map("support_tickets")
+}
+
+model SupportMessage {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  ticketId   String   @map("ticket_id") @db.Uuid
+  /// "owner" (o negócio) ou "nexo".
+  authorType String   @map("author_type")
+  authorId   String   @map("author_id") @db.Uuid
+  authorName String   @map("author_name")
+  body       String
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  ticket SupportTicket @relation(fields: [tenantId, ticketId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([ticketId, createdAt])
+  @@map("support_messages")
+}
+
+// ---------- IA (Nex, guia de uso) ----------
+
+/// Uso da IA por negócio: só contagem e tokens, nunca o texto da pergunta ou da resposta.
+model AiUsage {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  /// Recurso que usou a IA (ex.: "nex").
+  feature      String
+  provider     String
+  model        String
+  inputTokens  Int      @default(0) @map("input_tokens")
+  outputTokens Int      @default(0) @map("output_tokens")
+  /// Deu certo, recusada pelo limite ou falhou no provedor.
+  outcome      String
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([tenantId, createdAt])
+  @@map("ai_usage")
 }

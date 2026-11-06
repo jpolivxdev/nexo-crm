@@ -1,31 +1,39 @@
 import {
   CalendarDays,
   ChartColumn,
+  Compass,
   House,
   LogOut,
+  MessagesSquare,
   SquareKanban,
-  UserRound,
+  Settings as Settings2,
   Users,
 } from 'lucide-react';
-import { PageHeader } from './components/PageHeader';
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import './App.css';
+import { Bell } from './components/Bell';
 import { MadeByNexo, NexoLogo } from './components/Brand';
+import { Nex, type NexTopic } from './components/Nex';
 import { OwnerToasts } from './components/OwnerToasts';
 import { Sidebar, type SidebarItem } from './components/Sidebar';
+import { Tour } from './components/Tour';
 import { Loading } from './components/ui';
 import { api } from './lib/api';
 import { AuthProvider, useAuth } from './lib/auth';
 import { time } from './lib/format';
 import { useRoute } from './lib/hooks';
-import { setThemePref, type ThemePref, useThemePref } from './lib/theme';
+import { markTourSeen, tourFor, tourSeen } from './lib/tours';
 import type { Feature, Me } from './lib/types';
 import { Admin } from './screens/Admin';
+import { AdminSupport } from './screens/AdminSupport';
+import { Support } from './screens/Support';
 import { Alerts } from './screens/Alerts';
 import { Agenda } from './screens/Agenda';
 import { ChangePassword } from './screens/ChangePassword';
+import { Settings, SETTINGS, SETTINGS_ROUTES, SettingsLayout } from './screens/Settings';
 import { ContactFile } from './screens/ContactFile';
 import { Contacts } from './screens/Contacts';
+import { Conversations } from './screens/Conversations';
 import { ConfirmEmail, ForgotPassword, ResetPassword, Signup } from './screens/AuthPages';
 import { Landing } from './screens/Landing';
 import { Login } from './screens/Login';
@@ -48,6 +56,13 @@ const NAV: (SidebarItem & { feature?: Feature })[] = [
     feature: 'agenda',
     group: 'Atendimento',
     hint: 'Horários marcados por dia, semana ou mês',
+  },
+  {
+    to: '/conversas',
+    label: 'Conversas',
+    Icon: MessagesSquare,
+    group: 'Atendimento',
+    hint: 'Quem chamou no WhatsApp; responda por aqui',
   },
   {
     to: '/clientes',
@@ -79,6 +94,16 @@ const SECTION_FEATURE: Record<string, { feature: Feature; name: string }> = {
   '/folgas': { feature: 'agenda', name: 'Folgas e bloqueios' },
   '/resultados': { feature: 'report', name: 'Resultados' },
 };
+
+/** Atalhos do Nex: cada um abre a tela e o tour dela. */
+const NEX_TOPICS: NexTopic[] = [
+  { label: 'Como marcar um horário', to: '/agenda' },
+  { label: 'Como respondo uma cliente', to: '/conversas' },
+  { label: 'Onde vejo minhas clientes', to: '/clientes' },
+  { label: 'Como mudar a etapa de uma cliente', to: '/etapas' },
+  { label: 'Onde vejo meus números', to: '/resultados' },
+  { label: 'Como falo com a nexo', to: '/suporte' },
+];
 
 export function App() {
   return (
@@ -129,6 +154,8 @@ function Shell() {
     );
   }
   if (me.role === 'NEXO_ADMIN' && !me.acting) {
+    const adminSupport = raw.startsWith('/suporte');
+    const ticket = /^\/suporte\/([0-9a-f-]{36})$/.exec(raw)?.[1] ?? null;
     return (
       <div className="app">
         <header className="appbar">
@@ -146,9 +173,21 @@ function Shell() {
               <LogOut aria-hidden="true" size={22} />
             </button>
           </div>
+          <nav className="admin-nav" aria-label="Área do admin">
+            <a href="#/admin" aria-current={adminSupport ? undefined : 'page'}>
+              Negócios
+            </a>
+            <a href="#/suporte" aria-current={adminSupport ? 'page' : undefined}>
+              Suporte
+            </a>
+          </nav>
         </header>
         <main>
-          <Admin />
+          {adminSupport ? (
+            <AdminSupport id={ticket} go={(to) => (window.location.hash = to)} />
+          ) : (
+            <Admin />
+          )}
         </main>
       </div>
     );
@@ -187,13 +226,76 @@ function Panel({ me }: { me: Me }) {
   const section =
     staff && !['/hoje', '/agenda', '/conta'].includes(rawSection) ? '/hoje' : rawSection;
   const contactMatch = staff ? null : /^\/clientes\/([0-9a-f-]{36})$/.exec(route);
+  const conversationMatch = /^\/conversas\/([0-9a-f-]{36})$/.exec(route);
+  const supportMatch = /^\/suporte\/([0-9a-f-]{36})$/.exec(route);
+
+  // Tour guiado: abre sozinho uma vez por aparelho (fora dos testes) e pela bússola do topo.
+  const [touring, setTouring] = useState(
+    () => import.meta.env.MODE !== 'test' && !tourSeen() && !me.acting,
+  );
+  function closeTour() {
+    markTourSeen();
+    setTouring(false);
+  }
+  function openTour(to?: string) {
+    if (to && to !== section) go(to);
+    // Espera a tela nova aparecer antes de procurar as partes que o tour destaca.
+    window.setTimeout(() => setTouring(true), to && to !== section ? 300 : 0);
+  }
+  const allowed = new Set([...nav.map((n) => n.to), ...(staff ? [] : ['/suporte'])]);
+  const nexTopics = NEX_TOPICS.filter((t) => allowed.has(t.to));
+
+  const settingsItems = SETTINGS.filter(
+    (i) =>
+      (!staff || i.to === '/conta') &&
+      (!SECTION_FEATURE[i.to] || has(SECTION_FEATURE[i.to]!.feature)),
+  );
+  const inSettings = SETTINGS_ROUTES.has(section) && !staff;
+  const content =
+    SECTION_FEATURE[section] && !has(SECTION_FEATURE[section].feature) ? (
+      <NotInPlan go={go} name={SECTION_FEATURE[section].name} />
+    ) : contactMatch ? (
+      <ContactFile id={contactMatch[1]!} go={go} />
+    ) : section === '/avisos' ? (
+      <Alerts go={go} />
+    ) : section === '/equipe' ? (
+      <Team go={go} />
+    ) : section === '/regras' ? (
+      <StageRules go={go} />
+    ) : section === '/mensagens' ? (
+      <BotMessages go={go} />
+    ) : section === '/folgas' ? (
+      <TimeOff go={go} />
+    ) : section === '/configurar' ? (
+      <Setup go={go} />
+    ) : section === '/assinatura' ? (
+      <Plans go={go} />
+    ) : section === '/conta' ? (
+      <Settings acting={Boolean(me.acting)} items={settingsItems} />
+    ) : section === '/agenda' ? (
+      <Agenda go={go} staff={staff} />
+    ) : section === '/suporte' && !staff ? (
+      <Support id={supportMatch?.[1] ?? null} go={go} />
+    ) : section === '/conversas' ? (
+      <Conversations id={conversationMatch?.[1] ?? null} go={go} />
+    ) : section === '/clientes' ? (
+      <Contacts go={go} />
+    ) : section === '/etapas' ? (
+      <Pipeline go={go} />
+    ) : section === '/resultados' ? (
+      <Report />
+    ) : (
+      <Today go={go} staff={staff} />
+    );
 
   return (
     <div className="app app--with-nav">
       <Sidebar
         businessName={me.businessName ?? 'nexo'}
         items={nav}
-        section={section}
+        section={
+          inSettings && section !== '/assinatura' && section !== '/suporte' ? '/conta' : section
+        }
         onLogout={() => void logout()}
       />
       {me.acting && (
@@ -213,12 +315,23 @@ function Panel({ me }: { me: Me }) {
             <span className="appbar__eyebrow">Seu painel</span>
             <strong>{me.businessName ?? 'nexo'}</strong>
           </div>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Ver o tour desta tela"
+            data-tour="tour"
+            onClick={() => openTour()}
+          >
+            <Compass aria-hidden="true" size={22} />
+          </button>
+          {!staff && <Bell go={go} />}
           <a
             href="#/conta"
-            className={section === '/conta' ? 'icon-button on' : 'icon-button'}
-            aria-label="Conta"
+            className={inSettings || section === '/conta' ? 'icon-button on' : 'icon-button'}
+            aria-label="Configurações"
+            data-tour="conta"
           >
-            <UserRound aria-hidden="true" size={22} />
+            <Settings2 aria-hidden="true" size={22} />
           </a>
           <button
             type="button"
@@ -248,39 +361,17 @@ function Panel({ me }: { me: Me }) {
             </button>
           </section>
         )}
-        {SECTION_FEATURE[section] && !has(SECTION_FEATURE[section].feature) ? (
-          <NotInPlan go={go} name={SECTION_FEATURE[section].name} />
-        ) : contactMatch ? (
-          <ContactFile id={contactMatch[1]!} go={go} />
-        ) : section === '/avisos' ? (
-          <Alerts go={go} />
-        ) : section === '/equipe' ? (
-          <Team go={go} />
-        ) : section === '/regras' ? (
-          <StageRules go={go} />
-        ) : section === '/mensagens' ? (
-          <BotMessages go={go} />
-        ) : section === '/folgas' ? (
-          <TimeOff go={go} />
-        ) : section === '/configurar' ? (
-          <Setup go={go} />
-        ) : section === '/assinatura' ? (
-          <Plans go={go} />
-        ) : section === '/conta' ? (
-          <Account go={go} acting={Boolean(me.acting)} staff={staff} />
-        ) : section === '/agenda' ? (
-          <Agenda go={go} staff={staff} />
-        ) : section === '/clientes' ? (
-          <Contacts go={go} />
-        ) : section === '/etapas' ? (
-          <Pipeline go={go} />
-        ) : section === '/resultados' ? (
-          <Report />
+        {inSettings ? (
+          <SettingsLayout section={section} items={settingsItems}>
+            {content}
+          </SettingsLayout>
         ) : (
-          <Today go={go} staff={staff} />
+          content
         )}
       </main>
       <MadeByNexo />
+      <Nex topics={nexTopics} onTour={openTour} />
+      {touring && <Tour key={section} steps={tourFor(section)} onClose={closeTour} />}
       <nav className="tabbar" aria-label="Seções do painel">
         {nav.map(({ to, label, Icon }) => (
           <a
@@ -297,83 +388,5 @@ function Panel({ me }: { me: Me }) {
         ))}
       </nav>
     </div>
-  );
-}
-
-const THEMES: { id: ThemePref; label: string }[] = [
-  { id: 'claro', label: 'Claro' },
-  { id: 'escuro', label: 'Escuro' },
-  { id: 'sistema', label: 'Igual ao celular' },
-];
-
-/** Aparência do painel: vale só neste aparelho. */
-function ThemePicker() {
-  const pref = useThemePref();
-  return (
-    <section className="card" aria-labelledby="aparencia">
-      <h2 id="aparencia">Aparência</h2>
-      <p className="muted">Escolha as cores do painel neste aparelho.</p>
-      <div className="segmented" role="group" aria-labelledby="aparencia">
-        {THEMES.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            aria-pressed={pref === t.id}
-            className={pref === t.id ? 'on' : ''}
-            onClick={() => setThemePref(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function Account({
-  go,
-  acting,
-  staff,
-}: {
-  go: (to: string) => void;
-  acting: boolean;
-  staff: boolean;
-}) {
-  return (
-    <>
-      <PageHeader
-        Icon={UserRound}
-        title="Conta"
-        subtitle="Sua senha, o tema da tela e o que mais é seu."
-      />
-      {!staff && (
-        <section className="section stack">
-          <button type="button" className="button button--ghost" onClick={() => go('/configurar')}>
-            Configurar o negócio (serviços, horários, dúvidas)
-          </button>
-          <button type="button" className="button button--ghost" onClick={() => go('/equipe')}>
-            Equipe (profissionais e acessos)
-          </button>
-          <button type="button" className="button button--ghost" onClick={() => go('/avisos')}>
-            Avisos e lembrete do próximo horário
-          </button>
-          <button type="button" className="button button--ghost" onClick={() => go('/mensagens')}>
-            Mensagens do robô
-          </button>
-          <button type="button" className="button button--ghost" onClick={() => go('/folgas')}>
-            Folgas e bloqueios
-          </button>
-          <button type="button" className="button button--ghost" onClick={() => go('/assinatura')}>
-            Plano e assinatura
-          </button>
-        </section>
-      )}
-      <ThemePicker />
-      {!acting && (
-        <section className="card">
-          <ChangePassword forced={false} />
-        </section>
-      )}
-    </>
   );
 }

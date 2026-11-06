@@ -41,6 +41,19 @@ export function dailySeries(
   return [...days.values()];
 }
 
+/** Metas do mês da dona. Sem valor = sem meta. */
+export interface Goals {
+  doneCount?: number;
+  revenueCents?: number;
+}
+
+export function readGoals(raw: unknown): Goals {
+  const g = (raw ?? {}) as Record<string, unknown>;
+  const int = (v: unknown) =>
+    typeof v === 'number' && Number.isInteger(v) && v > 0 ? v : undefined;
+  return { doneCount: int(g.doneCount), revenueCents: int(g.revenueCents) };
+}
+
 /**
  * Relatório mínimo da Fase 1 (M9): o que a piloto precisa medir no portão
  * (agendamentos pelo robô, faltas, passagens para a equipe, pedidos de "parar").
@@ -151,6 +164,44 @@ export class ReportService {
           }))
           .sort((a, b) => b.count - a.count),
       };
+    });
+  }
+
+  /**
+   * Metas do mês e quanto já foi feito: atendimentos realizados e faturamento (preço do serviço
+   * dos realizados; serviço sem preço não soma). Mês no fuso do negócio, até agora.
+   */
+  goals(tenantId: string, now = new Date()) {
+    return this.db.withTenant(tenantId, async (tx) => {
+      const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
+      const today = todayIn(tenant.timezone, now);
+      const first = `${today.slice(0, 8)}01` as LocalDate;
+      const range = {
+        gte: dayRangeUtc(first, tenant.timezone).startsAt,
+        lt: dayRangeUtc(today, tenant.timezone).endsAt,
+      };
+      const done = await tx.appointment.findMany({
+        where: { startsAt: range, status: 'DONE' },
+        select: { service: { select: { priceCents: true } } },
+      });
+      return {
+        month: today.slice(0, 7),
+        goals: readGoals(tenant.goals),
+        progress: {
+          doneCount: done.length,
+          revenueCents: done.reduce((sum, a) => sum + (a.service.priceCents ?? 0), 0),
+        },
+      };
+    });
+  }
+
+  saveGoals(tenantId: string, goals: Goals) {
+    return this.db.withTenant(tenantId, async (tx) => {
+      await tx.tenant.update({
+        where: { id: tenantId },
+        data: { goals: readGoals(goals) as object },
+      });
+      return { goals: readGoals(goals) };
     });
   }
 }

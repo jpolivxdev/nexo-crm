@@ -33,7 +33,12 @@ export function useLoad<T>(load: () => Promise<T>, key: string) {
 }
 
 export interface Notice {
-  type: 'agenda.changed' | 'conversation.updated' | 'handoff.requested' | 'contact.updated';
+  type:
+    | 'agenda.changed'
+    | 'conversation.updated'
+    | 'handoff.requested'
+    | 'contact.updated'
+    | 'support.updated';
   id?: string;
   /** Mudança feita pela cliente no WhatsApp que merece aviso para a dona. */
   alert?: 'booked' | 'rescheduled' | 'cancelled';

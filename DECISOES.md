@@ -275,3 +275,60 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Quem trava é o servidor:** rotas marcadas com `@RequiresFeature` dão 403 com aviso claro. Sem o robô no plano, a mensagem da cliente fica registrada e o robô não responde (como uma conversa passada para a dona). Sem lembretes, o lembrete é cancelado. A tela só esconde o que o plano não tem.
 - **Negócios que já existiam** viraram Completo (o antigo BASIC), então nada muda para eles. Recurso liberado à parte (feature flag) soma ao plano.
 - **Quem troca o plano:** o admin nexo, na lista de negócios. Vai para a auditoria do negócio. Cobrança e troca pela própria dona ficam para quando houver provedor de pagamento.
+
+## Três CRMs sob medida e o layout novo, fase 1 (06/11/2026)
+
+- **Ideia do JP:** a nexo vende três CRMs por assinatura, feitos sob medida. O básico é este sistema, no layout de um CRM de referência que o JP mandou (46 telas). O mais caro segue o mesmo molde com mais módulos. O do meio ainda não está definido. Plano em fases no documento "Plano: três CRMs da nexo no layout novo" e em ROADMAP.md.
+- **Um código só.** O sob medida é configuração (plano, recursos, etapas, textos e, no plano caro, a marca), não uma cópia do código por cliente. A trava por plano (`packages/core/src/plans/features.ts`) é o ponto de partida.
+- **Cópia:** copiamos layout, organização das telas e fluxos. Nome, logo, textos, ícones próprios e a persona da assistente deles não entram. Os textos do tour são nossos.
+- **Fase 1 (molde):** em cima do PR #30. Barra de cima com a bússola (tour da tela), o sino e a conta. O sino mostra a mesma lista de "O que aconteceu" do Hoje (`/panel/today`), com um ponto quando chega aviso novo com o painel aberto; não guarda nada novo no servidor. Fica escondido para a profissional da equipe, como os avisos.
+- **Tour guiado** (`lib/tours.ts`, `components/Tour.tsx`): passos por tela (Hoje, Agenda, Clientes, Etapas, Resultados); telas sem tour próprio usam o geral. Abre sozinho uma vez por aparelho (guardado no `localStorage`, como o tema) e nunca durante a entrada do admin nexo. Passo cujo alvo não está na tela aparece no meio. É diálogo: Esc fecha, o foco fica dentro e volta para onde estava. No celular, o cartão fica preso embaixo.
+- **Nex, guia de uso:** nome e foto escolhidos pelo JP em 06/11/2026 ("por enquanto"). A foto veio numa tira com 7 variações e fundo xadrez desenhado; usamos a primeira, sem o fundo, em círculo Lilás (`assets/nex.webp`; original em `nexo/CRM/assistente/` na pasta do projeto). Nesta fase o Nex não usa IA: os atalhos abrem a tela e o tour dela. A pergunta livre com Gemini é a fase 5, só sobre como usar o sistema e sem dado de cliente. Isso abre uma exceção ao "IA só em plano pago" (princípio 5): o guia de uso não toca em dado do negócio.
+
+## Layout novo, fase 2: CRM em quadro e metas (06/11/2026)
+
+- **Nome:** a tela continua "Etapas" no menu (glossário da seção 5); "CRM" é palavra técnica para a dona.
+- **Valor no quadro:** o preço do serviço do próximo horário de cada cliente (`valueCents` e `nextService` em `/panel/pipeline`). A coluna soma os seus, e o topo mostra o "previsto nos próximos horários" das etapas em andamento ("Não seguiu" fora). Serviço sem preço não soma. Não criamos campo de valor por cliente: no salão, o valor vem do serviço.
+- **Quadro ou Lista:** a lista tem uma linha por cliente com a etapa num seletor. A escolha fica no aparelho. A busca por nome ou telefone filtra os cartões nos dois modos.
+- **Nova cliente pelo quadro:** cliente cadastrada pela tela passa a entrar no quadro, na primeira etapa (`ensureDeal` em `createContact`). Antes só entrava quando acontecia algo com ela.
+- **Metas do mês** (Resultados): atendimentos realizados e faturamento, guardados em `tenants.goals` (migração `20261106200000_metas`, só soma coluna). Faturamento = preço do serviço dos realizados no mês, no fuso do negócio. Só a dona vê e muda; segue a trava do plano de Resultados.
+
+## Layout novo, fase 3: Conversas (06/11/2026)
+
+- **Tela Conversas** (menu Atendimento): lista à esquerda e conversa aberta à direita no computador; no celular, uma coisa de cada vez, com "Voltar". Responder usa a mesma rota da ficha (pausa o robô; 24 h do WhatsApp continuam valendo) e "Devolver para o robô" também.
+- **Abas próprias** em vez de copiar as do sistema de referência: Abertas, Esperando você (robô pausado, a cliente pediu a dona ou a dona assumiu), Novas (clientes que chegaram nos últimos 7 dias) e Arquivadas. "Minhas" não faz sentido com uma pessoa só no atendimento.
+- **Arquivar** (`conversations.archived_at`, migração `20261106210000_conversas_arquivadas`): só tira da lista, não apaga. Mensagem nova da cliente tira do arquivo sozinha.
+- **Rotas:** `GET /panel/conversations?tab=&q=`, `GET /panel/conversations/:id` (últimas 100 mensagens) e `POST /panel/conversations/:id/archive`. Só a dona; sem trava de plano, como a ficha. Cliente com dados excluídos (LGPD) não aparece.
+- O aviso "Uma cliente quer falar com você" agora leva para Conversas.
+- Com a Meta travada, a tela funciona com o simulador; com clientes reais, depois que a conta da Meta liberar.
+
+## Layout novo, fase 4: Suporte e painel da nexo (06/11/2026)
+
+- **Lado do negócio** (menu Conta → Suporte; no celular, pela tela Conta): abrir chamado com assunto (lista fechada), resumo e o que aconteceu; lista com a situação escrita (Com a nexo, Respondido, Resolvido); conversa do chamado; "Marcar como resolvido". Escrever de novo reabre. Só a dona (e o admin numa entrada registrada); a profissional da equipe não vê.
+- **Aviso:** resposta da nexo acende o ponto do sino e aparece no topo dele ("A nexo respondeu seu chamado"), com aviso em tempo real (`support.updated`). O aviso não leva o texto, só o id.
+- **Painel da nexo** (admin, com 2FA): Negócios | Suporte. Filtros Esperando a nexo, Esperando a dona, Resolvidos e Todos, com o nome do negócio pelo diretório. Responder, resolver e reabrir.
+- **Banco** (`support_tickets` e `support_messages`, migração `20261106220000_suporte`): `tenant_id` e RLS forçado como o resto. A política aceita o negócio da sessão ou `app.support_admin = on`, que só o `SupportService` liga, dentro da transação do painel da nexo. Assim o admin lê os chamados sem abrir nenhuma outra tabela do negócio. Sem DELETE para a aplicação (histórico do atendimento).
+- **Privacidade:** o formulário pede para não colocar dado de cliente. O chamado é conversa entre o negócio e a nexo, não dado do cliente final.
+- **Em aberto:** e-mail para a nexo quando chega chamado novo depende do provedor de e-mail de produção (PENDENCIAS.md, item do provedor).
+
+## Layout novo, fase 5: Nex com pergunta livre (06/11/2026)
+
+- **O que faz:** a dona escreve a dúvida no Nex ("como fecho um dia de folga?") e recebe o caminho na tela. Só sobre como usar o painel; fora disso, o Nex manda abrir um chamado. Os atalhos e os tours continuam.
+- **Provedor:** Gemini pela API REST (`generateContent`), atrás de `AiProvider` (`apps/api/src/assistant/ai-provider.ts`). Trocar de modelo ou de provedor não mexe no resto. Modelo padrão `gemini-3.1-flash-lite` (o mais barato da camada gratuita, segundo artigo de terceiros; confirmar no AI Studio) e configurável em `GEMINI_MODEL`.
+- **Sem chave, sem IA:** sem `GEMINI_API_KEY` a caixa de pergunta nem aparece e a rota responde 503. Nada muda para quem não liga.
+- **Privacidade (fato, termos do Gemini de 28/04/2026):** na camada gratuita o Google pode usar o que é enviado para melhorar produtos e pessoas podem ler; os termos pedem para não mandar dado pessoal ou sensível, exigem 18 anos e não permitem a camada gratuita para quem atende usuários no Espaço Econômico Europeu, Suíça ou Reino Unido. Por isso:
+  - vai só a pergunta da dona e um manual fixo das telas (`manual.ts`), nunca dado do negócio ou das clientes;
+  - antes de sair, o servidor troca e-mails e sequências de 8 dígitos ou mais (telefone, CPF) por `[e-mail]` e `[número]`;
+  - a tela avisa para não escrever nome, telefone ou dado de cliente e que a pergunta vai para o Google;
+  - o histórico mandado junto é só a conversa daquela janela (até 4 falas), que some ao recarregar. Nada do texto é guardado no banco.
+- **Limite e custo:** `NEX_DAILY_LIMIT` respostas por negócio por dia (padrão 30). Cada chamada fica em `ai_usage` (migração `20261106230000_nex_uso`): negócio, provedor, modelo, tokens e resultado (`ok`, `limit`, `provider_limit`, `error`), sem o texto. RLS por negócio. Serve para medir o custo quando passar para a camada paga.
+- **Exceção ao princípio 5** ("IA só em plano pago"), já anotada na fase 1: o guia de uso não toca em dado do negócio e custa zero na camada gratuita. Se o Google mudar a camada gratuita, o Nex volta a só atalhos tirando a chave.
+- **Em aberto:** criar a chave da nexo no AI Studio (conta de quem?) e decidir se, com clientes pagantes, passamos para a camada paga (os dados deixam de ser usados para treino). Anotado em PENDENCIAS.md.
+
+## Layout novo, fase 6: Configurações (06/11/2026)
+
+- **Uma tela Configurações** (rota `/conta`, ícone do alto e item do menu lateral) junta a conta da dona e as configurações do negócio, em três grupos: Você (Meu perfil e segurança), Negócio (Dados do negócio, Equipe, Mensagens do robô, Avisos, Folgas e bloqueios) e nexo (Plano e assinatura, Suporte). No computador, o menu fica ao lado de todas essas telas; no celular, aparece em lista na tela Configurações e cada tela mantém o "Voltar". As telas de cada item não mudaram.
+- **"Mensagens do robô"** continua com esse nome em vez de "modelos de mensagem" do sistema de referência: é o que a dona entende, e "modelo" já tem outro sentido (o modelo aprovado na Meta).
+- **Meu perfil:** a dona troca o nome que aparece no painel (`POST /auth/profile`, 2 a 80 letras, vai para a auditoria). O e-mail é o login e não muda pela tela: troca de e-mail precisa de confirmação no endereço novo, e fica pelo Suporte até ter pedido real.
+- **Segurança:** trocar a senha (já existia; derruba os outros aparelhos), ver quantos outros aparelhos estão com o painel aberto e "Sair dos outros aparelhos" (`POST /auth/sessions/revoke-others`, mantém a sessão atual, vai para a auditoria). Durante a entrada controlada do admin nexo essas rotas dão 403: a nexo não mexe na conta da dona.
+- **Duas etapas (2FA):** já é obrigatória para o admin nexo desde a fase 1 (código do aplicativo autenticador no login). Para a dona fica para depois: precisa de tela de ativação com QR code e de um jeito de recuperar o acesso se ela perder o celular. A tela só mostra "ligada" para quem já tem.

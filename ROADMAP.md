@@ -47,6 +47,21 @@ Falta na Fase 1 (conferência do PROMPT 1 em 27/10/2026, previsão ~19 h de cód
 
 Portão: a piloto usa por 2 a 4 semanas com clientes reais. Medir agendamentos pelo robô, faltas, passagens para a equipe e pedidos.
 
+## Três CRMs sob medida: layout novo (06/11/2026)
+
+Ideia do JP: o básico é este sistema no layout do CRM de referência, com as novidades abaixo; o mais caro usa o mesmo molde com mais módulos; o do meio está **[A DEFINIR]**. Multa de cancelamento de 10%: confirmar com advogado ou contador.
+
+| Fase | O que entra | Situação |
+|---|---|---|
+| L1 | Molde: menu em grupos, cabeçalho em cartão (PR #30), bússola com tour guiado por tela, sino de avisos, botão do Nex | Em PR |
+| L2 | CRM em quadro: Quadro e Lista, valor por coluna, busca, "Nova cliente"; metas do mês em Resultados | Em PR |
+| L3 | Conversas: lista do WhatsApp e conversa aberta, abas Abertas, Esperando você, Novas e Arquivadas; a dona responde pela tela | Em PR (clientes reais dependem da Meta) |
+| L4 | Suporte (abrir chamado, lista, resposta na tela e no sino) e painel interno da nexo para responder | Em PR |
+| L5 | Nex com pergunta livre (Gemini gratuito, atrás do `AiProvider`, sem dado de cliente, limite por negócio) | Em PR (liga com a chave do Gemini) |
+| L6 | Configurações no molde novo: perfil, equipe, modelos de mensagem, segurança (duas etapas para o admin nexo) | Em PR |
+
+Plano mais caro, depois do básico: vários funis, campos próprios, campanhas, previsão de receita, painéis completos (metas, Modo TV), carteira de clientes e contas em risco, importar e exportar contatos, chat interno, wiki, quadro branco, Meu Dia, marca e domínio do cliente, acessos por papel. Os quatro de colaboração só com pedido real de cliente.
+
 ## Fase 2: Retenção
 
 M5 (retornos, pós-venda, cobrança), link público de agendamento, Google Calendar bidirecional, kanban arrastável, etiquetas, etapas personalizáveis.

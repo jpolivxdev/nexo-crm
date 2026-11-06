@@ -2,6 +2,7 @@ import { ChartColumn } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { useState } from 'react';
 import { TrendChart } from '../components/TrendChart';
+import { Goals } from './Goals';
 import { Banner, Empty, Loading } from '../components/ui';
 import { api } from '../lib/api';
 import { localDateLabel } from '../lib/format';
@@ -50,6 +51,8 @@ export function Report() {
           </button>
         ))}
       </div>
+
+      <Goals />
 
       {loading && !data ? (
         <Loading />
