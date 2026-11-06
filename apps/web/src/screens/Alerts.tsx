@@ -1,4 +1,6 @@
+import { Bell } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
+import { PageHeader } from '../components/PageHeader';
 import { deviceAlertsOn, setDeviceAlerts } from '../components/OwnerToasts';
 import { Banner, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
@@ -76,13 +78,11 @@ function AlertsForm({ initial, go }: { initial: AlertSettings; go: (to: string) 
       <button type="button" className="link back" onClick={() => go('/conta')}>
         ‹ Conta
       </button>
-      <header className="page-header">
-        <h1>Avisos</h1>
-        <p className="muted">
-          Com o painel aberto, um aviso aparece no topo sempre que uma cliente marca, remarca ou
-          cancela pelo WhatsApp, ou pede para falar com você.
-        </p>
-      </header>
+      <PageHeader
+        Icon={Bell}
+        title="Avisos"
+        subtitle="Com o painel aberto, um aviso aparece no topo sempre que uma cliente marca, remarca ou cancela pelo WhatsApp, ou pede para falar com você."
+      />
 
       <section className="card section" aria-labelledby="aparelho">
         <h2 id="aparelho">Neste aparelho</h2>

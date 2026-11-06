@@ -1,4 +1,5 @@
 import { CalendarOff } from 'lucide-react';
+import { PageHeader } from '../components/PageHeader';
 import { type FormEvent, useState } from 'react';
 import { Banner, Empty, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
@@ -75,12 +76,11 @@ export function TimeOff({ go }: { go: (to: string) => void }) {
       <button type="button" className="link back" onClick={() => go('/agenda')}>
         ‹ Agenda
       </button>
-      <header className="page-header">
-        <h1>Folgas e bloqueios</h1>
-        <p className="muted">
-          Nesses períodos o robô não oferece horário e a agenda fica fechada para novas marcações.
-        </p>
-      </header>
+      <PageHeader
+        Icon={CalendarOff}
+        title="Folgas e bloqueios"
+        subtitle="Nesses períodos o robô não oferece horário e a agenda fica fechada para novas marcações."
+      />
 
       <NewTimeOff
         timeZone={tz}

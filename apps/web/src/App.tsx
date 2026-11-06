@@ -7,11 +7,12 @@ import {
   UserRound,
   Users,
 } from 'lucide-react';
+import { PageHeader } from './components/PageHeader';
 import { type ReactNode, useEffect } from 'react';
 import './App.css';
 import { MadeByNexo, NexoLogo } from './components/Brand';
 import { OwnerToasts } from './components/OwnerToasts';
-import { Sidebar } from './components/Sidebar';
+import { Sidebar, type SidebarItem } from './components/Sidebar';
 import { Loading } from './components/ui';
 import { api } from './lib/api';
 import { AuthProvider, useAuth } from './lib/auth';
@@ -38,12 +39,38 @@ import { StageRules } from './screens/StageRules';
 import { Team } from './screens/Team';
 import { Today } from './screens/Today';
 
-const NAV: { to: string; label: string; Icon: typeof House; feature?: Feature }[] = [
-  { to: '/hoje', label: 'Hoje', Icon: House },
-  { to: '/agenda', label: 'Agenda', Icon: CalendarDays, feature: 'agenda' },
-  { to: '/clientes', label: 'Clientes', Icon: Users },
-  { to: '/etapas', label: 'Etapas', Icon: SquareKanban },
-  { to: '/resultados', label: 'Resultados', Icon: ChartColumn, feature: 'report' },
+const NAV: (SidebarItem & { feature?: Feature })[] = [
+  { to: '/hoje', label: 'Hoje', Icon: House, hint: 'O resumo do dia e o que precisa de você' },
+  {
+    to: '/agenda',
+    label: 'Agenda',
+    Icon: CalendarDays,
+    feature: 'agenda',
+    group: 'Atendimento',
+    hint: 'Horários marcados por dia, semana ou mês',
+  },
+  {
+    to: '/clientes',
+    label: 'Clientes',
+    Icon: Users,
+    group: 'Atendimento',
+    hint: 'Ficha de cada cliente, frequentes e sumidas',
+  },
+  {
+    to: '/etapas',
+    label: 'Etapas',
+    Icon: SquareKanban,
+    group: 'Atendimento',
+    hint: 'Onde cada cliente está, do contato ao retorno',
+  },
+  {
+    to: '/resultados',
+    label: 'Resultados',
+    Icon: ChartColumn,
+    feature: 'report',
+    group: 'Gestão',
+    hint: 'Números do mês: horários, faltas e retornos',
+  },
 ];
 
 /** Seções que dependem do plano (o servidor também barra). */
@@ -314,9 +341,11 @@ function Account({
 }) {
   return (
     <>
-      <header className="page-header">
-        <h1>Conta</h1>
-      </header>
+      <PageHeader
+        Icon={UserRound}
+        title="Conta"
+        subtitle="Sua senha, o tema da tela e o que mais é seu."
+      />
       {!staff && (
         <section className="section stack">
           <button type="button" className="button button--ghost" onClick={() => go('/configurar')}>

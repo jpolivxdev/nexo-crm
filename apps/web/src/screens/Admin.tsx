@@ -1,4 +1,5 @@
 import { Store } from 'lucide-react';
+import { PageHeader } from '../components/PageHeader';
 import { type FormEvent, useState } from 'react';
 import { Banner, Empty, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
@@ -34,12 +35,11 @@ export function Admin() {
 
   return (
     <>
-      <header className="page-header">
-        <h1>Negócios</h1>
-        <p className="muted">
-          Você vê só os dados de cadastro. Clientes e conversas ficam fechados.
-        </p>
-      </header>
+      <PageHeader
+        Icon={Store}
+        title="Negócios"
+        subtitle="Você vê só os dados de cadastro. Clientes e conversas ficam fechados."
+      />
 
       {created && (
         <section className="card card--attention" aria-labelledby="criado-titulo">

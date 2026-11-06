@@ -1,4 +1,6 @@
+import { Settings } from 'lucide-react';
 import { type FormEvent, type ReactNode, useEffect, useState } from 'react';
+import { PageHeader } from '../components/PageHeader';
 import { Banner, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { useAuth } from '../lib/auth';
@@ -133,12 +135,11 @@ export function Setup({ go }: { go: (to: string) => void }) {
 
   return (
     <>
-      <header className="page-header">
-        <h1>Configurar o negócio</h1>
-        <p className="muted">
-          Passo {step + 1} de {STEPS.length}: {STEPS[step]}
-        </p>
-      </header>
+      <PageHeader
+        Icon={Settings}
+        title="Configurar o negócio"
+        subtitle={`Passo ${step + 1} de ${STEPS.length}: ${STEPS[step]}`}
+      />
       <ol className="steps" aria-label="Passos">
         {STEPS.map((label, i) => (
           <li key={label} aria-current={i === step ? 'step' : undefined}>

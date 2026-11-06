@@ -1,4 +1,5 @@
-import { Check, Sparkles } from 'lucide-react';
+import { Check, CreditCard, Sparkles } from 'lucide-react';
+import { PageHeader } from '../components/PageHeader';
 import { useState } from 'react';
 import { Banner } from '../components/ui';
 import { useAuth } from '../lib/auth';
@@ -69,10 +70,11 @@ export function Plans({ go }: { go: (to: string) => void }) {
       <button type="button" className="link back" onClick={() => go('/conta')}>
         ‹ Conta
       </button>
-      <header className="page-header">
-        <h1>Plano e assinatura</h1>
-        <p className="muted">Escolha como a nexo trabalha para o seu negócio.</p>
-      </header>
+      <PageHeader
+        Icon={CreditCard}
+        title="Plano e assinatura"
+        subtitle="Escolha como a nexo trabalha para o seu negócio."
+      />
       <Banner kind="ok">
         Prévia: os planos e preços ainda estão sendo definidos. Nada é cobrado por enquanto.
       </Banner>

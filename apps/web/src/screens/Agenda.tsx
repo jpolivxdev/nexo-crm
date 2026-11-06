@@ -1,4 +1,5 @@
-import { CalendarX2 } from 'lucide-react';
+import { CalendarDays, CalendarX2 } from 'lucide-react';
+import { PageHeader } from '../components/PageHeader';
 import { useState } from 'react';
 import { AppointmentCard } from '../components/AppointmentCard';
 import { Banner, Empty, Loading } from '../components/ui';
@@ -62,21 +63,25 @@ export function Agenda({ go, staff = false }: { go: (to: string) => void; staff?
 
   return (
     <>
-      <header className="page-header row row--between">
-        <h1>Agenda</h1>
-        <div className="row page-header__actions">
-          {!staff && (
-            <button type="button" className="button button--ghost" onClick={() => go('/folgas')}>
-              Folgas
-            </button>
-          )}
-          {!booking && !staff && (
-            <button type="button" className="button" onClick={() => setBooking(true)}>
-              Marcar horário
-            </button>
-          )}
-        </div>
-      </header>
+      <PageHeader
+        Icon={CalendarDays}
+        title="Agenda"
+        subtitle="Os horários marcados pelo robô e por você, num lugar só."
+        actions={
+          !staff && (
+            <>
+              <button type="button" className="button button--ghost" onClick={() => go('/folgas')}>
+                Folgas
+              </button>
+              {!booking && (
+                <button type="button" className="button" onClick={() => setBooking(true)}>
+                  Marcar horário
+                </button>
+              )}
+            </>
+          )
+        }
+      />
 
       {booking && (
         <BookForm

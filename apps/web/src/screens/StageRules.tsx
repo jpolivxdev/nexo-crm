@@ -1,4 +1,6 @@
+import { Workflow } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
+import { PageHeader } from '../components/PageHeader';
 import { Banner, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { useLoad } from '../lib/hooks';
@@ -79,13 +81,11 @@ function RulesForm({ data, go }: { data: RulesData; go: (to: string) => void }) 
       <button type="button" className="link back" onClick={() => go('/etapas')}>
         ‹ Etapas
       </button>
-      <header className="page-header">
-        <h1>Regras automáticas</h1>
-        <p className="muted">
-          Escolha para qual etapa a cliente vai quando algo acontece. O padrão já funciona; mude só
-          o que fizer sentido para o seu negócio. Você continua podendo mover à mão.
-        </p>
-      </header>
+      <PageHeader
+        Icon={Workflow}
+        title="Regras automáticas"
+        subtitle="Escolha para qual etapa a cliente vai quando algo acontece. O padrão já funciona; mude só o que fizer sentido para o seu negócio. Você continua podendo mover à mão."
+      />
       <form className="form" onSubmit={submit}>
         <ul className="list">
           {data.rules.map((r) => {

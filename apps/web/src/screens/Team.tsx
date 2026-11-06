@@ -1,4 +1,5 @@
 import { UsersRound } from 'lucide-react';
+import { PageHeader } from '../components/PageHeader';
 import { type FormEvent, useState } from 'react';
 import { Banner, Empty, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
@@ -38,13 +39,11 @@ export function Team({ go }: { go: (to: string) => void }) {
       <button type="button" className="link back" onClick={() => go('/conta')}>
         ‹ Conta
       </button>
-      <header className="page-header">
-        <h1>Equipe</h1>
-        <p className="muted">
-          Com mais de uma profissional, o robô pergunta com quem a cliente prefere e só oferece os
-          horários livres de cada uma.
-        </p>
-      </header>
+      <PageHeader
+        Icon={UsersRound}
+        title="Equipe"
+        subtitle="Com mais de uma profissional, o robô pergunta com quem a cliente prefere e só oferece os horários livres de cada uma."
+      />
 
       {current ? (
         <EditProfessional

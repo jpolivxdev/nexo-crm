@@ -1,4 +1,6 @@
+import { MessageSquareText } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
+import { PageHeader } from '../components/PageHeader';
 import { Banner, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { useLoad } from '../lib/hooks';
@@ -155,13 +157,16 @@ function MessagesForm({
       <button type="button" className="link back" onClick={() => go('/conta')}>
         ‹ Conta
       </button>
-      <header className="page-header">
-        <h1>Mensagens do robô</h1>
-        <p className="muted">
-          Escreva do seu jeito. As palavras entre chaves, como {'{servico}'}, viram o nome do
-          serviço, o dia ou a hora na hora de mandar.
-        </p>
-      </header>
+      <PageHeader
+        Icon={MessageSquareText}
+        title="Mensagens do robô"
+        subtitle={
+          <>
+            Escreva do seu jeito. As palavras entre chaves, como {'{servico}'}, viram o nome do
+            serviço, o dia ou a hora na hora de mandar.
+          </>
+        }
+      />
 
       <form className="form" onSubmit={submit}>
         {GROUPS.map((group, i) => (
