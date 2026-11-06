@@ -58,7 +58,7 @@ Ideia do JP: o básico é este sistema no layout do CRM de referência, com as n
 | L3 | Conversas: lista do WhatsApp e conversa aberta, abas Abertas, Esperando você, Novas e Arquivadas; a dona responde pela tela | Em PR (clientes reais dependem da Meta) |
 | L4 | Suporte (abrir chamado, lista, resposta na tela e no sino) e painel interno da nexo para responder | Em PR |
 | L5 | Nex com pergunta livre (Gemini gratuito, atrás do `AiProvider`, sem dado de cliente, limite por negócio) | Em PR (liga com a chave do Gemini) |
-| L6 | Configurações no molde novo: perfil, equipe, modelos de mensagem, segurança (duas etapas para o admin nexo) | A fazer |
+| L6 | Configurações no molde novo: perfil, equipe, modelos de mensagem, segurança (duas etapas para o admin nexo) | Em PR |
 
 Plano mais caro, depois do básico: vários funis, campos próprios, campanhas, previsão de receita, painéis completos (metas, Modo TV), carteira de clientes e contas em risco, importar e exportar contatos, chat interno, wiki, quadro branco, Meu Dia, marca e domínio do cliente, acessos por papel. Os quatro de colaboração só com pedido real de cliente.
 

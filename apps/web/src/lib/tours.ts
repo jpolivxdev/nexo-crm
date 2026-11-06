@@ -39,8 +39,8 @@ const HOJE: TourStep[] = [
   },
   {
     target: '[data-tour="conta"]',
-    title: 'Sua conta',
-    text: 'Senha, tema claro ou escuro, equipe, mensagens do robô e configurações do negócio.',
+    title: 'Configurações',
+    text: 'Seu perfil, senha, tema claro ou escuro, equipe, mensagens do robô e os dados do negócio.',
   },
   {
     target: '[data-tour="nex"]',

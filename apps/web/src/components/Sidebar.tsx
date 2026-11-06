@@ -1,12 +1,4 @@
-import {
-  ChevronsLeft,
-  CreditCard,
-  Headset,
-  LogOut,
-  Settings,
-  UserRound,
-  type LucideIcon,
-} from 'lucide-react';
+import { ChevronsLeft, CreditCard, Headset, LogOut, Settings, type LucideIcon } from 'lucide-react';
 import { useState } from 'react';
 
 /**
@@ -46,14 +38,13 @@ function saveCollapsed(value: boolean): void {
 
 const ACCOUNT: SidebarItem[] = [
   {
-    to: '/configurar',
-    label: 'Configurar o negócio',
+    to: '/conta',
+    label: 'Configurações',
     Icon: Settings,
-    hint: 'Serviços, horários, equipe e dúvidas',
+    hint: 'Perfil, segurança, equipe e mensagens do robô',
   },
   { to: '/assinatura', label: 'Plano e assinatura', Icon: CreditCard, hint: 'Seu plano atual' },
   { to: '/suporte', label: 'Suporte', Icon: Headset, hint: 'Abrir um chamado para a nexo' },
-  { to: '/conta', label: 'Conta', Icon: UserRound, hint: 'Senha, tema e atalhos' },
 ];
 
 export function Sidebar({
