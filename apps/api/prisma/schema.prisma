@@ -617,3 +617,23 @@ model SupportMessage {
   @@index([ticketId, createdAt])
   @@map("support_messages")
 }
+
+// ---------- IA (Nex, guia de uso) ----------
+
+/// Uso da IA por negócio: só contagem e tokens, nunca o texto da pergunta ou da resposta.
+model AiUsage {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  /// Recurso que usou a IA (ex.: "nex").
+  feature      String
+  provider     String
+  model        String
+  inputTokens  Int      @default(0) @map("input_tokens")
+  outputTokens Int      @default(0) @map("output_tokens")
+  /// Deu certo, recusada pelo limite ou falhou no provedor.
+  outcome      String
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([tenantId, createdAt])
+  @@map("ai_usage")
+}

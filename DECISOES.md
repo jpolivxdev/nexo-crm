@@ -310,3 +310,17 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Banco** (`support_tickets` e `support_messages`, migração `20261106220000_suporte`): `tenant_id` e RLS forçado como o resto. A política aceita o negócio da sessão ou `app.support_admin = on`, que só o `SupportService` liga, dentro da transação do painel da nexo. Assim o admin lê os chamados sem abrir nenhuma outra tabela do negócio. Sem DELETE para a aplicação (histórico do atendimento).
 - **Privacidade:** o formulário pede para não colocar dado de cliente. O chamado é conversa entre o negócio e a nexo, não dado do cliente final.
 - **Em aberto:** e-mail para a nexo quando chega chamado novo depende do provedor de e-mail de produção (PENDENCIAS.md, item do provedor).
+
+## Layout novo, fase 5: Nex com pergunta livre (06/11/2026)
+
+- **O que faz:** a dona escreve a dúvida no Nex ("como fecho um dia de folga?") e recebe o caminho na tela. Só sobre como usar o painel; fora disso, o Nex manda abrir um chamado. Os atalhos e os tours continuam.
+- **Provedor:** Gemini pela API REST (`generateContent`), atrás de `AiProvider` (`apps/api/src/assistant/ai-provider.ts`). Trocar de modelo ou de provedor não mexe no resto. Modelo padrão `gemini-3.1-flash-lite` (o mais barato da camada gratuita, segundo artigo de terceiros; confirmar no AI Studio) e configurável em `GEMINI_MODEL`.
+- **Sem chave, sem IA:** sem `GEMINI_API_KEY` a caixa de pergunta nem aparece e a rota responde 503. Nada muda para quem não liga.
+- **Privacidade (fato, termos do Gemini de 28/04/2026):** na camada gratuita o Google pode usar o que é enviado para melhorar produtos e pessoas podem ler; os termos pedem para não mandar dado pessoal ou sensível, exigem 18 anos e não permitem a camada gratuita para quem atende usuários no Espaço Econômico Europeu, Suíça ou Reino Unido. Por isso:
+  - vai só a pergunta da dona e um manual fixo das telas (`manual.ts`), nunca dado do negócio ou das clientes;
+  - antes de sair, o servidor troca e-mails e sequências de 8 dígitos ou mais (telefone, CPF) por `[e-mail]` e `[número]`;
+  - a tela avisa para não escrever nome, telefone ou dado de cliente e que a pergunta vai para o Google;
+  - o histórico mandado junto é só a conversa daquela janela (até 4 falas), que some ao recarregar. Nada do texto é guardado no banco.
+- **Limite e custo:** `NEX_DAILY_LIMIT` respostas por negócio por dia (padrão 30). Cada chamada fica em `ai_usage` (migração `20261106230000_nex_uso`): negócio, provedor, modelo, tokens e resultado (`ok`, `limit`, `provider_limit`, `error`), sem o texto. RLS por negócio. Serve para medir o custo quando passar para a camada paga.
+- **Exceção ao princípio 5** ("IA só em plano pago"), já anotada na fase 1: o guia de uso não toca em dado do negócio e custa zero na camada gratuita. Se o Google mudar a camada gratuita, o Nex volta a só atalhos tirando a chave.
+- **Em aberto:** criar a chave da nexo no AI Studio (conta de quem?) e decidir se, com clientes pagantes, passamos para a camada paga (os dados deixam de ser usados para treino). Anotado em PENDENCIAS.md.

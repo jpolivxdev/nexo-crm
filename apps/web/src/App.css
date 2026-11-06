@@ -3290,6 +3290,56 @@ input[type='time'] {
   background: var(--cor-suave);
 }
 
+.nex__chat {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nex__msg {
+  align-self: flex-start;
+  max-width: 90%;
+  padding: 8px 12px;
+  border-radius: 12px 12px 12px 4px;
+  background: var(--cor-suave);
+  white-space: pre-wrap;
+  font-size: 0.9375rem;
+}
+
+.nex__msg--eu {
+  align-self: flex-end;
+  border-radius: 12px 12px 4px 12px;
+  background: var(--roxo-nexo);
+  color: var(--branco);
+}
+
+.nex__ask {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.nex__ask textarea {
+  min-height: var(--toque-minimo);
+  resize: vertical;
+  font: inherit;
+}
+
+.nex__ask .button {
+  align-self: end;
+  min-width: var(--toque-minimo);
+  padding: 0 12px;
+}
+
+.nex__ask > p {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
 @media (min-width: 1024px) {
   .nex__button {
     right: 24px;
