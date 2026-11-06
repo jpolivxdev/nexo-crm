@@ -61,6 +61,29 @@ afterEach(() => {
 });
 
 describe('painel', () => {
+  it('sino mostra o que aconteceu; bússola abre o tour da tela; Nex fica no canto', async () => {
+    window.location.hash = '/hoje';
+    mockApi((url) => {
+      if (url.endsWith('/auth/me')) return { status: 200, body: ME };
+      if (url.includes('/panel/today')) return { status: 200, body: TODAY };
+      return { status: 404, body: {} };
+    });
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('heading', { name: 'Seu dia de hoje' });
+
+    await user.click(screen.getByRole('button', { name: 'Avisos' }));
+    const panel = await screen.findByRole('region', { name: 'Avisos' });
+    expect(await within(panel).findByRole('button', { name: 'Cliente Teste' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Ver o tour desta tela' }));
+    expect(await screen.findByRole('dialog', { name: 'Boas-vindas' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Pular tour' }));
+    expect(screen.queryByRole('dialog', { name: 'Boas-vindas' })).toBeNull();
+
+    expect(screen.getByRole('button', { name: 'Nex, guia de uso' })).toBeInTheDocument();
+  });
+
   it('sem sessão, mostra o login e entra com e-mail e senha', async () => {
     window.location.hash = '/entrar';
     let logged = false;
@@ -184,6 +207,8 @@ describe('painel', () => {
 
     const { container } = render(<App />);
     expect(await screen.findByText('<img src=x onerror=alert(1)>')).toBeInTheDocument();
-    expect(container.querySelector('img')).toBeNull();
+    // Só a foto do Nex (arquivo nosso) pode ser imagem; o texto da cliente nunca vira tag.
+    expect(container.querySelector('main img')).toBeNull();
+    expect(container.querySelector('img[src="x"]')).toBeNull();
   });
 });

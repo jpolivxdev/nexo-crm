@@ -57,7 +57,7 @@ export function Today({ go, staff = false }: { go: (to: string) => void; staff?:
   return (
     <>
       <PageHeader Icon={House} title="Seu dia de hoje" subtitle={localDateLabel(data.date)} />
-      <dl className="kpis" aria-label="Resumo do dia">
+      <dl className="kpis" aria-label="Resumo do dia" data-tour="resumo">
         <Kpi label="Horários" value={active.length} Icon={CalendarDays} />
         {!staff && (
           <>
@@ -241,7 +241,7 @@ function Kpi({
   );
 }
 
-function Activity({
+export function Activity({
   item,
   timeZone,
   go,

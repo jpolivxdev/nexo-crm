@@ -1,6 +1,7 @@
 import {
   CalendarDays,
   ChartColumn,
+  Compass,
   House,
   LogOut,
   SquareKanban,
@@ -8,16 +9,20 @@ import {
   Users,
 } from 'lucide-react';
 import { PageHeader } from './components/PageHeader';
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import './App.css';
+import { Bell } from './components/Bell';
 import { MadeByNexo, NexoLogo } from './components/Brand';
+import { Nex, type NexTopic } from './components/Nex';
 import { OwnerToasts } from './components/OwnerToasts';
 import { Sidebar, type SidebarItem } from './components/Sidebar';
+import { Tour } from './components/Tour';
 import { Loading } from './components/ui';
 import { api } from './lib/api';
 import { AuthProvider, useAuth } from './lib/auth';
 import { time } from './lib/format';
 import { useRoute } from './lib/hooks';
+import { markTourSeen, tourFor, tourSeen } from './lib/tours';
 import { setThemePref, type ThemePref, useThemePref } from './lib/theme';
 import type { Feature, Me } from './lib/types';
 import { Admin } from './screens/Admin';
@@ -79,6 +84,14 @@ const SECTION_FEATURE: Record<string, { feature: Feature; name: string }> = {
   '/folgas': { feature: 'agenda', name: 'Folgas e bloqueios' },
   '/resultados': { feature: 'report', name: 'Resultados' },
 };
+
+/** Atalhos do Nex: cada um abre a tela e o tour dela. */
+const NEX_TOPICS: NexTopic[] = [
+  { label: 'Como marcar um horário', to: '/agenda' },
+  { label: 'Onde vejo minhas clientes', to: '/clientes' },
+  { label: 'Como mudar a etapa de uma cliente', to: '/etapas' },
+  { label: 'Onde vejo meus números', to: '/resultados' },
+];
 
 export function App() {
   return (
@@ -188,6 +201,22 @@ function Panel({ me }: { me: Me }) {
     staff && !['/hoje', '/agenda', '/conta'].includes(rawSection) ? '/hoje' : rawSection;
   const contactMatch = staff ? null : /^\/clientes\/([0-9a-f-]{36})$/.exec(route);
 
+  // Tour guiado: abre sozinho uma vez por aparelho (fora dos testes) e pela bússola do topo.
+  const [touring, setTouring] = useState(
+    () => import.meta.env.MODE !== 'test' && !tourSeen() && !me.acting,
+  );
+  function closeTour() {
+    markTourSeen();
+    setTouring(false);
+  }
+  function openTour(to?: string) {
+    if (to && to !== section) go(to);
+    // Espera a tela nova aparecer antes de procurar as partes que o tour destaca.
+    window.setTimeout(() => setTouring(true), to && to !== section ? 300 : 0);
+  }
+  const allowed = new Set(nav.map((n) => n.to));
+  const nexTopics = NEX_TOPICS.filter((t) => allowed.has(t.to));
+
   return (
     <div className="app app--with-nav">
       <Sidebar
@@ -213,10 +242,21 @@ function Panel({ me }: { me: Me }) {
             <span className="appbar__eyebrow">Seu painel</span>
             <strong>{me.businessName ?? 'nexo'}</strong>
           </div>
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Ver o tour desta tela"
+            data-tour="tour"
+            onClick={() => openTour()}
+          >
+            <Compass aria-hidden="true" size={22} />
+          </button>
+          {!staff && <Bell go={go} />}
           <a
             href="#/conta"
             className={section === '/conta' ? 'icon-button on' : 'icon-button'}
             aria-label="Conta"
+            data-tour="conta"
           >
             <UserRound aria-hidden="true" size={22} />
           </a>
@@ -281,6 +321,8 @@ function Panel({ me }: { me: Me }) {
         )}
       </main>
       <MadeByNexo />
+      <Nex topics={nexTopics} onTour={openTour} />
+      {touring && <Tour key={section} steps={tourFor(section)} onClose={closeTour} />}
       <nav className="tabbar" aria-label="Seções do painel">
         {nav.map(({ to, label, Icon }) => (
           <a
