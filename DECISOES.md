@@ -301,3 +301,12 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Rotas:** `GET /panel/conversations?tab=&q=`, `GET /panel/conversations/:id` (últimas 100 mensagens) e `POST /panel/conversations/:id/archive`. Só a dona; sem trava de plano, como a ficha. Cliente com dados excluídos (LGPD) não aparece.
 - O aviso "Uma cliente quer falar com você" agora leva para Conversas.
 - Com a Meta travada, a tela funciona com o simulador; com clientes reais, depois que a conta da Meta liberar.
+
+## Layout novo, fase 4: Suporte e painel da nexo (06/11/2026)
+
+- **Lado do negócio** (menu Conta → Suporte; no celular, pela tela Conta): abrir chamado com assunto (lista fechada), resumo e o que aconteceu; lista com a situação escrita (Com a nexo, Respondido, Resolvido); conversa do chamado; "Marcar como resolvido". Escrever de novo reabre. Só a dona (e o admin numa entrada registrada); a profissional da equipe não vê.
+- **Aviso:** resposta da nexo acende o ponto do sino e aparece no topo dele ("A nexo respondeu seu chamado"), com aviso em tempo real (`support.updated`). O aviso não leva o texto, só o id.
+- **Painel da nexo** (admin, com 2FA): Negócios | Suporte. Filtros Esperando a nexo, Esperando a dona, Resolvidos e Todos, com o nome do negócio pelo diretório. Responder, resolver e reabrir.
+- **Banco** (`support_tickets` e `support_messages`, migração `20261106220000_suporte`): `tenant_id` e RLS forçado como o resto. A política aceita o negócio da sessão ou `app.support_admin = on`, que só o `SupportService` liga, dentro da transação do painel da nexo. Assim o admin lê os chamados sem abrir nenhuma outra tabela do negócio. Sem DELETE para a aplicação (histórico do atendimento).
+- **Privacidade:** o formulário pede para não colocar dado de cliente. O chamado é conversa entre o negócio e a nexo, não dado do cliente final.
+- **Em aberto:** e-mail para a nexo quando chega chamado novo depende do provedor de e-mail de produção (PENDENCIAS.md, item do provedor).

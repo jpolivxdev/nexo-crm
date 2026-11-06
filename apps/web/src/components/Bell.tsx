@@ -1,4 +1,4 @@
-import { Bell as BellIcon, History } from 'lucide-react';
+import { Bell as BellIcon, Headset, History } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { api } from '../lib/api';
 import { useRealtime } from '../lib/hooks';
@@ -16,15 +16,42 @@ export function Bell({ go }: { go: (to: string) => void }) {
   const [fresh, setFresh] = useState(false);
   const [data, setData] = useState<Today | null>(null);
   const [error, setError] = useState(false);
+  // Respostas da nexo nos chamados de suporte que a dona ainda não abriu.
+  const [support, setSupport] = useState(0);
   const wrap = useRef<HTMLDivElement>(null);
   const panelId = useId();
 
   useRealtime((notice) => {
-    if (alertText(notice)) setFresh(true);
+    if (alertText(notice) || notice.type === 'support.updated') setFresh(true);
+    if (notice.type === 'support.updated') void loadSupport();
     if (open) void load();
   });
 
+  async function loadSupport() {
+    try {
+      setSupport((await api<{ count: number }>('/panel/support/unread')).count);
+    } catch {
+      // sem suporte (versão antiga da API): o sino continua só com o que aconteceu
+    }
+  }
+
+  // Ao abrir o painel: resposta da nexo esperando também acende o ponto.
+  useEffect(() => {
+    let alive = true;
+    void api<{ count: number }>('/panel/support/unread')
+      .then((r) => {
+        if (!alive) return;
+        setSupport(r.count);
+        if (r.count > 0) setFresh(true);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   async function load() {
+    void loadSupport();
     try {
       setData(await api<Today>('/panel/today'));
       setError(false);
@@ -79,6 +106,14 @@ export function Bell({ go }: { go: (to: string) => void }) {
       </button>
       {open && (
         <div id={panelId} className="bell__panel" role="region" aria-label="Avisos">
+          {support > 0 && (
+            <button type="button" className="bell__support" onClick={() => goAndClose('/suporte')}>
+              <Headset aria-hidden="true" size={18} />
+              {support === 1
+                ? 'A nexo respondeu seu chamado.'
+                : `A nexo respondeu ${support} chamados.`}
+            </button>
+          )}
           <p className="bell__title">O que aconteceu</p>
           {error ? (
             <p className="muted">Não foi possível carregar os avisos agora.</p>

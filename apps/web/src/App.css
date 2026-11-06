@@ -3632,3 +3632,76 @@ input[type='time'] {
     overflow-y: auto;
   }
 }
+
+/* Suporte */
+.support-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--cor-texto);
+  text-decoration: none;
+}
+
+.support-row__main {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.support-row__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--roxo-nexo);
+  flex: none;
+}
+
+.support-chat .bubble strong {
+  display: block;
+}
+
+.support-chat {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* Admin: Negócios | Suporte */
+.admin-nav {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.admin-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--branco);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.admin-nav a[aria-current='page'] {
+  background: rgb(255 255 255 / 16%);
+}
+
+.bell__support {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--toque-minimo);
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-suave);
+  color: var(--cor-texto);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}

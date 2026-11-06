@@ -27,6 +27,8 @@ import { markTourSeen, tourFor, tourSeen } from './lib/tours';
 import { setThemePref, type ThemePref, useThemePref } from './lib/theme';
 import type { Feature, Me } from './lib/types';
 import { Admin } from './screens/Admin';
+import { AdminSupport } from './screens/AdminSupport';
+import { Support } from './screens/Support';
 import { Alerts } from './screens/Alerts';
 import { Agenda } from './screens/Agenda';
 import { ChangePassword } from './screens/ChangePassword';
@@ -101,6 +103,7 @@ const NEX_TOPICS: NexTopic[] = [
   { label: 'Onde vejo minhas clientes', to: '/clientes' },
   { label: 'Como mudar a etapa de uma cliente', to: '/etapas' },
   { label: 'Onde vejo meus números', to: '/resultados' },
+  { label: 'Como falo com a nexo', to: '/suporte' },
 ];
 
 export function App() {
@@ -152,6 +155,8 @@ function Shell() {
     );
   }
   if (me.role === 'NEXO_ADMIN' && !me.acting) {
+    const adminSupport = raw.startsWith('/suporte');
+    const ticket = /^\/suporte\/([0-9a-f-]{36})$/.exec(raw)?.[1] ?? null;
     return (
       <div className="app">
         <header className="appbar">
@@ -169,9 +174,21 @@ function Shell() {
               <LogOut aria-hidden="true" size={22} />
             </button>
           </div>
+          <nav className="admin-nav" aria-label="Área do admin">
+            <a href="#/admin" aria-current={adminSupport ? undefined : 'page'}>
+              Negócios
+            </a>
+            <a href="#/suporte" aria-current={adminSupport ? 'page' : undefined}>
+              Suporte
+            </a>
+          </nav>
         </header>
         <main>
-          <Admin />
+          {adminSupport ? (
+            <AdminSupport id={ticket} go={(to) => (window.location.hash = to)} />
+          ) : (
+            <Admin />
+          )}
         </main>
       </div>
     );
@@ -211,6 +228,7 @@ function Panel({ me }: { me: Me }) {
     staff && !['/hoje', '/agenda', '/conta'].includes(rawSection) ? '/hoje' : rawSection;
   const contactMatch = staff ? null : /^\/clientes\/([0-9a-f-]{36})$/.exec(route);
   const conversationMatch = /^\/conversas\/([0-9a-f-]{36})$/.exec(route);
+  const supportMatch = /^\/suporte\/([0-9a-f-]{36})$/.exec(route);
 
   // Tour guiado: abre sozinho uma vez por aparelho (fora dos testes) e pela bússola do topo.
   const [touring, setTouring] = useState(
@@ -225,7 +243,7 @@ function Panel({ me }: { me: Me }) {
     // Espera a tela nova aparecer antes de procurar as partes que o tour destaca.
     window.setTimeout(() => setTouring(true), to && to !== section ? 300 : 0);
   }
-  const allowed = new Set(nav.map((n) => n.to));
+  const allowed = new Set([...nav.map((n) => n.to), ...(staff ? [] : ['/suporte'])]);
   const nexTopics = NEX_TOPICS.filter((t) => allowed.has(t.to));
 
   return (
@@ -321,6 +339,8 @@ function Panel({ me }: { me: Me }) {
           <Account go={go} acting={Boolean(me.acting)} staff={staff} />
         ) : section === '/agenda' ? (
           <Agenda go={go} staff={staff} />
+        ) : section === '/suporte' && !staff ? (
+          <Support id={supportMatch?.[1] ?? null} go={go} />
         ) : section === '/conversas' ? (
           <Conversations id={conversationMatch?.[1] ?? null} go={go} />
         ) : section === '/clientes' ? (
@@ -420,6 +440,9 @@ function Account({
           </button>
           <button type="button" className="button button--ghost" onClick={() => go('/assinatura')}>
             Plano e assinatura
+          </button>
+          <button type="button" className="button button--ghost" onClick={() => go('/suporte')}>
+            Suporte (falar com a nexo)
           </button>
         </section>
       )}

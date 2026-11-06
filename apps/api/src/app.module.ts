@@ -1,6 +1,7 @@
 import { type DynamicModule, Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
 import { ENV, type Env } from './config/env.js';
+import { SupportModule } from './support/support.module.js';
 import { AdminModule } from './admin/admin.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ChannelModule } from './channel/channel.module.js';
@@ -33,6 +34,7 @@ export class AppModule {
         PanelModule,
         SetupModule,
         AdminModule,
+        SupportModule,
         ReminderModule,
       ],
       controllers: [HealthController],

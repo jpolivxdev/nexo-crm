@@ -5,7 +5,12 @@ import { z } from 'zod';
 
 /** Aviso leve para o painel atualizar sozinho. Nunca carrega dado pessoal, só o que mudou. */
 export interface RealtimeNotice {
-  type: 'agenda.changed' | 'conversation.updated' | 'handoff.requested' | 'contact.updated';
+  type:
+    | 'agenda.changed'
+    | 'conversation.updated'
+    | 'handoff.requested'
+    | 'contact.updated'
+    | 'support.updated';
   id?: string;
   /** Mudança feita pela cliente (WhatsApp) que merece um aviso na tela da dona. */
   alert?: OwnerAlert;
@@ -23,6 +28,7 @@ const wireSchema = z.object({
       'conversation.updated',
       'handoff.requested',
       'contact.updated',
+      'support.updated',
     ]),
     id: z.uuid().optional(),
     alert: z.enum(OWNER_ALERTS).optional(),

@@ -1,6 +1,7 @@
 import {
   ChevronsLeft,
   CreditCard,
+  Headset,
   LogOut,
   Settings,
   UserRound,
@@ -51,6 +52,7 @@ const ACCOUNT: SidebarItem[] = [
     hint: 'Serviços, horários, equipe e dúvidas',
   },
   { to: '/assinatura', label: 'Plano e assinatura', Icon: CreditCard, hint: 'Seu plano atual' },
+  { to: '/suporte', label: 'Suporte', Icon: Headset, hint: 'Abrir um chamado para a nexo' },
   { to: '/conta', label: 'Conta', Icon: UserRound, hint: 'Senha, tema e atalhos' },
 ];
 

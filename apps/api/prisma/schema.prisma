@@ -65,6 +65,7 @@ model Tenant {
   contacts      Contact[]
   pipelines     Pipeline[]
   channelRoutes ChannelRoute[]
+  supportTickets SupportTicket[]
 
   @@map("tenants")
 }
@@ -562,4 +563,57 @@ model AuditLog {
 
   @@index([tenantId, createdAt])
   @@map("audit_logs")
+}
+
+// ---------- Suporte (negócio ↔ nexo) ----------
+
+enum SupportStatus {
+  /// Aberto, esperando a nexo.
+  OPEN
+  /// A nexo respondeu; esperando a dona.
+  ANSWERED
+  /// Resolvido.
+  CLOSED
+}
+
+/// Chamado aberto pelo negócio para a nexo. RLS: o negócio vê só os seus; o painel de suporte da
+/// nexo lê todos com `app.support_admin` ligado na transação (nunca dado de cliente final).
+model SupportTicket {
+  id          String        @id @default(uuid()) @db.Uuid
+  tenantId    String        @map("tenant_id") @db.Uuid
+  createdById String        @map("created_by_id") @db.Uuid
+  /// Assunto escolhido numa lista fechada.
+  topic       String
+  /// Resumo em uma linha.
+  subject     String
+  description String
+  status      SupportStatus @default(OPEN)
+  /// Tem resposta da nexo que a dona ainda não viu.
+  ownerUnread Boolean       @default(false) @map("owner_unread")
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant   Tenant           @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  messages SupportMessage[]
+
+  @@unique([tenantId, id])
+  @@index([status, updatedAt(sort: Desc)])
+  @@map("support_tickets")
+}
+
+model SupportMessage {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  ticketId   String   @map("ticket_id") @db.Uuid
+  /// "owner" (o negócio) ou "nexo".
+  authorType String   @map("author_type")
+  authorId   String   @map("author_id") @db.Uuid
+  authorName String   @map("author_name")
+  body       String
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  ticket SupportTicket @relation(fields: [tenantId, ticketId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([ticketId, createdAt])
+  @@map("support_messages")
 }
