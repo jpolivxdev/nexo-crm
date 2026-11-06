@@ -20,8 +20,11 @@ datasource db {
 
 // ---------- Negócio e acesso ----------
 
+/// Grátis (CRM básico), CRM e Completo (CRM + agenda + robô). O que cada um libera: @nexo/core.
 enum Plan {
-  BASIC
+  FREE
+  CRM
+  COMPLETE
 }
 
 /// Negócio (tenant).
@@ -31,7 +34,7 @@ model Tenant {
   /// Nicho do negócio, usado para escolher o modelo de etapas (ex.: "cilios").
   niche     String
   timezone  String   @default("America/Sao_Paulo")
-  plan      Plan     @default(BASIC)
+  plan      Plan     @default(COMPLETE)
   /// Recursos liberados além do plano (feature flags).
   features  String[] @default([])
   /// Mensagens do robô editáveis pelo dono. Vazio = padrão do sistema.
@@ -156,6 +159,7 @@ model TenantDirectory {
   id                    String    @id @db.Uuid
   name                  String
   niche                 String
+  plan                  Plan      @default(COMPLETE)
   createdAt             DateTime  @map("created_at") @db.Timestamptz
   onboardingStartedAt   DateTime? @map("onboarding_started_at") @db.Timestamptz
   onboardingCompletedAt DateTime? @map("onboarding_completed_at") @db.Timestamptz

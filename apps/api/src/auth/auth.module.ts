@@ -5,6 +5,7 @@ import { AccountService } from './account.service.js';
 import { AuditService } from './audit.service.js';
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
+import { PlanGuard } from './plan.guard.js';
 import { AdminGuard, SessionGuard, TenantGuard } from './session.guard.js';
 
 @Global()
@@ -17,8 +18,9 @@ import { AdminGuard, SessionGuard, TenantGuard } from './session.guard.js';
     SessionGuard,
     TenantGuard,
     AdminGuard,
+    PlanGuard,
     { provide: MAILER, useFactory: (env: Env) => createMailer(env), inject: [ENV] },
   ],
-  exports: [AuthService, AuditService, SessionGuard, TenantGuard, AdminGuard, MAILER],
+  exports: [AuthService, AuditService, SessionGuard, TenantGuard, AdminGuard, PlanGuard, MAILER],
 })
 export class AuthModule {}

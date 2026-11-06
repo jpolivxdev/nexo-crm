@@ -1,0 +1,68 @@
+import { render, screen, within } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { App } from './App';
+
+const ME = {
+  name: 'Ana (demo)',
+  role: 'OWNER',
+  csrfToken: 'csrf-teste',
+  mustChangePassword: false,
+  businessName: 'Estúdio Exemplo (demo)',
+  onboardingPending: false,
+  acting: null,
+};
+
+const TODAY = {
+  date: '2031-01-15',
+  timeZone: 'America/Sao_Paulo',
+  appointments: [],
+  handoffs: [],
+  tasks: [],
+  counts: { appointments: 0, done: 0, noShow: 0, handoffs: 0, tasks: 0 },
+};
+
+function mockApi(me: object) {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      const body = url.endsWith('/auth/me') ? me : url.includes('/panel/today') ? TODAY : {};
+      return new Response(JSON.stringify(body), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }),
+  );
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  window.location.hash = '';
+});
+
+describe('o painel segue o plano do negócio', () => {
+  it('plano Grátis: some Agenda e Resultados do menu; abrir pelo link mostra o aviso', async () => {
+    mockApi({ ...ME, plan: 'FREE', features: [] });
+    window.location.hash = '#/agenda';
+    render(<App />);
+    expect(
+      await screen.findByRole('heading', { name: 'A agenda não faz parte do seu plano' }),
+    ).toBeInTheDocument();
+    // Menu lateral (computador) e barra de baixo (celular) seguem a mesma regra.
+    for (const nav of screen.getAllByRole('navigation', { name: 'Seções do painel' })) {
+      expect(within(nav).queryByRole('link', { name: /Agenda/ })).toBeNull();
+      expect(within(nav).queryByRole('link', { name: /Resultados/ })).toBeNull();
+      expect(within(nav).getByRole('link', { name: /Clientes/ })).toBeInTheDocument();
+    }
+    expect(screen.getByRole('button', { name: 'Ver planos' })).toBeInTheDocument();
+  });
+
+  it('a tela de planos marca o plano atual do negócio', async () => {
+    mockApi({ ...ME, plan: 'CRM', features: ['report'] });
+    window.location.hash = '#/assinatura';
+    render(<App />);
+    const crm = await screen.findByRole('listitem', { name: 'CRM' });
+    expect(within(crm).getByRole('button', { name: 'Seu plano atual' })).toBeInTheDocument();
+    const completo = screen.getByRole('listitem', { name: 'Completo' });
+    expect(within(completo).getByRole('button', { name: 'Em breve' })).toBeInTheDocument();
+  });
+});

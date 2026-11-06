@@ -17,6 +17,7 @@ import {
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
+import { PlanGuard, RequiresFeature } from '../auth/plan.guard.js';
 import { interval, map, merge, Observable } from 'rxjs';
 import type { z } from 'zod';
 import type { AuthedRequest } from '../auth/auth.types.js';
@@ -56,7 +57,7 @@ const uuid = new ParseUUIDPipe({ version: '4' });
 
 /** Painel do negócio. O negócio vem sempre da sessão (req.auth.tenantId). */
 @Controller('panel')
-@UseGuards(SessionGuard, TenantGuard)
+@UseGuards(SessionGuard, TenantGuard, PlanGuard)
 @UseFilters(SchedulingErrorFilter)
 export class PanelController {
   constructor(
@@ -92,12 +93,14 @@ export class PanelController {
     return this.panel.today(this.tenant(req), new Date(), await this.staffScope(req));
   }
 
+  @RequiresFeature('report')
   @Get('report')
   report(@Req() req: AuthedRequest, @Query() query: unknown) {
     const { days } = parse(reportQuery, query);
     return this.reports.summary(this.tenant(req), days);
   }
 
+  @RequiresFeature('agenda')
   @Get('agenda')
   @AllowStaff()
   async agenda(@Req() req: AuthedRequest, @Query() query: unknown) {
@@ -110,6 +113,7 @@ export class PanelController {
     return this.panel.services(this.tenant(req));
   }
 
+  @RequiresFeature('agenda')
   @Get('slots')
   async slots(@Req() req: AuthedRequest, @Query() query: unknown) {
     const { serviceId, date } = parse(slotsQuery, query);
@@ -117,6 +121,7 @@ export class PanelController {
     return slots.map((s) => ({ startsAt: s.startsAt, endsAt: s.endsAt }));
   }
 
+  @RequiresFeature('agenda')
   @Post('appointments')
   book(@Req() req: AuthedRequest, @Body() body: unknown) {
     const input = parse(bookBody, body);
@@ -129,6 +134,7 @@ export class PanelController {
     });
   }
 
+  @RequiresFeature('agenda')
   @Post('appointments/:id/status')
   @HttpCode(200)
   @AllowStaff()
@@ -139,6 +145,7 @@ export class PanelController {
     return this.scheduling.setStatus(this.tenant(req), id, status, this.actor(req));
   }
 
+  @RequiresFeature('agenda')
   @Post('appointments/:id/reschedule')
   @HttpCode(200)
   reschedule(@Req() req: AuthedRequest, @Param('id', uuid) id: string, @Body() body: unknown) {

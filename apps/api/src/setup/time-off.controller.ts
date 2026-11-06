@@ -13,13 +13,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { AuthedRequest } from '../auth/auth.types.js';
+import { PlanGuard, RequiresFeature } from '../auth/plan.guard.js';
 import { SessionGuard, TenantGuard } from '../auth/session.guard.js';
 import { timeOffBody } from './setup.schemas.js';
 import { TimeOffService } from './time-off.service.js';
 
 /** Folgas e bloqueios. O negócio vem sempre da sessão. */
 @Controller('panel/time-off')
-@UseGuards(SessionGuard, TenantGuard)
+@UseGuards(SessionGuard, TenantGuard, PlanGuard)
+@RequiresFeature('agenda')
 export class TimeOffController {
   constructor(@Inject(TimeOffService) private readonly timeOff: TimeOffService) {}
 

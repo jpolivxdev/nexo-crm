@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { type Feature, featuresOf, type PlanId } from '@nexo/core';
 import { AuditService } from '../auth/audit.service.js';
 import { ACTING_MS, AuthService } from '../auth/auth.service.js';
 import type { AuthContext } from '../auth/auth.types.js';
@@ -65,6 +66,32 @@ export class AdminService {
       metadata: { niche: input.niche },
     });
     return { tenantId, ownerEmail: email, temporaryPassword };
+  }
+
+  /**
+   * Plano do negócio. Não lê dado de cliente, então não precisa de entrada controlada; o
+   * admin já entrou com 2FA. Fica na auditoria do próprio negócio.
+   */
+  async setPlan(
+    admin: AuthContext,
+    tenantId: string,
+    input: { plan: PlanId; features: Feature[] },
+    ip: string | null,
+  ) {
+    const exists = await this.db.client.tenantDirectory.findUnique({ where: { id: tenantId } });
+    if (!exists) throw new NotFoundException('Negócio não encontrado.');
+    const features = [...new Set(input.features)];
+    await this.db.withTenant(tenantId, (tx) =>
+      tx.tenant.update({ where: { id: tenantId }, data: { plan: input.plan, features } }),
+    );
+    await this.audit.record({
+      tenantId,
+      actorUserId: admin.userId,
+      action: 'admin.plan_changed',
+      ip,
+      metadata: { from: exists.plan, to: input.plan, features },
+    });
+    return { plan: input.plan, features: featuresOf(input.plan, features) };
   }
 
   /**

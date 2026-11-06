@@ -80,6 +80,39 @@ describe('admin nexo, senha provisória e assistente de configuração', () => {
     };
   }
 
+  it('troca o plano do negócio, aparece na lista, vai para a auditoria e trava as rotas', async () => {
+    const { admin, tenantId, ownerEmail, temporaryPassword } = await createBusiness();
+    expect(
+      (await admin.get('/admin/tenants')).body.find((x: { id: string }) => x.id === tenantId),
+    ).toMatchObject({ plan: 'COMPLETE' });
+
+    expect((await admin.put(`/admin/tenants/${tenantId}/plan`, { plan: 'OURO' })).status).toBe(400);
+    const changed = await admin.put(`/admin/tenants/${tenantId}/plan`, {
+      plan: 'CRM',
+      features: ['agenda'],
+    });
+    expect(changed.status).toBe(200);
+    expect(changed.body).toEqual({ plan: 'CRM', features: ['report', 'agenda'] });
+    expect(
+      (await admin.get('/admin/tenants')).body.find((x: { id: string }) => x.id === tenantId),
+    ).toMatchObject({ plan: 'CRM' });
+
+    const audit = await withTenant(prisma, tenantId, (tx) =>
+      tx.auditLog.findMany({ where: { action: 'admin.plan_changed' } }),
+    );
+    expect(audit).toHaveLength(1);
+    expect(audit[0]!.metadata).toMatchObject({ from: 'COMPLETE', to: 'CRM' });
+
+    // A dona vê o plano e os recursos; a trava em si é testada em plans.test.ts.
+    const first = await login(ownerEmail, temporaryPassword);
+    expect(first.res.body).toMatchObject({ plan: 'CRM', features: ['report', 'agenda'] });
+
+    // Dona não troca plano: a rota é só do admin nexo.
+    expect(
+      (await as(first).put(`/admin/tenants/${tenantId}/plan`, { plan: 'COMPLETE' })).status,
+    ).toBe(403);
+  });
+
   it('cria o negócio com senha provisória; a dona troca a senha antes de usar o painel', async () => {
     const { ownerEmail, temporaryPassword } = await createBusiness();
     const first = await login(ownerEmail, temporaryPassword);

@@ -99,6 +99,7 @@ export function Admin() {
                 <p className="muted small">
                   Criado em {dateTime(t.createdAt, ADMIN_TZ)} · {onboardingText(t)}
                 </p>
+                {t.plan && <PlanPicker tenant={t} onChanged={() => void reload()} />}
                 <button
                   type="button"
                   className="button button--small button--ghost"
@@ -269,5 +270,47 @@ function EnterTenant({ tenant, onCancel }: { tenant: TenantRow; onCancel: () => 
         </button>
       </div>
     </form>
+  );
+}
+
+const PLAN_LABEL = { FREE: 'Grátis', CRM: 'CRM', COMPLETE: 'Completo' } as const;
+type PlanId = keyof typeof PLAN_LABEL;
+
+/** Troca o plano do negócio. O servidor registra na auditoria do negócio. */
+function PlanPicker({ tenant, onChanged }: { tenant: TenantRow; onChanged: () => void }) {
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const id = `plano-${tenant.id}`;
+
+  async function change(plan: PlanId) {
+    setError(null);
+    setSaving(true);
+    try {
+      await api(`/admin/tenants/${tenant.id}/plan`, { method: 'PUT', body: { plan } });
+      onChanged();
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : 'Não foi possível trocar o plano.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="form">
+      <label htmlFor={id}>Plano</label>
+      <select
+        id={id}
+        value={tenant.plan}
+        disabled={saving}
+        onChange={(e) => void change(e.target.value as PlanId)}
+      >
+        {(Object.keys(PLAN_LABEL) as PlanId[]).map((p) => (
+          <option key={p} value={p}>
+            {PLAN_LABEL[p]}
+          </option>
+        ))}
+      </select>
+      {error && <Banner>{error}</Banner>}
+    </div>
   );
 }

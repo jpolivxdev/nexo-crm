@@ -54,13 +54,23 @@ export {
   type MessageKey,
   type MessageOverrides,
 } from './bot/messages.js';
-export { choices, LIMITS, type Choice, type OutgoingMessage } from './bot/outgoing.js';
+export {
+  choices,
+  LIMITS,
+  type Choice,
+  type OutgoingMessage,
+  type TemplateMessage,
+} from './bot/outgoing.js';
 export {
   localWhen,
   planReminders,
   REMINDER_LATE_TOLERANCE_MS,
+  REMINDER_TEMPLATES,
   reminderMessage,
   reminderStillUseful,
+  reminderTemplate,
+  TEMPLATE_LANGUAGE,
+  templateSubmission,
   type ReminderKind,
 } from './bot/reminders.js';
 export { globalCommand, normalize } from './bot/text.js';
@@ -76,3 +86,11 @@ export {
   type StageRule,
 } from './crm/classification.js';
 export type { StageKey } from './crm/pipeline-templates.js';
+export {
+  FEATURES,
+  featuresOf,
+  hasFeature,
+  PLAN_FEATURES,
+  type Feature,
+  type PlanId,
+} from './plans/features.js';

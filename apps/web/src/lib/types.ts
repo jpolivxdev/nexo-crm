@@ -9,7 +9,12 @@ export interface Me {
   businessName: string | null;
   onboardingPending: boolean;
   acting: { until: string } | null;
+  /** Plano do negócio e o que ele libera. Quem trava de verdade é o servidor. */
+  plan?: 'FREE' | 'CRM' | 'COMPLETE' | null;
+  features?: Feature[];
 }
+
+export type Feature = 'report' | 'agenda' | 'bot' | 'reminders';
 
 export interface ContactRef {
   id: string;
@@ -165,6 +170,7 @@ export interface TenantRow {
   id: string;
   name: string;
   niche: string;
+  plan?: 'FREE' | 'CRM' | 'COMPLETE';
   createdAt: string;
   onboardingStartedAt: string | null;
   onboardingCompletedAt: string | null;

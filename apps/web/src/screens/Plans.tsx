@@ -1,6 +1,7 @@
 import { Check, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { Banner } from '../components/ui';
+import { useAuth } from '../lib/auth';
 
 /**
  * Planos e assinatura: só a tela, sem cobrança (pedido do JP em 27/10/2026).
@@ -9,22 +10,21 @@ import { Banner } from '../components/ui';
  */
 
 interface PlanCard {
-  id: string;
+  id: 'FREE' | 'CRM' | 'COMPLETE';
   name: string;
   summary: string;
   features: { text: string; soon?: boolean }[];
   highlight?: boolean;
-  current?: boolean;
 }
 
 /*
  * Divisão pedida pelo Jandoza em 27/10/2026: Grátis (CRM básico), CRM e Completo
  * (CRM + agenda + robô do WhatsApp). Limites e preços: [A DEFINIR com o Coca].
- * Hoje todo negócio tem tudo liberado; a trava por plano no servidor ainda não existe.
+ * O servidor trava agenda, robô, lembretes e resultados pelo plano do negócio (@nexo/core).
  */
 const PLANS: PlanCard[] = [
   {
-    id: 'gratis',
+    id: 'FREE',
     name: 'Grátis',
     summary: 'Para organizar suas clientes num lugar só.',
     features: [
@@ -34,7 +34,7 @@ const PLANS: PlanCard[] = [
     ],
   },
   {
-    id: 'crm',
+    id: 'CRM',
     name: 'CRM',
     summary: 'Para acompanhar cada cliente do primeiro contato ao retorno.',
     features: [
@@ -46,11 +46,10 @@ const PLANS: PlanCard[] = [
     ],
   },
   {
-    id: 'completo',
+    id: 'COMPLETE',
     name: 'Completo',
     summary: 'CRM, agenda e robô no WhatsApp trabalhando juntos.',
     highlight: true,
-    current: true,
     features: [
       { text: 'Tudo do CRM' },
       { text: 'Agenda com serviços, horários e pausas' },
@@ -63,6 +62,7 @@ const PLANS: PlanCard[] = [
 
 export function Plans({ go }: { go: (to: string) => void }) {
   const [yearly, setYearly] = useState(false);
+  const current = useAuth().me?.plan ?? null;
 
   return (
     <>
@@ -135,11 +135,26 @@ export function Plans({ go }: { go: (to: string) => void }) {
               className={plan.highlight ? 'button' : 'button button--ghost'}
               disabled
             >
-              {plan.current ? 'Seu plano atual' : 'Em breve'}
+              {plan.id === current ? 'Seu plano atual' : 'Em breve'}
             </button>
           </li>
         ))}
       </ul>
     </>
+  );
+}
+
+/** Tela de uma seção que o plano do negócio não inclui. */
+export function NotInPlan({ go, name }: { go: (to: string) => void; name: string }) {
+  return (
+    <section className="card" aria-labelledby="fora-do-plano">
+      <h1 id="fora-do-plano">{name} não faz parte do seu plano</h1>
+      <p className="muted">
+        Para usar, fale com a nexo e troque de plano. Suas clientes e o histórico continuam aqui.
+      </p>
+      <button type="button" className="button button--small" onClick={() => go('/assinatura')}>
+        Ver planos
+      </button>
+    </section>
   );
 }
