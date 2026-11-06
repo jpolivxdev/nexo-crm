@@ -1,4 +1,6 @@
+import { UserRound } from 'lucide-react';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
+import { PageHeader } from '../components/PageHeader';
 import { Banner, Loading, StatusBadge } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { BUSINESS_TZ_FALLBACK, contactName, dateTime, localDate, phone } from '../lib/format';
@@ -42,11 +44,9 @@ export function ContactFile({ id, go }: { id: string; go: (to: string) => void }
       <button type="button" className="link back" onClick={() => go('/clientes')}>
         ‹ Clientes
       </button>
-      <header className="page-header">
-        <h1>{contactName(data)}</h1>
-        <p className="muted">{phone(data.phone)}</p>
+      <PageHeader Icon={UserRound} title={contactName(data)} subtitle={phone(data.phone)}>
         {data.optedOutAt && <span className="tag tag--warn">Pediu para não receber mensagens</span>}
-      </header>
+      </PageHeader>
       {actionError && <Banner>{actionError}</Banner>}
 
       {data.deal && (

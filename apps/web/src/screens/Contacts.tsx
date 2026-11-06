@@ -1,4 +1,5 @@
 import { Users } from 'lucide-react';
+import { PageHeader } from '../components/PageHeader';
 import { type FormEvent, useState } from 'react';
 import { Banner, Empty, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
@@ -60,14 +61,18 @@ export function Contacts({ go }: { go: (to: string) => void }) {
 
   return (
     <>
-      <header className="page-header row row--between">
-        <h1>Clientes</h1>
-        {!adding && (
-          <button type="button" className="button" onClick={() => setAdding(true)}>
-            Nova cliente
-          </button>
-        )}
-      </header>
+      <PageHeader
+        Icon={Users}
+        title="Clientes"
+        subtitle="Quem já falou com você pelo WhatsApp ou foi cadastrada aqui."
+        actions={
+          !adding && (
+            <button type="button" className="button" onClick={() => setAdding(true)}>
+              Nova cliente
+            </button>
+          )
+        }
+      />
       {adding && (
         <NewContact
           onCancel={() => setAdding(false)}

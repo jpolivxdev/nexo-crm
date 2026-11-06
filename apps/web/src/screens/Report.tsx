@@ -1,4 +1,5 @@
 import { ChartColumn } from 'lucide-react';
+import { PageHeader } from '../components/PageHeader';
 import { useState } from 'react';
 import { TrendChart } from '../components/TrendChart';
 import { Banner, Empty, Loading } from '../components/ui';
@@ -26,14 +27,15 @@ export function Report() {
 
   return (
     <>
-      <header className="page-header">
-        <h1>Resultados</h1>
-        {data && (
-          <p className="muted">
-            De {localDateLabel(data.from)} até {localDateLabel(data.to)}
-          </p>
-        )}
-      </header>
+      <PageHeader
+        Icon={ChartColumn}
+        title="Resultados"
+        subtitle={
+          data
+            ? `De ${localDateLabel(data.from)} até ${localDateLabel(data.to)}`
+            : 'Os números do seu negócio no período.'
+        }
+      />
 
       <div className="segmented" role="group" aria-label="Período">
         {PERIODS.map((p) => (

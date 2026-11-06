@@ -3,10 +3,12 @@ import {
   CalendarX2,
   CircleCheck,
   History,
+  House,
   ListTodo,
-  MessageCircle,
   type LucideIcon,
+  MessageCircle,
 } from 'lucide-react';
+import { PageHeader } from '../components/PageHeader';
 import { useState } from 'react';
 import { AppointmentCard } from '../components/AppointmentCard';
 import { TrendChart } from '../components/TrendChart';
@@ -54,10 +56,7 @@ export function Today({ go, staff = false }: { go: (to: string) => void; staff?:
 
   return (
     <>
-      <header className="page-header">
-        <h1>Seu dia de hoje</h1>
-        <p className="muted">{localDateLabel(data.date)}</p>
-      </header>
+      <PageHeader Icon={House} title="Seu dia de hoje" subtitle={localDateLabel(data.date)} />
       <dl className="kpis" aria-label="Resumo do dia">
         <Kpi label="Horários" value={active.length} Icon={CalendarDays} />
         {!staff && (

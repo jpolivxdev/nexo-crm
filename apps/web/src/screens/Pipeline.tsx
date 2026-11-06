@@ -1,4 +1,5 @@
-import { ArrowRight, CalendarClock, Clock3, MoreHorizontal } from 'lucide-react';
+import { ArrowRight, CalendarClock, Clock3, MoreHorizontal, SquareKanban } from 'lucide-react';
+import { PageHeader } from '../components/PageHeader';
 import { type DragEvent, useState } from 'react';
 import { Banner, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
@@ -83,6 +84,7 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
         dropTarget === stage.id ? 'column--drop' : '',
       ].join(' ')}
       aria-labelledby={`etapa-${stage.id}`}
+      data-tom={stage.kind === 'LOST' ? undefined : funnel.indexOf(stage) % 5}
       onDragOver={(e) => {
         e.preventDefault();
         setDropTarget(stage.id);
@@ -97,7 +99,8 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
       }}
     >
       <h2 id={`etapa-${stage.id}`} className="column__title">
-        <span>{stage.name}</span>
+        <span className="column__dot" aria-hidden="true" />
+        <span className="column__name">{stage.name}</span>
         <span className="count" aria-label={`${stage.deals.length} clientes`}>
           {stage.deals.length}
         </span>
@@ -125,15 +128,16 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
 
   return (
     <>
-      <header className="page-header">
-        <div className="row row--between">
-          <h1>Etapas</h1>
+      <PageHeader
+        Icon={SquareKanban}
+        title="Etapas"
+        subtitle="Cada cliente, do primeiro contato até voltar. O robô move sozinho; você pode mudar a qualquer momento."
+        actions={
           <button type="button" className="button button--ghost" onClick={() => go('/regras')}>
             Regras automáticas
           </button>
-        </div>
-        <p className="muted">O robô move sozinho; você pode mudar a qualquer momento.</p>
-      </header>
+        }
+      />
       {actionError && <Banner>{actionError}</Banner>}
 
       <nav className="stage-chips" aria-label="Ir para a etapa">

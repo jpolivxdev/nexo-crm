@@ -18,6 +18,10 @@ export interface SidebarItem {
   to: string;
   label: string;
   Icon: LucideIcon;
+  /** Grupo do menu (Atendimento, Gestão). Sem grupo, fica no topo. */
+  group?: string;
+  /** Uma linha sobre a seção, mostrada ao passar o mouse. */
+  hint?: string;
 }
 
 const KEY = 'nexo-menu-recolhido';
@@ -40,9 +44,14 @@ function saveCollapsed(value: boolean): void {
 }
 
 const ACCOUNT: SidebarItem[] = [
-  { to: '/conta', label: 'Conta', Icon: UserRound },
-  { to: '/configurar', label: 'Configurar o negócio', Icon: Settings },
-  { to: '/assinatura', label: 'Plano e assinatura', Icon: CreditCard },
+  {
+    to: '/configurar',
+    label: 'Configurar o negócio',
+    Icon: Settings,
+    hint: 'Serviços, horários, equipe e dúvidas',
+  },
+  { to: '/assinatura', label: 'Plano e assinatura', Icon: CreditCard, hint: 'Seu plano atual' },
+  { to: '/conta', label: 'Conta', Icon: UserRound, hint: 'Senha, tema e atalhos' },
 ];
 
 export function Sidebar({
@@ -65,7 +74,9 @@ export function Sidebar({
     });
   }
 
-  const link = ({ to, label, Icon }: SidebarItem) => {
+  const groups = [...new Set(items.flatMap((i) => (i.group ? [i.group] : [])))];
+
+  const link = ({ to, label, Icon, hint }: SidebarItem) => {
     const on = section === to;
     return (
       <li key={to}>
@@ -73,7 +84,7 @@ export function Sidebar({
           href={`#${to}`}
           className={on ? 'sidebar__link on' : 'sidebar__link'}
           aria-current={on ? 'page' : undefined}
-          title={collapsed ? label : undefined}
+          title={collapsed ? (hint ? `${label}: ${hint}` : label) : hint}
         >
           <Icon aria-hidden="true" size={20} strokeWidth={on ? 2.4 : 2} />
           <span className="sidebar__label">{label}</span>
@@ -94,13 +105,21 @@ export function Sidebar({
         </span>
       </div>
 
-      <nav aria-label="Seções do painel">
-        <ul className="sidebar__list">{items.map(link)}</ul>
+      <nav aria-label="Seções do painel" className="sidebar__nav">
+        <ul className="sidebar__list">{items.filter((i) => !i.group).map(link)}</ul>
+        {groups.map((g) => (
+          <div key={g} className="sidebar__group">
+            <p className="sidebar__heading sidebar__label">{g}</p>
+            <ul className="sidebar__list">{items.filter((i) => i.group === g).map(link)}</ul>
+          </div>
+        ))}
+        <div className="sidebar__group">
+          <p className="sidebar__heading sidebar__label">Conta</p>
+          <ul className="sidebar__list">{ACCOUNT.map(link)}</ul>
+        </div>
       </nav>
 
-      <div className="sidebar__group">
-        <p className="sidebar__heading sidebar__label">Conta</p>
-        <ul className="sidebar__list">{ACCOUNT.map(link)}</ul>
+      <div className="sidebar__footer">
         <button
           type="button"
           className="sidebar__link"
@@ -110,20 +129,19 @@ export function Sidebar({
           <LogOut aria-hidden="true" size={20} />
           <span className="sidebar__label">Sair</span>
         </button>
+        <button
+          type="button"
+          className="sidebar__link sidebar__toggle"
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? 'Abrir o menu' : 'Recolher o menu'}
+          onClick={toggle}
+        >
+          <ChevronsLeft aria-hidden="true" size={20} className="sidebar__chevron" />
+          <span className="sidebar__label" aria-hidden="true">
+            Recolher
+          </span>
+        </button>
       </div>
-
-      <button
-        type="button"
-        className="sidebar__link sidebar__toggle"
-        aria-expanded={!collapsed}
-        aria-label={collapsed ? 'Abrir o menu' : 'Recolher o menu'}
-        onClick={toggle}
-      >
-        <ChevronsLeft aria-hidden="true" size={20} className="sidebar__chevron" />
-        <span className="sidebar__label" aria-hidden="true">
-          Recolher
-        </span>
-      </button>
     </aside>
   );
 }
