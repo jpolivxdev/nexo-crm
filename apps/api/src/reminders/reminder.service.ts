@@ -1,7 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { type OutgoingMessage, reminderMessage, reminderStillUseful } from '@nexo/core';
+import {
+  type OutgoingMessage,
+  reminderMessage,
+  reminderStillUseful,
+  reminderTemplate,
+} from '@nexo/core';
 import { ChannelRegistry } from '../channel/channel.registry.js';
 import type { ChannelName } from '../channel/channel.types.js';
+import { ENV, type Env } from '../config/env.js';
 import { readMessageOverrides } from '../conversation/tenant-bot-config.js';
 import { recordEvent } from '../crm/domain-events.js';
 import type { TenantTx } from '../database/prisma.js';
@@ -37,6 +43,7 @@ export class ReminderService {
     @Inject(PrismaService) private readonly db: Pick<PrismaService, 'withTenant' | 'client'>,
     @Inject(ChannelRegistry) private readonly channels: Pick<ChannelRegistry, 'forMessage'>,
     @Inject(RealtimeBus) private readonly bus: Pick<RealtimeBus, 'publish'>,
+    @Inject(ENV) private readonly env: Pick<Env, 'WHATSAPP_REMINDER_TEMPLATES'>,
   ) {}
 
   /**
@@ -162,29 +169,30 @@ export class ReminderService {
     });
     const channel = (conversation?.channel ?? 'whatsapp') as ChannelName;
     const lastInbound = conversation?.messages[0]?.createdAt;
-    // Fora da janela de 24 h o WhatsApp só aceita mensagem de modelo aprovada (entrega E0).
-    if (
+    const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
+    const summary = { id: appt.id, serviceName: appt.service.name, startsAt: appt.startsAt };
+    // Fora da janela de 24 h o WhatsApp só aceita mensagem de modelo aprovada na Meta.
+    const outsideWindow =
       channel === 'whatsapp' &&
-      (!lastInbound || now.getTime() - lastInbound.getTime() > WHATSAPP_WINDOW_MS)
-    ) {
+      (!lastInbound || now.getTime() - lastInbound.getTime() > WHATSAPP_WINDOW_MS);
+    if (outsideWindow && !this.env.WHATSAPP_REMINDER_TEMPLATES) {
       await tx.reminder.update({ where: { id: reminderId }, data: { status: 'FAILED' } });
       await this.event(tx, tenantId, 'reminder.failed', reminder, appt.contactId, {
         reason: 'template_required',
       });
       return 'needs_template';
     }
-
-    const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: tenantId } });
-    const payload = reminderMessage(
-      reminder.kind,
-      { id: appt.id, serviceName: appt.service.name, startsAt: appt.startsAt },
-      {
-        businessName: tenant.name,
-        ownerName: tenant.attendantName,
-        timeZone: tenant.timezone,
-        messages: readMessageOverrides(tenant.botMessages),
-      },
-    );
+    const payload: OutgoingMessage = outsideWindow
+      ? reminderTemplate(reminder.kind, summary, {
+          businessName: tenant.name,
+          timeZone: tenant.timezone,
+        })
+      : reminderMessage(reminder.kind, summary, {
+          businessName: tenant.name,
+          ownerName: tenant.attendantName,
+          timeZone: tenant.timezone,
+          messages: readMessageOverrides(tenant.botMessages),
+        });
     const conv =
       conversation ??
       (await tx.conversation.create({

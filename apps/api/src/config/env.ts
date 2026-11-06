@@ -19,6 +19,12 @@ const envSchema = z.object({
   WHATSAPP_VERIFY_TOKEN: optionalSecret,
   WHATSAPP_APP_SECRET: optionalSecret,
   WHATSAPP_ACCESS_TOKEN: optionalSecret,
+  // Lembretes fora da janela de 24 h por mensagem de modelo. Ligue só depois que os modelos
+  // lembrete_horario_24h e lembrete_horario_1h estiverem aprovados na Meta (docs/modelos-whatsapp.md).
+  WHATSAPP_REMINDER_TEMPLATES: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
   // Chave da criptografia de campo (AES-256-GCM): 32 bytes em base64. Gere com
   // `node -e "console.log(crypto.randomBytes(32).toString('base64'))"`. Obrigatória para o 2FA.
   FIELD_ENCRYPTION_KEY: optionalSecret,

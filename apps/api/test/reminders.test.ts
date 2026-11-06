@@ -1,7 +1,7 @@
 import { randomInt } from 'node:crypto';
 import type { INestApplication } from '@nestjs/common';
 import type { BotInput, OutgoingMessage } from '@nexo/core';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChannelRegistry } from '../src/channel/channel.registry.js';
 import { SimulatorChannel } from '../src/channel/simulator.channel.js';
 import { ConversationService } from '../src/conversation/conversation.service.js';
@@ -200,5 +200,80 @@ describe('lembretes de horário (relógio simulado)', () => {
       tx.event.findMany({ where: { entityId: appt.id, type: 'reminder.failed' } }),
     );
     expect(events).toHaveLength(1);
+  });
+});
+
+describe('lembrete por mensagem de modelo (modelos aprovados na Meta)', () => {
+  let app: INestApplication;
+  let reminders: ReminderService;
+  let scheduling: SchedulingService;
+  const calls: { url: string; body: Record<string, unknown> }[] = [];
+
+  beforeAll(async () => {
+    ({ app } = await createTestApp({
+      RUN_WORKER: 'false',
+      WHATSAPP_REMINDER_TEMPLATES: 'true',
+      WHATSAPP_ACCESS_TOKEN: 'token-de-teste-da-graph-0001',
+    }));
+    reminders = app.get(ReminderService);
+    scheduling = app.get(SchedulingService);
+    vi.stubGlobal('fetch', (url: string, init: { body: string }) => {
+      calls.push({ url, body: JSON.parse(init.body) as Record<string, unknown> });
+      return Promise.resolve(
+        new Response(JSON.stringify({ messages: [{ id: `wamid.TPL${calls.length}` }] }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        }),
+      );
+    });
+  });
+
+  afterAll(async () => {
+    vi.unstubAllGlobals();
+    await app?.close();
+  });
+
+  it('fora da janela de 24 h manda o modelo aprovado, com variáveis e botões, e grava no histórico', async () => {
+    const t = await createDemoTenant(prisma, DEMO_TENANTS[0]!, NOW);
+    const [slot] = await scheduling.listSlots(t.tenantId, {
+      serviceId: t.serviceIds[0]!,
+      date: '2031-01-10',
+      now: NOW,
+    });
+    const appt = await scheduling.book(t.tenantId, {
+      contactId: t.contactIds[0]!,
+      serviceId: t.serviceIds[0]!,
+      startsAt: slot!.startsAt,
+      source: 'PANEL',
+      actor: { type: 'user' },
+      now: NOW,
+    });
+
+    const result = await reminders.runDue(new Date(appt.startsAt.getTime() - 24 * H), {
+      tenantIds: [t.tenantId],
+    });
+    expect(result).toMatchObject({ sent: 1, needs_template: 0 });
+    expect(calls).toHaveLength(1);
+    const template = calls[0]!.body.template as {
+      name: string;
+      language: { code: string };
+      components: { type: string; parameters: Record<string, string>[] }[];
+    };
+    expect(calls[0]!.body.type).toBe('template');
+    expect(template.name).toBe('lembrete_horario_24h');
+    expect(template.language.code).toBe('pt_BR');
+    expect(template.components[0]!.parameters).toHaveLength(4);
+    expect(template.components.slice(1).map((c) => c.parameters[0]!.payload)).toEqual([
+      `rem:confirm:${appt.id}`,
+      `rem:reschedule:${appt.id}`,
+      `rem:cancel:${appt.id}`,
+    ]);
+
+    const message = await withTenant(prisma, t.tenantId, (tx) =>
+      tx.message.findFirstOrThrow({ where: { direction: 'OUTBOUND', type: 'template' } }),
+    );
+    expect(message.status).toBe('sent');
+    expect(message.externalId).toBe('wamid.TPL1');
+    expect(message.body).toContain('Você confirma?');
   });
 });

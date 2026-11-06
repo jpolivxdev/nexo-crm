@@ -156,5 +156,52 @@ describe('teto de envios por número', () => {
     expect(onLimit).toHaveBeenCalledTimes(1);
     await expect(b.send('5500900000001', msg)).resolves.toEqual({ externalId: 'wamid.X' });
     expect(send).toHaveBeenCalledTimes(3);
+describe('mensagem de modelo na Graph API', () => {
+  it('monta o template com variáveis do corpo e botões de resposta rápida', () => {
+    const payload = toGraphPayload('5500900000001', {
+      type: 'template',
+      body: 'texto para o histórico',
+      template: {
+        name: 'lembrete_horario_1h',
+        language: 'pt_BR',
+        params: ['Cílios', 'Estúdio', '09:00'],
+      },
+      buttons: [
+        { id: 'rem:confirm:a1', title: 'Confirmar' },
+        { id: 'rem:cancel:a1', title: 'Cancelar' },
+      ],
+    });
+    expect(payload).toEqual({
+      messaging_product: 'whatsapp',
+      recipient_type: 'individual',
+      to: '5500900000001',
+      type: 'template',
+      template: {
+        name: 'lembrete_horario_1h',
+        language: { code: 'pt_BR' },
+        components: [
+          {
+            type: 'body',
+            parameters: [
+              { type: 'text', text: 'Cílios' },
+              { type: 'text', text: 'Estúdio' },
+              { type: 'text', text: '09:00' },
+            ],
+          },
+          {
+            type: 'button',
+            sub_type: 'quick_reply',
+            index: '0',
+            parameters: [{ type: 'payload', payload: 'rem:confirm:a1' }],
+          },
+          {
+            type: 'button',
+            sub_type: 'quick_reply',
+            index: '1',
+            parameters: [{ type: 'payload', payload: 'rem:cancel:a1' }],
+          },
+        ],
+      },
+    });
   });
 });

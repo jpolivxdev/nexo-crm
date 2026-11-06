@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { planReminders, reminderMessage, reminderStillUseful } from './reminders.js';
+import {
+  planReminders,
+  reminderMessage,
+  reminderStillUseful,
+  reminderTemplate,
+  templateSubmission,
+} from './reminders.js';
 
 const H = 60 * 60 * 1000;
 const startsAt = new Date('2026-11-03T12:00:00Z'); // terça, 09:00 em São Paulo
@@ -63,6 +69,40 @@ describe('lembretes de horário', () => {
     expect(msg.body).toBe('Te espero às 09:00!');
     expect(msg.type === 'buttons' && msg.buttons.map((b) => b.id)).toEqual([
       'rem:confirm:a1',
+      'rem:cancel:a1',
+    ]);
+  });
+});
+
+describe('lembrete como mensagem de modelo (fora da janela de 24 h)', () => {
+  it('texto para cadastrar na Meta, com variáveis numeradas e botões curtos', () => {
+    expect(templateSubmission('BEFORE_24H')).toEqual({
+      name: 'lembrete_horario_24h',
+      body: 'Oi! Passando para lembrar do seu horário no {{1}}: {{2}}, amanhã ({{3}}) às {{4}}. Você confirma?',
+      buttons: ['Confirmar', 'Remarcar', 'Cancelar'],
+    });
+    expect(templateSubmission('BEFORE_1H').body).toBe(
+      'Seu horário de {{1}} no {{2}} é hoje às {{3}}. Se não puder vir, toque em Cancelar.',
+    );
+  });
+
+  it('variáveis na ordem do modelo, limpas, e os mesmos retornos de botão do lembrete normal', () => {
+    const msg = reminderTemplate(
+      'BEFORE_24H',
+      { id: 'a1', serviceName: 'Aplicação\nde   cílios', startsAt },
+      { businessName: 'Estúdio Exemplo (demo)', timeZone: 'America/Sao_Paulo' },
+    );
+    expect(msg.template).toEqual({
+      name: 'lembrete_horario_24h',
+      language: 'pt_BR',
+      params: ['Estúdio Exemplo (demo)', 'Aplicação de cílios', 'terça, 03/11', '09:00'],
+    });
+    expect(msg.body).toBe(
+      'Oi! Passando para lembrar do seu horário no Estúdio Exemplo (demo): Aplicação de cílios, amanhã (terça, 03/11) às 09:00. Você confirma?',
+    );
+    expect(msg.buttons.map((b) => b.id)).toEqual([
+      'rem:confirm:a1',
+      'rem:reschedule:a1',
       'rem:cancel:a1',
     ]);
   });

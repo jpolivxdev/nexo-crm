@@ -54,7 +54,12 @@ async function main(): Promise<void> {
     new PanelOnlyOwnerNotifier(),
   );
 
-  const reminders = new ReminderService({ ...db, client: prisma } as PrismaService, registry, bus);
+  const reminders = new ReminderService(
+    { ...db, client: prisma } as PrismaService,
+    registry,
+    bus,
+    env,
+  );
 
   /** Roda os lembretes como se fosse a hora do próximo lembrete desta cliente. */
   async function nextReminder(tenant: string, from: string): Promise<void> {
@@ -121,7 +126,11 @@ async function main(): Promise<void> {
 function print(message: OutgoingMessage): Choice[] {
   console.log(`\nrobô › ${message.body}`);
   const choices =
-    message.type === 'buttons' ? message.buttons : message.type === 'list' ? message.rows : [];
+    message.type === 'buttons' || message.type === 'template'
+      ? message.buttons
+      : message.type === 'list'
+        ? message.rows
+        : [];
   choices.forEach((c, i) =>
     console.log(
       `   ${i + 1}. ${c.title}${'description' in c && c.description ? ` (${c.description})` : ''}`,

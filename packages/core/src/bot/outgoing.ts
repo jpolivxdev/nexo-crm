@@ -17,10 +17,23 @@ export interface Choice {
   description?: string;
 }
 
+/**
+ * Mensagem de modelo (template) aprovada na Meta: a única que sai fora da janela de 24 h.
+ * O texto fica na Meta; aqui vão só o nome, as variáveis ({{1}}, {{2}}...) e o retorno de cada
+ * botão de resposta rápida. `body` é o texto já montado, para o histórico e o simulador.
+ */
+export interface TemplateMessage {
+  type: 'template';
+  body: string;
+  template: { name: string; language: string; params: string[] };
+  buttons: Choice[];
+}
+
 export type OutgoingMessage =
   | { type: 'text'; body: string }
   | { type: 'buttons'; body: string; buttons: Choice[] }
-  | { type: 'list'; body: string; button: string; rows: Choice[] };
+  | { type: 'list'; body: string; button: string; rows: Choice[] }
+  | TemplateMessage;
 
 export const text = (body: string): OutgoingMessage => ({ type: 'text', body: clip(body, 4096) });
 

@@ -43,5 +43,27 @@ export function toGraphPayload(to: string, message: OutgoingMessage): Record<str
           },
         },
       };
+    case 'template':
+      return {
+        ...base,
+        type: 'template',
+        template: {
+          name: message.template.name,
+          language: { code: message.template.language },
+          components: [
+            {
+              type: 'body',
+              parameters: message.template.params.map((text) => ({ type: 'text', text })),
+            },
+            // Botão de resposta rápida: a Meta devolve este payload no webhook (button.payload).
+            ...message.buttons.map((b, i) => ({
+              type: 'button',
+              sub_type: 'quick_reply',
+              index: String(i),
+              parameters: [{ type: 'payload', payload: b.id }],
+            })),
+          ],
+        },
+      };
   }
 }
