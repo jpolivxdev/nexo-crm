@@ -69,3 +69,11 @@ export const goalsBody = z.object({
   doneCount: z.number().int().min(1).max(100000).nullable().optional(),
   revenueCents: z.number().int().min(100).max(1_000_000_000).nullable().optional(),
 });
+
+/** Abas de Conversas. */
+export const conversationsQuery = z.object({
+  tab: z.enum(['open', 'waiting', 'new', 'archived']).default('open'),
+  q: z.string().trim().max(80).optional(),
+});
+
+export const archiveBody = z.object({ archived: z.boolean() });

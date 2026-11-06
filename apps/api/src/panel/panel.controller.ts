@@ -28,8 +28,10 @@ import { SchedulingService } from '../scheduling/scheduling.service.js';
 import { SchedulingErrorFilter } from './scheduling-error.filter.js';
 import {
   agendaQuery,
+  archiveBody,
   bookBody,
   contactsQuery,
+  conversationsQuery,
   createContactBody,
   eraseContactBody,
   goalsBody,
@@ -232,6 +234,24 @@ export class PanelController {
   moveDeal(@Req() req: AuthedRequest, @Param('id', uuid) id: string, @Body() body: unknown) {
     const { stageId } = parse(moveDealBody, body);
     return this.panel.moveDeal(this.tenant(req), id, stageId, this.actor(req));
+  }
+
+  @Get('conversations')
+  conversationList(@Req() req: AuthedRequest, @Query() query: unknown) {
+    const { tab, q } = parse(conversationsQuery, query);
+    return this.panel.conversations(this.tenant(req), tab, q);
+  }
+
+  @Get('conversations/:id')
+  conversationOne(@Req() req: AuthedRequest, @Param('id', uuid) id: string) {
+    return this.panel.conversation(this.tenant(req), id);
+  }
+
+  @Post('conversations/:id/archive')
+  @HttpCode(200)
+  archive(@Req() req: AuthedRequest, @Param('id', uuid) id: string, @Body() body: unknown) {
+    const { archived } = parse(archiveBody, body);
+    return this.panel.archiveConversation(this.tenant(req), id, archived);
   }
 
   @Post('conversations/:id/resume')

@@ -20,7 +20,7 @@ const HOJE: TourStep[] = [
   {
     target: MENU,
     title: 'O menu',
-    text: 'Todas as partes do painel ficam aqui: agenda, clientes, etapas e resultados.',
+    text: 'Todas as partes do painel ficam aqui: agenda, conversas, clientes, etapas e resultados.',
   },
   {
     target: '[data-tour="resumo"]',
@@ -64,6 +64,29 @@ const AGENDA: TourStep[] = [
     target: 'main .section, main .month',
     title: 'Os horários',
     text: 'Tudo que o robô marcou pelo WhatsApp aparece aqui sozinho, junto com o que você marcou.',
+  },
+];
+
+const CONVERSAS: TourStep[] = [
+  {
+    target: '.inbox__tabs',
+    title: 'Filtros',
+    text: 'Abertas são as conversas em andamento. "Esperando você" são as clientes que pediram para falar com você. Novas são de quem chegou nos últimos 7 dias.',
+  },
+  {
+    target: '.inbox__search',
+    title: 'Buscar',
+    text: 'Encontre uma conversa pelo nome ou pelo telefone da cliente.',
+  },
+  {
+    target: '.inbox__list',
+    title: 'A lista',
+    text: 'Toque numa conversa para abrir. As que têm mensagem nova aparecem primeiro.',
+  },
+  {
+    target: '.inbox__chat',
+    title: 'Responder',
+    text: 'Ao responder, o robô pausa nesta conversa. Quando terminar, use "Devolver para o robô".',
   },
 ];
 
@@ -119,6 +142,7 @@ const RESULTADOS: TourStep[] = [
 export const TOURS: Record<string, TourStep[]> = {
   '/hoje': HOJE,
   '/agenda': AGENDA,
+  '/conversas': CONVERSAS,
   '/clientes': CLIENTES,
   '/etapas': ETAPAS,
   '/resultados': RESULTADOS,

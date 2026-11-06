@@ -405,6 +405,8 @@ model Conversation {
   /// Preenchido quando a conversa passou para a equipe (robô pausado).
   botPausedAt   DateTime? @map("bot_paused_at") @db.Timestamptz
   lastMessageAt DateTime? @map("last_message_at") @db.Timestamptz
+  /// Arquivada pela dona (some de "Abertas"). Mensagem nova da cliente tira do arquivo.
+  archivedAt    DateTime? @map("archived_at") @db.Timestamptz
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -413,6 +415,7 @@ model Conversation {
 
   @@unique([tenantId, contactId, channel])
   @@unique([tenantId, id])
+  @@index([tenantId, lastMessageAt(sort: Desc)])
   @@map("conversations")
 }
 

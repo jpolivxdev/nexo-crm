@@ -4,6 +4,7 @@ import {
   Compass,
   House,
   LogOut,
+  MessagesSquare,
   SquareKanban,
   UserRound,
   Users,
@@ -31,6 +32,7 @@ import { Agenda } from './screens/Agenda';
 import { ChangePassword } from './screens/ChangePassword';
 import { ContactFile } from './screens/ContactFile';
 import { Contacts } from './screens/Contacts';
+import { Conversations } from './screens/Conversations';
 import { ConfirmEmail, ForgotPassword, ResetPassword, Signup } from './screens/AuthPages';
 import { Landing } from './screens/Landing';
 import { Login } from './screens/Login';
@@ -53,6 +55,13 @@ const NAV: (SidebarItem & { feature?: Feature })[] = [
     feature: 'agenda',
     group: 'Atendimento',
     hint: 'Horários marcados por dia, semana ou mês',
+  },
+  {
+    to: '/conversas',
+    label: 'Conversas',
+    Icon: MessagesSquare,
+    group: 'Atendimento',
+    hint: 'Quem chamou no WhatsApp; responda por aqui',
   },
   {
     to: '/clientes',
@@ -88,6 +97,7 @@ const SECTION_FEATURE: Record<string, { feature: Feature; name: string }> = {
 /** Atalhos do Nex: cada um abre a tela e o tour dela. */
 const NEX_TOPICS: NexTopic[] = [
   { label: 'Como marcar um horário', to: '/agenda' },
+  { label: 'Como respondo uma cliente', to: '/conversas' },
   { label: 'Onde vejo minhas clientes', to: '/clientes' },
   { label: 'Como mudar a etapa de uma cliente', to: '/etapas' },
   { label: 'Onde vejo meus números', to: '/resultados' },
@@ -200,6 +210,7 @@ function Panel({ me }: { me: Me }) {
   const section =
     staff && !['/hoje', '/agenda', '/conta'].includes(rawSection) ? '/hoje' : rawSection;
   const contactMatch = staff ? null : /^\/clientes\/([0-9a-f-]{36})$/.exec(route);
+  const conversationMatch = /^\/conversas\/([0-9a-f-]{36})$/.exec(route);
 
   // Tour guiado: abre sozinho uma vez por aparelho (fora dos testes) e pela bússola do topo.
   const [touring, setTouring] = useState(
@@ -310,6 +321,8 @@ function Panel({ me }: { me: Me }) {
           <Account go={go} acting={Boolean(me.acting)} staff={staff} />
         ) : section === '/agenda' ? (
           <Agenda go={go} staff={staff} />
+        ) : section === '/conversas' ? (
+          <Conversations id={conversationMatch?.[1] ?? null} go={go} />
         ) : section === '/clientes' ? (
           <Contacts go={go} />
         ) : section === '/etapas' ? (

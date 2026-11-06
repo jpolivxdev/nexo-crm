@@ -148,7 +148,7 @@ export function ContactFile({ id, go }: { id: string; go: (to: string) => void }
 }
 
 /** Histórico da conversa, já rolado até a mensagem mais recente. */
-function Chat({ messages, timeZone: tz }: { messages: Message[]; timeZone: string }) {
+export function Chat({ messages, timeZone: tz }: { messages: Message[]; timeZone: string }) {
   const list = useRef<HTMLOListElement>(null);
   const last = messages.at(-1)?.id;
   useEffect(() => {
@@ -171,7 +171,7 @@ function Chat({ messages, timeZone: tz }: { messages: Message[]; timeZone: strin
   );
 }
 
-function Reply({ conversationId, onSent }: { conversationId: string; onSent: () => void }) {
+export function Reply({ conversationId, onSent }: { conversationId: string; onSent: () => void }) {
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

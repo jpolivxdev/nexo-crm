@@ -334,6 +334,72 @@ describe('login, sessão e painel', () => {
     ).not.toContain(conversationId);
   });
 
+  it('conversas: abas, busca, conversa aberta, arquivar e voltar com mensagem nova', async () => {
+    const { cookie, csrf } = await login();
+    const conversations = app.get(ConversationService);
+    const phone = `55000${Date.now().toString().slice(-8)}`;
+    const inbound = (text: string) =>
+      conversations.handleInbound(t.tenantId, {
+        channel: 'simulator',
+        businessExternalId: 'sem-simulador',
+        externalId: `sim-${randomUUID()}`,
+        from: phone,
+        profileName: 'Conversa Teste (demo)',
+        type: 'text',
+        input: { kind: 'text', text },
+        body: text,
+        receivedAt: new Date().toISOString(),
+      });
+    await inbound('quero marcar');
+    const list = (query: string) =>
+      http().get(`/panel/conversations${query}`).set('cookie', cookie);
+
+    const open = await list('');
+    expect(open.status).toBe(200);
+    const mine = open.body.conversations.find(
+      (c: { contact: { phone: string } }) => c.contact.phone === phone,
+    );
+    // A última mensagem pode ser a resposta do robô.
+    expect(mine.lastMessage).toEqual(expect.objectContaining({ createdAt: expect.any(String) }));
+    expect((await list('?tab=new')).body.conversations.map((c: { id: string }) => c.id)).toContain(
+      mine.id,
+    );
+    const found = await list(`?q=${phone.slice(-6)}`);
+    expect(found.body.conversations.map((c: { id: string }) => c.id)).toEqual([mine.id]);
+    expect((await list('?tab=qualquer')).status).toBe(400);
+
+    const one = await http().get(`/panel/conversations/${mine.id}`).set('cookie', cookie);
+    expect(one.body.messages).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ direction: 'INBOUND', body: 'quero marcar' }),
+      ]),
+    );
+
+    const archived = await http()
+      .post(`/panel/conversations/${mine.id}/archive`)
+      .set('cookie', cookie)
+      .set('x-csrf-token', csrf)
+      .send({ archived: true });
+    expect(archived.status).toBe(200);
+    const ids = async (q: string) =>
+      (await list(q)).body.conversations.map((c: { id: string }) => c.id);
+    expect(await ids('')).not.toContain(mine.id);
+    expect(await ids('?tab=archived')).toContain(mine.id);
+
+    // Mensagem nova da cliente tira do arquivo.
+    await inbound('oi de novo');
+    expect(await ids('')).toContain(mine.id);
+
+    // Conversa de outro negócio: não existe para esta dona.
+    const foreign = await withTenant(prisma, other.tenantId, (tx) =>
+      tx.conversation.findFirst({ select: { id: true } }),
+    );
+    if (foreign) {
+      const res = await http().get(`/panel/conversations/${foreign.id}`).set('cookie', cookie);
+      expect(res.status).toBe(404);
+    }
+  });
+
   it('ids malformados e campos inválidos são recusados com 400', async () => {
     const { cookie, csrf } = await login();
     expect((await http().get('/panel/contacts/nao-e-uuid').set('cookie', cookie)).status).toBe(400);

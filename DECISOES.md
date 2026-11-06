@@ -292,3 +292,12 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Quadro ou Lista:** a lista tem uma linha por cliente com a etapa num seletor. A escolha fica no aparelho. A busca por nome ou telefone filtra os cartões nos dois modos.
 - **Nova cliente pelo quadro:** cliente cadastrada pela tela passa a entrar no quadro, na primeira etapa (`ensureDeal` em `createContact`). Antes só entrava quando acontecia algo com ela.
 - **Metas do mês** (Resultados): atendimentos realizados e faturamento, guardados em `tenants.goals` (migração `20261106200000_metas`, só soma coluna). Faturamento = preço do serviço dos realizados no mês, no fuso do negócio. Só a dona vê e muda; segue a trava do plano de Resultados.
+
+## Layout novo, fase 3: Conversas (06/11/2026)
+
+- **Tela Conversas** (menu Atendimento): lista à esquerda e conversa aberta à direita no computador; no celular, uma coisa de cada vez, com "Voltar". Responder usa a mesma rota da ficha (pausa o robô; 24 h do WhatsApp continuam valendo) e "Devolver para o robô" também.
+- **Abas próprias** em vez de copiar as do sistema de referência: Abertas, Esperando você (robô pausado, a cliente pediu a dona ou a dona assumiu), Novas (clientes que chegaram nos últimos 7 dias) e Arquivadas. "Minhas" não faz sentido com uma pessoa só no atendimento.
+- **Arquivar** (`conversations.archived_at`, migração `20261106210000_conversas_arquivadas`): só tira da lista, não apaga. Mensagem nova da cliente tira do arquivo sozinha.
+- **Rotas:** `GET /panel/conversations?tab=&q=`, `GET /panel/conversations/:id` (últimas 100 mensagens) e `POST /panel/conversations/:id/archive`. Só a dona; sem trava de plano, como a ficha. Cliente com dados excluídos (LGPD) não aparece.
+- O aviso "Uma cliente quer falar com você" agora leva para Conversas.
+- Com a Meta travada, a tela funciona com o simulador; com clientes reais, depois que a conta da Meta liberar.
