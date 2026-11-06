@@ -1,9 +1,18 @@
-import { ArrowRight, CalendarClock, Clock3, MoreHorizontal, SquareKanban } from 'lucide-react';
+import {
+  ArrowRight,
+  CalendarClock,
+  Clock3,
+  Columns3,
+  List,
+  MoreHorizontal,
+  SquareKanban,
+} from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { type DragEvent, useState } from 'react';
 import { Banner, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
-import { contactName } from '../lib/format';
+import { contactName, money, phone } from '../lib/format';
+import { NewContact } from './Contacts';
 import { useLoad, useRealtime } from '../lib/hooks';
 import type { Pipeline as PipelineData, PipelineDeal, PipelineStage } from '../lib/types';
 
@@ -49,7 +58,15 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
   );
   const [actionError, setActionError] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [view, setView] = useState<'quadro' | 'lista'>(readView);
+  const [q, setQ] = useState('');
+  const [adding, setAdding] = useState(false);
   useRealtime(() => void reload());
+
+  function pickView(v: 'quadro' | 'lista') {
+    setView(v);
+    saveView(v);
+  }
 
   async function move(dealId: string, stageId: string) {
     setActionError(null);
@@ -65,8 +82,18 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
   if (error && !data) return <Banner>{error}</Banner>;
   if (!data) return null;
 
-  const funnel = data.stages.filter((s) => s.kind !== 'LOST');
-  const exits = data.stages.filter((s) => s.kind === 'LOST');
+  // Busca por nome ou telefone: filtra os cartões, as colunas continuam todas.
+  const term = q.trim().toLowerCase();
+  const digits = term.replace(/\D/g, '');
+  const match = (d: PipelineDeal) =>
+    !term ||
+    (d.contact.name ?? '').toLowerCase().includes(term) ||
+    (digits.length > 0 && d.contact.phone.includes(digits));
+  const stagesShown = data.stages.map((s) => ({ ...s, deals: s.deals.filter(match) }));
+  const funnel = stagesShown.filter((s) => s.kind !== 'LOST');
+  const exits = stagesShown.filter((s) => s.kind === 'LOST');
+  const all = stagesShown.flatMap((s) => s.deals.map((d) => ({ deal: d, stage: s })));
+  const openValue = funnel.reduce((sum, s) => sum + stageValue(s), 0);
   const nextOf = (stage: PipelineStage) => funnel[funnel.indexOf(stage) + 1] ?? null;
 
   const jump = (id: string) =>
@@ -104,6 +131,11 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
         <span className="count" aria-label={`${stage.deals.length} clientes`}>
           {stage.deals.length}
         </span>
+        {stageValue(stage) > 0 && (
+          <span className="column__value" title="Soma dos próximos horários desta etapa">
+            {money(stageValue(stage))}
+          </span>
+        )}
       </h2>
       {stage.deals.length === 0 ? (
         <p className="column__empty">{EMPTY_HINT[stage.key ?? ''] ?? 'Ninguém aqui ainda.'}</p>
@@ -133,32 +165,191 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
         title="Etapas"
         subtitle="Cada cliente, do primeiro contato até voltar. O robô move sozinho; você pode mudar a qualquer momento."
         actions={
-          <button type="button" className="button button--ghost" onClick={() => go('/regras')}>
-            Regras automáticas
-          </button>
+          <>
+            <button type="button" className="button button--ghost" onClick={() => go('/regras')}>
+              Regras automáticas
+            </button>
+            {!adding && (
+              <button type="button" className="button" onClick={() => setAdding(true)}>
+                Nova cliente
+              </button>
+            )}
+          </>
         }
       />
       {actionError && <Banner>{actionError}</Banner>}
+      {adding && (
+        <NewContact
+          onCancel={() => setAdding(false)}
+          onDone={() => {
+            setAdding(false);
+            void reload();
+          }}
+        />
+      )}
 
-      <nav className="stage-chips" aria-label="Ir para a etapa">
-        {data.stages.map((s) => (
+      <div className="board-tools">
+        <label className="search board-tools__search">
+          <span className="sr-only">Buscar cliente no quadro</span>
+          <input
+            type="search"
+            placeholder="Buscar por nome ou telefone"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+        </label>
+        <p className="board-tools__total">
+          <span className="muted small">Em andamento</span>
+          <strong>{funnel.reduce((n, s) => n + s.deals.length, 0)} clientes</strong>
+        </p>
+        <p className="board-tools__total" title="Soma do preço dos próximos horários marcados">
+          <span className="muted small">Previsto nos próximos horários</span>
+          <strong>{money(openValue)}</strong>
+        </p>
+        <div className="segmented segmented--icons" role="group" aria-label="Como ver">
           <button
-            key={s.id}
             type="button"
-            className={s.kind === 'LOST' ? 'stage-chip stage-chip--exit' : 'stage-chip'}
-            onClick={() => jump(s.id)}
+            aria-pressed={view === 'quadro'}
+            className={view === 'quadro' ? 'on' : ''}
+            onClick={() => pickView('quadro')}
           >
-            {s.name} <span className="count">{s.deals.length}</span>
+            <Columns3 aria-hidden="true" size={16} /> Quadro
           </button>
-        ))}
-      </nav>
-
-      <div className="board">
-        {funnel.map(column)}
-        {exits.length > 0 && <div className="board__divider" aria-hidden="true" />}
-        {exits.map(column)}
+          <button
+            type="button"
+            aria-pressed={view === 'lista'}
+            className={view === 'lista' ? 'on' : ''}
+            onClick={() => pickView('lista')}
+          >
+            <List aria-hidden="true" size={16} /> Lista
+          </button>
+        </div>
       </div>
+
+      {view === 'lista' ? (
+        <DealList
+          rows={all}
+          stages={data.stages}
+          timeZone={data.timeZone}
+          searching={Boolean(term)}
+          go={go}
+          onMove={(dealId, stageId) => void move(dealId, stageId)}
+        />
+      ) : (
+        <>
+          <nav className="stage-chips" aria-label="Ir para a etapa">
+            {stagesShown.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className={s.kind === 'LOST' ? 'stage-chip stage-chip--exit' : 'stage-chip'}
+                onClick={() => jump(s.id)}
+              >
+                {s.name} <span className="count">{s.deals.length}</span>
+              </button>
+            ))}
+          </nav>
+
+          <div className="board">
+            {funnel.map(column)}
+            {exits.length > 0 && <div className="board__divider" aria-hidden="true" />}
+            {exits.map(column)}
+          </div>
+        </>
+      )}
     </>
+  );
+}
+
+const VIEW_KEY = 'nexo-etapas-visao';
+
+/** Quadro ou lista: preferência só deste aparelho. */
+function readView(): 'quadro' | 'lista' {
+  try {
+    return window.localStorage.getItem(VIEW_KEY) === 'lista' ? 'lista' : 'quadro';
+  } catch {
+    return 'quadro';
+  }
+}
+
+function saveView(v: 'quadro' | 'lista') {
+  try {
+    window.localStorage.setItem(VIEW_KEY, v);
+  } catch {
+    // sem armazenamento: vale até fechar a página
+  }
+}
+
+/** Soma do preço dos próximos horários da etapa (serviço sem preço não entra). */
+export function stageValue(stage: PipelineStage): number {
+  return stage.deals.reduce((sum, d) => sum + (d.valueCents ?? 0), 0);
+}
+
+/** Lista: uma linha por cliente, com a etapa num seletor para mudar sem abrir o quadro. */
+function DealList({
+  rows,
+  stages,
+  timeZone,
+  searching,
+  go,
+  onMove,
+}: {
+  rows: { deal: PipelineDeal; stage: PipelineStage }[];
+  stages: PipelineStage[];
+  timeZone: string;
+  searching: boolean;
+  go: (to: string) => void;
+  onMove: (dealId: string, stageId: string) => void;
+}) {
+  if (rows.length === 0) {
+    return (
+      <p className="card muted">
+        {searching
+          ? 'Ninguém com esse nome ou telefone no quadro.'
+          : 'Quem escrever pelo WhatsApp ou for cadastrada aqui aparece nesta lista.'}
+      </p>
+    );
+  }
+  return (
+    <ul className="deal-list" aria-label="Clientes no quadro">
+      {rows.map(({ deal, stage }) => {
+        const name = contactName(deal.contact);
+        return (
+          <li key={deal.id} className="deal-list__row card">
+            <div className="deal-list__who">
+              <button
+                type="button"
+                className="link"
+                onClick={() => go(`/clientes/${deal.contact.id}`)}
+              >
+                {name}
+              </button>
+              <span className="muted small">{phone(deal.contact.phone)}</span>
+            </div>
+            <div className="deal-list__info muted small">
+              <span>{sinceLabel(deal.since)}</span>
+              {deal.nextAt && (
+                <span>
+                  Próximo: {nextLabel(deal.nextAt, timeZone)}
+                  {deal.nextService ? ` · ${deal.nextService}` : ''}
+                </span>
+              )}
+              {deal.valueCents != null && <strong>{money(deal.valueCents)}</strong>}
+            </div>
+            <label className="deal-list__stage">
+              <span className="sr-only">Etapa de {name}</span>
+              <select value={stage.id} onChange={(e) => onMove(deal.id, e.target.value)}>
+                {stages.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -203,6 +394,12 @@ function DealCard({
           <span>
             <CalendarClock aria-hidden="true" size={14} /> Próximo:{' '}
             {nextLabel(deal.nextAt, timeZone)}
+          </span>
+        )}
+        {deal.valueCents != null && (
+          <span className="deal__value">
+            {deal.nextService ? `${deal.nextService} · ` : ''}
+            {money(deal.valueCents)}
           </span>
         )}
       </p>

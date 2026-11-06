@@ -63,3 +63,9 @@ export const moveDealBody = z.object({ stageId: z.uuid() });
 export const replyBody = z.object({ text: z.string().trim().min(1).max(4096) });
 
 export const stageRulesBody = z.object({ rules: stageRulesSchema });
+
+/** Metas do mês. Nulo apaga a meta. Faturamento em centavos (até R$ 10 milhões). */
+export const goalsBody = z.object({
+  doneCount: z.number().int().min(1).max(100000).nullable().optional(),
+  revenueCents: z.number().int().min(100).max(1_000_000_000).nullable().optional(),
+});

@@ -17,7 +17,7 @@ import {
 } from '@nexo/core';
 import { ChannelRegistry } from '../channel/channel.registry.js';
 import type { ChannelName } from '../channel/channel.types.js';
-import { recordEvent } from '../crm/domain-events.js';
+import { ensureDeal, recordEvent } from '../crm/domain-events.js';
 import { readStageRules } from '../crm/stage-rules.js';
 import type { ContactSegment } from './panel.schemas.js';
 import type { TenantTx } from '../database/prisma.js';
@@ -322,6 +322,8 @@ export class PanelService {
       const created = await tx.contact.create({
         data: { tenantId, name: input.name, phone: input.phone, source: 'PANEL' },
       });
+      // Cadastrada pela tela também entra no quadro, na primeira etapa.
+      await ensureDeal(tx, tenantId, created.id);
       await recordEvent(tx, tenantId, {
         type: 'contact.created',
         entityType: 'contact',
@@ -474,7 +476,10 @@ export class PanelService {
                         },
                         orderBy: { startsAt: 'asc' },
                         take: 1,
-                        select: { startsAt: true },
+                        select: {
+                          startsAt: true,
+                          service: { select: { name: true, priceCents: true } },
+                        },
                       },
                     },
                   },
@@ -494,6 +499,9 @@ export class PanelService {
             id,
             since: updatedAt,
             nextAt: appointments[0]?.startsAt ?? null,
+            // Valor do quadro: o preço do serviço do próximo horário (sem preço, fica nulo).
+            nextService: appointments[0]?.service.name ?? null,
+            valueCents: appointments[0]?.service.priceCents ?? null,
             contact,
           })),
         })),

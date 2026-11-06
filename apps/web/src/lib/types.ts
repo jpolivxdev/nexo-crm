@@ -121,6 +121,9 @@ export interface PipelineDeal {
   since: string;
   /** Próximo horário marcado da cliente, se tiver. */
   nextAt: string | null;
+  /** Serviço e preço do próximo horário (preço nulo quando o serviço não tem preço). */
+  nextService?: string | null;
+  valueCents?: number | null;
   contact: ContactRef;
 }
 

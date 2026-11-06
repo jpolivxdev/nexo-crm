@@ -54,7 +54,7 @@ Ideia do JP: o básico é este sistema no layout do CRM de referência, com as n
 | Fase | O que entra | Situação |
 |---|---|---|
 | L1 | Molde: menu em grupos, cabeçalho em cartão (PR #30), bússola com tour guiado por tela, sino de avisos, botão do Nex | Em PR |
-| L2 | CRM em quadro: Quadro e Lista, valor por coluna, busca, filtros, "Novo contato"; Início e Resultados com metas | A fazer |
+| L2 | CRM em quadro: Quadro e Lista, valor por coluna, busca, "Nova cliente"; metas do mês em Resultados | Em PR |
 | L3 | Conversas: lista do WhatsApp e conversa aberta, abas Abertas, Novos contatos, Minhas e Arquivadas; a dona responde pela tela | A fazer (clientes reais dependem da Meta) |
 | L4 | Suporte (abrir chamado, lista, resposta na tela e no sino) e painel interno da nexo para responder | A fazer |
 | L5 | Nex com pergunta livre (Gemini gratuito, atrás do `AiProvider`, sem dado de cliente, limite por negócio) | A fazer |

@@ -107,3 +107,8 @@ export function activityText(type: string, actorType: string): string {
       return 'teve uma atualização';
   }
 }
+
+/** Valor em reais a partir de centavos: 23000 → "R$ 230,00". */
+export function money(cents: number): string {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100);
+}

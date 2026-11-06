@@ -3320,3 +3320,136 @@ input[type='time'] {
     transform: none;
   }
 }
+
+/* Etapas (CRM em quadro): busca, totais e troca entre quadro e lista */
+.board-tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  align-items: center;
+  margin: 16px 0;
+}
+
+.board-tools__search {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.board-tools__total {
+  display: grid;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--raio-pequeno);
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+}
+
+.board-tools .segmented {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.segmented--icons button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+}
+
+@media (min-width: 900px) {
+  .board-tools {
+    grid-template-columns: minmax(220px, 1fr) auto auto auto;
+  }
+
+  .board-tools__search,
+  .board-tools .segmented {
+    grid-column: auto;
+  }
+}
+
+.column__value {
+  font-family: var(--fonte-texto);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+}
+
+.deal__value {
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.deal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.deal-list__row {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.deal-list__who {
+  display: grid;
+}
+
+.deal-list__info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.deal-list__stage select {
+  width: 100%;
+  min-height: var(--toque-minimo);
+}
+
+@media (min-width: 900px) {
+  .deal-list__row {
+    grid-template-columns: minmax(180px, 1.2fr) 2fr minmax(180px, 1fr);
+    align-items: center;
+  }
+}
+
+/* Metas do mês (Resultados) */
+.goals h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.goals__list {
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.goals__line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 6px;
+}
+
+.goals__bar {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--cor-suave);
+  overflow: hidden;
+}
+
+.goals__bar span {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+  background: var(--roxo-nexo);
+}

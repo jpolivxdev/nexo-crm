@@ -149,7 +149,13 @@ export function Contacts({ go }: { go: (to: string) => void }) {
   );
 }
 
-function NewContact({ onDone, onCancel }: { onDone: (id: string) => void; onCancel: () => void }) {
+export function NewContact({
+  onDone,
+  onCancel,
+}: {
+  onDone: (id: string) => void;
+  onCancel: () => void;
+}) {
   const [name, setName] = useState('');
   const [tel, setTel] = useState('');
   const [error, setError] = useState<string | null>(null);

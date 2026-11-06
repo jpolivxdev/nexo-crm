@@ -175,6 +175,10 @@ describe('login, sessão e painel', () => {
       .send(body);
     expect(ok.status).toBe(201);
     expect(ok.body.phone).toBe('00900001234');
+    // Cadastrada pela tela entra no quadro, na primeira etapa.
+    const board = await http().get('/panel/pipeline').set('cookie', cookie);
+    const first = board.body.stages[0] as { deals: { contact: { id: string } }[] };
+    expect(first.deals.some((d) => d.contact.id === ok.body.id)).toBe(true);
   });
 
   it('sair derruba a sessão', async () => {
@@ -242,15 +246,26 @@ describe('login, sessão e painel', () => {
   it('etapas: a dona move o atendimento por toque', async () => {
     const { cookie, csrf } = await login();
     const pipeline = await http().get('/panel/pipeline').set('cookie', cookie);
-    const stages = pipeline.body.stages as { id: string; name: string; deals: { id: string }[] }[];
-    const deal = stages.flatMap((s) => s.deals)[0]!;
+    const stages = pipeline.body.stages as {
+      id: string;
+      name: string;
+      deals: { id: string; nextAt: string | null }[];
+    }[];
+    // A cliente da semente tem horário marcado (as cadastradas pela tela entram sem horário).
+    const deal = stages.flatMap((s) => s.deals).find((d) => d.nextAt)!;
     const lost = stages.find((s) => s.name === 'Não seguiu')!;
     // Cartão do quadro: desde quando está na etapa e o próximo horário (ou nulo).
     expect(pipeline.body.timeZone).toBe('America/Sao_Paulo');
     expect(lost).toMatchObject({ key: 'lost', kind: 'LOST' });
     expect(deal).toEqual(
-      expect.objectContaining({ since: expect.any(String), nextAt: expect.anything() }),
+      expect.objectContaining({
+        since: expect.any(String),
+        nextAt: expect.anything(),
+        nextService: expect.any(String),
+      }),
     );
+    // Preço do serviço do próximo horário; serviço sem preço vem nulo.
+    expect(deal).toHaveProperty('valueCents');
     const moved = await http()
       .post(`/panel/deals/${deal.id}/stage`)
       .set('cookie', cookie)

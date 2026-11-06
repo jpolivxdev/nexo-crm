@@ -32,6 +32,7 @@ import {
   contactsQuery,
   createContactBody,
   eraseContactBody,
+  goalsBody,
   moveDealBody,
   replyBody,
   reportQuery,
@@ -192,6 +193,22 @@ export class PanelController {
   eraseContact(@Req() req: AuthedRequest, @Param('id', uuid) id: string, @Body() body: unknown) {
     parse(eraseContactBody, body);
     return this.privacy.erase(this.tenant(req), id, this.privacyActor(req));
+  }
+
+  @RequiresFeature('report')
+  @Get('goals')
+  goals(@Req() req: AuthedRequest) {
+    return this.reports.goals(this.tenant(req));
+  }
+
+  @RequiresFeature('report')
+  @Put('goals')
+  saveGoals(@Req() req: AuthedRequest, @Body() body: unknown) {
+    const { doneCount, revenueCents } = parse(goalsBody, body);
+    return this.reports.saveGoals(this.tenant(req), {
+      doneCount: doneCount ?? undefined,
+      revenueCents: revenueCents ?? undefined,
+    });
   }
 
   @Get('pipeline')

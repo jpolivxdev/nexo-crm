@@ -117,6 +117,32 @@ describe('relatório mínimo (M9)', () => {
     expect(month.handoffs).toBe(3);
   });
 
+  it('metas do mês: realizados e faturamento pelo preço do serviço, sem misturar negócios', async () => {
+    await withTenant(prisma, t.tenantId, (tx) =>
+      tx.service.update({ where: { id: t.serviceIds[0]! }, data: { priceCents: 16000 } }),
+    );
+    const ago = (days: number) => new Date(NOW.getTime() - days * DAY);
+    await appointment(t, { startsAt: ago(1), status: 'DONE' });
+    await appointment(t, { startsAt: ago(2), status: 'DONE' });
+    await appointment(t, { startsAt: ago(3), status: 'NO_SHOW' });
+    // Mês passado (dezembro) não entra.
+    await appointment(t, { startsAt: ago(20), status: 'DONE' });
+    await appointment(other, { startsAt: ago(1), status: 'DONE' });
+
+    const empty = await reports.goals(t.tenantId, NOW);
+    expect(empty).toEqual({
+      month: '2031-01',
+      goals: { doneCount: undefined, revenueCents: undefined },
+      progress: { doneCount: 2, revenueCents: 32000 },
+    });
+
+    await reports.saveGoals(t.tenantId, { doneCount: 40, revenueCents: 800000 });
+    const saved = await reports.goals(t.tenantId, NOW);
+    expect(saved.goals).toEqual({ doneCount: 40, revenueCents: 800000 });
+    const theirs = await reports.goals(other.tenantId, NOW);
+    expect(theirs.goals.doneCount).toBeUndefined();
+  });
+
   it('não mistura negócios', async () => {
     await appointment(other, { startsAt: new Date(NOW.getTime() - DAY), status: 'NO_SHOW' });
     await event(other, 'handoff.requested', 'contact');
