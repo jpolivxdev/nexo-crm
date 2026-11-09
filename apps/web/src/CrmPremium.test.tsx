@@ -222,7 +222,7 @@ describe('Premium: CRM completo', () => {
 
     await user.click(screen.getByRole('button', { name: /Previsão/ }));
     const forecast = await screen.findByRole('dialog', { name: 'Previsão de fechamento' });
-    expect(within(forecast).getByText('dezembro de 2026')).toBeInTheDocument();
+    expect(within(forecast).getByText('Dezembro de 2026')).toBeInTheDocument();
   });
 
   it('cria atendimento, troca de funil e cria funil novo', async () => {

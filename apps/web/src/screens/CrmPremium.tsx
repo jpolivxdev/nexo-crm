@@ -95,7 +95,7 @@ export function monthLabel(month: string | null): string {
   const name = new Intl.DateTimeFormat('pt-BR', { month: 'long', timeZone: 'UTC' }).format(
     new Date(Date.UTC(y!, m! - 1, 1)),
   );
-  return `${name} de ${y}`;
+  return `${name.charAt(0).toUpperCase()}${name.slice(1)} de ${y}`;
 }
 
 // ---------- Filtros ----------

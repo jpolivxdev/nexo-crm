@@ -379,3 +379,15 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Quem pode:** importar e exportar são da área Dados pessoais (dono e gestor por padrão). A Carteira todo mundo do dia a dia vê; as regras dela são da área Configurações.
 - **Carteira:** só quem já foi atendida (pelo menos um "realizado"). Situação: **Em dia** (tem horário marcado ou voltou dentro do costume), **Atenção** (passou do intervalo médio dela vezes 1,25, ou de 30 dias para quem veio uma vez só), **Em risco** (mais de 45 dias, a "sumida" da piloto) e **Perdida** (mais de 90 dias). Os três números o negócio muda. Mostra também quantas vezes veio, quanto já gastou (preço dos serviços realizados) e de quanto em quanto tempo costuma voltar. Conta em `@nexo/core` (`portfolioStatus`), testada.
 - **Nome:** "Carteira" para não confundir com "Clientes", que continua sendo a lista de todo mundo que falou com o negócio.
+
+## Premium, fase P4: Painéis e painel geral no Hoje (09/11/2026)
+
+- **Recurso novo `dashboards`** no Premium: tela **Painéis** (em Gestão) e o **Painel geral** no topo do Hoje. Os dois seguem a área Resultados dos Acessos.
+- **Período:** semana (segunda a domingo), mês ou trimestre do calendário, no fuso do negócio, até hoje; cada número vem com a variação em relação ao período anterior do mesmo tipo. Filtros por funil e por responsável.
+- **Indicadores:** novos contatos, atendimentos novos, fechados (e valor), conversão (fechados sobre fechados + não seguiram), realizados, faturamento (preço dos serviços realizados), ticket médio e faltas. "Fechado" é o atendimento que foi para uma etapa de tipo Fechou no período; "não seguiu", para uma etapa de saída. Realizados, faturamento e faltas vêm da agenda e não mudam com o filtro de responsável (a agenda é por profissional, não por responsável do atendimento).
+- **Metas por período:** novos contatos, fechados, realizados e faturamento, separadas para semana, mês e trimestre. A meta do mês é a mesma da tela Resultados do Básico (mudar uma muda a outra).
+- **Funil de conversão:** dos atendimentos que entraram no funil escolhido no período, quantos chegaram a cada etapa (pela etapa atual e pelo histórico de mudanças). Etapas de saída ficam fora. Conta em `@nexo/core` (`conversionFunnel`), testada.
+- **Por responsável** e **previsão mensal** (a mesma conta da P2, somando os funis).
+- **Modo TV:** tela cheia escura com os números grandes, metas e funil; atualiza sozinho a cada minuto; sai no botão ou no Esc.
+- **Painel geral no Hoje:** receita do mês, previsão de receita (todos os funis), chamados de suporte abertos, quantos estão em cada etapa do funil principal e a previsão dos próximos meses.
+- **Celular:** com mais de 6 seções (Premium), a barra de baixo rola para o lado em vez de espremer os nomes.

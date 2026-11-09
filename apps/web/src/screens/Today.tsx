@@ -16,10 +16,20 @@ import { Banner, Empty, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { activityText, contactName, dateTime, localDateLabel } from '../lib/format';
 import { useLoad, useRealtime } from '../lib/hooks';
+import { OverviewPanel } from './Dashboards';
 import type { ActivityItem, Report, Today as TodayData } from '../lib/types';
 
 /** Hoje. Para a profissional da equipe, só os horários dela (sem conversas, "a fazer" e gráfico). */
-export function Today({ go, staff = false }: { go: (to: string) => void; staff?: boolean }) {
+export function Today({
+  go,
+  staff = false,
+  overview = false,
+}: {
+  go: (to: string) => void;
+  staff?: boolean;
+  /** Premium com Resultados: painel geral no topo. */
+  overview?: boolean;
+}) {
   const { data, error, loading, reload } = useLoad(() => api<TodayData>('/panel/today'), 'today');
   // O gráfico vem do relatório de 30 dias. Se falhar, o resto do dia continua aparecendo.
   const trend = useLoad(
@@ -57,6 +67,7 @@ export function Today({ go, staff = false }: { go: (to: string) => void; staff?:
   return (
     <>
       <PageHeader Icon={House} title="Seu dia de hoje" subtitle={localDateLabel(data.date)} />
+      {overview && !staff && <OverviewPanel go={go} />}
       <dl className="kpis" aria-label="Resumo do dia" data-tour="resumo">
         <Kpi label="Horários" value={active.length} Icon={CalendarDays} />
         {!staff && (

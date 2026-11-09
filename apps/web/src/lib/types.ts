@@ -26,7 +26,14 @@ export interface Me {
 export type PlanId = 'FREE' | 'CRM' | 'COMPLETE' | 'PREMIUM';
 
 export type Feature =
-  'report' | 'agenda' | 'bot' | 'reminders' | 'team_roles' | 'crm_plus' | 'contacts_plus';
+  | 'report'
+  | 'agenda'
+  | 'bot'
+  | 'reminders'
+  | 'team_roles'
+  | 'crm_plus'
+  | 'contacts_plus'
+  | 'dashboards';
 
 export interface ContactRef {
   id: string;

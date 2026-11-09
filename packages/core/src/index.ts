@@ -133,3 +133,16 @@ export {
   type PortfolioRules,
   type PortfolioStatus,
 } from './crm/portfolio.js';
+export {
+  change,
+  conversionFunnel,
+  DASHBOARD_PERIODS,
+  GOAL_KEYS,
+  periodRange,
+  readPeriodGoals,
+  type DashboardPeriod,
+  type FunnelStage,
+  type FunnelStep,
+  type PeriodGoals,
+  type PeriodRange,
+} from './crm/dashboard.js';

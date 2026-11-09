@@ -3,6 +3,7 @@ import {
   ChartColumn,
   Compass,
   House,
+  LayoutDashboard,
   LogOut,
   MessagesSquare,
   Repeat2,
@@ -50,6 +51,7 @@ import { Landing } from './screens/Landing';
 import { Login } from './screens/Login';
 import { Pipeline } from './screens/Pipeline';
 import { Portfolio } from './screens/Portfolio';
+import { Dashboards } from './screens/Dashboards';
 import { NoAccess, NotInPlan, Plans } from './screens/Plans';
 import { Report } from './screens/Report';
 import { Setup } from './screens/Setup';
@@ -99,6 +101,14 @@ const NAV: (SidebarItem & { feature?: Feature })[] = [
     hint: 'Onde cada cliente está, do contato ao retorno',
   },
   {
+    to: '/paineis',
+    label: 'Painéis',
+    Icon: LayoutDashboard,
+    feature: 'dashboards',
+    group: 'Gestão',
+    hint: 'Números do comercial, metas e funil de conversão; Modo TV',
+  },
+  {
     to: '/resultados',
     label: 'Resultados',
     Icon: ChartColumn,
@@ -113,6 +123,7 @@ const SECTION_FEATURE: Record<string, { feature: Feature; name: string }> = {
   '/acessos': { feature: 'team_roles', name: 'Acessos por papel' },
   '/agenda': { feature: 'agenda', name: 'A agenda' },
   '/carteira': { feature: 'contacts_plus', name: 'A Carteira de clientes' },
+  '/paineis': { feature: 'dashboards', name: 'Os Painéis' },
   '/folgas': { feature: 'agenda', name: 'Folgas e bloqueios' },
   '/resultados': { feature: 'report', name: 'Resultados' },
 };
@@ -262,7 +273,7 @@ function Panel({ me }: { me: Me }) {
     const item = SETTINGS.find((i) => i.to === to);
     if (item?.needs === 'owner') return owner;
     if (item?.needs === 'settings' || to === '/regras') return canArea('settings');
-    if (to === '/resultados') return canArea('reports');
+    if (to === '/resultados' || to === '/paineis') return canArea('reports');
     return true;
   };
   const nav = (staff ? NAV.filter((n) => n.to === '/hoje' || n.to === '/agenda') : NAV).filter(
@@ -349,10 +360,12 @@ function Panel({ me }: { me: Me }) {
           : undefined
       }
     />
+  ) : section === '/paineis' ? (
+    <Dashboards />
   ) : section === '/resultados' ? (
     <Report />
   ) : (
-    <Today go={go} staff={staff} />
+    <Today go={go} staff={staff} overview={has('dashboards') && canArea('reports')} />
   );
 
   return (
@@ -450,7 +463,11 @@ function Panel({ me }: { me: Me }) {
       <Nex topics={nexTopics} onTour={openTour} />
       {touring && <Tour key={section} steps={tourFor(section)} onClose={closeTour} />}
       {demoTouring && <Tour steps={DEMO_TOUR} onClose={() => setDemoTouring(false)} onRoute={go} />}
-      <nav className="tabbar" aria-label="Seções do painel">
+      {/* Com muitas seções (Premium), a barra rola para o lado em vez de espremer os nomes. */}
+      <nav
+        className={nav.length > 6 ? 'tabbar tabbar--scroll' : 'tabbar'}
+        aria-label="Seções do painel"
+      >
         {nav.map(({ to, label, Icon }) => (
           <a
             key={to}

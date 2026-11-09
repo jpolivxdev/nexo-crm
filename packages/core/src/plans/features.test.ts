@@ -14,6 +14,7 @@ describe('recursos por plano', () => {
       'team_roles',
       'crm_plus',
       'contacts_plus',
+      'dashboards',
     ]);
   });
 
