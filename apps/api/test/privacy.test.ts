@@ -106,6 +106,22 @@ describe('exportar e excluir os dados de uma cliente (LGPD)', () => {
           endsAt: new Date(Date.now() + 501 * HOUR),
         },
       });
+      // Premium: atendimento com título e campo próprio escritos pela equipe.
+      const stage = await tx.stage.findFirstOrThrow({ where: { pipeline: { isDefault: true } } });
+      const field = await tx.customField.create({
+        data: { tenantId: t.tenantId, label: 'Indicada por', type: 'text' },
+      });
+      await tx.deal.create({
+        data: {
+          tenantId: t.tenantId,
+          contactId: contact.id,
+          pipelineId: stage.pipelineId,
+          stageId: stage.id,
+          title: 'Pacote da noiva (demo)',
+          valueCents: 23000,
+          fields: { [field.id]: 'Prima da Ana' },
+        },
+      });
       await tx.reminder.create({
         data: {
           tenantId: t.tenantId,
@@ -162,6 +178,13 @@ describe('exportar e excluir os dados de uma cliente (LGPD)', () => {
     expect(res.body.appointments[0]).toMatchObject({ status: 'DONE', notes: 'Veio com a filha' });
     expect(typeof res.body.appointments[0].service).toBe('string');
     expect(res.body.tasks).toHaveLength(1);
+    expect(res.body.deals).toContainEqual(
+      expect.objectContaining({
+        title: 'Pacote da noiva (demo)',
+        valueCents: 23000,
+        fields: { 'Indicada por': 'Prima da Ana' },
+      }),
+    );
     expect(res.body.history.map((h: { type: string }) => h.type)).toContain('contact.created');
     // Nada de IDs internos do negócio no arquivo.
     expect(JSON.stringify(res.body)).not.toContain(t.tenantId);
@@ -197,6 +220,8 @@ describe('exportar e excluir os dados de uma cliente (LGPD)', () => {
       expect(future.status).toBe('CANCELLED');
       expect(future.reminders.every((r) => r.status === 'CANCELLED')).toBe(true);
       expect(await tx.deal.count({ where: { contactId, closedAt: null } })).toBe(0);
+      const deals = await tx.deal.findMany({ where: { contactId } });
+      expect(deals.every((d) => d.title === null && JSON.stringify(d.fields) === '{}')).toBe(true);
       expect(await tx.event.count({ where: { type: 'contact.erased', entityId: contactId } })).toBe(
         1,
       );
