@@ -60,7 +60,8 @@ export function Tour({
   // acompanha o tamanho real e fica preso à parte visível da janela.
   const measure = useCallback(() => {
     const el = findTarget(step.target);
-    if (!el) {
+    // Enquanto a tela ainda carrega, o destaque espera: o tamanho e o lugar ainda vão mudar.
+    if (!el || document.querySelector('main .loading')) {
       setBox(null);
       return;
     }
