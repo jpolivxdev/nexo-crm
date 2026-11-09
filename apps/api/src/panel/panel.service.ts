@@ -10,6 +10,7 @@ import {
   addDays,
   dayRangeUtc,
   defaultStageFor,
+  forecast,
   RULE_EVENTS,
   type StageRule,
   todayIn,
@@ -54,6 +55,8 @@ export const SEGMENT_RULES = {
   missingAfterDays: 45,
   noShowMin: 2,
 } as const;
+
+const isString = (v: string | null): v is string => v !== null;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -248,7 +251,7 @@ export class PanelService {
           phone: true,
           optedOutAt: true,
           deals: {
-            where: { closedAt: null },
+            where: { closedAt: null, pipeline: { isDefault: true } },
             take: 1,
             orderBy: { createdAt: 'desc' },
             select: { stage: { select: { id: true, name: true } } },
@@ -352,7 +355,7 @@ export class PanelService {
           source: true,
           createdAt: true,
           deals: {
-            where: { closedAt: null },
+            where: { closedAt: null, pipeline: { isDefault: true } },
             orderBy: { createdAt: 'desc' },
             take: 1,
             select: {
@@ -438,18 +441,23 @@ export class PanelService {
     return updated;
   }
 
-  /** Quadro de etapas. Cada cartão traz desde quando está na etapa e o próximo horário marcado. */
-  pipeline(tenantId: string, now = new Date()) {
+  /**
+   * Quadro de etapas. Cada cartão traz desde quando está na etapa e o próximo horário marcado.
+   * No Premium também o dono, a campanha, a previsão, os campos próprios e a próxima tarefa;
+   * sem `pipelineId`, vale o funil padrão.
+   */
+  pipeline(tenantId: string, now = new Date(), pipelineId?: string) {
     return this.db.withTenant(tenantId, async (tx) => {
       const tenant = await tx.tenant.findUniqueOrThrow({
         where: { id: tenantId },
         select: { timezone: true },
       });
       const pipeline = await tx.pipeline.findFirst({
-        where: { isDefault: true },
+        where: pipelineId ? { id: pipelineId } : { isDefault: true },
         select: {
           id: true,
           name: true,
+          isDefault: true,
           stages: {
             orderBy: { position: 'asc' },
             select: {
@@ -457,6 +465,7 @@ export class PanelService {
               name: true,
               key: true,
               kind: true,
+              probability: true,
               deals: {
                 where: { closedAt: null },
                 orderBy: { updatedAt: 'desc' },
@@ -464,11 +473,25 @@ export class PanelService {
                 select: {
                   id: true,
                   updatedAt: true,
+                  title: true,
+                  valueCents: true,
+                  ownerUserId: true,
+                  expectedCloseOn: true,
+                  fields: true,
+                  campaign: { select: { id: true, name: true } },
                   contact: {
                     select: {
                       id: true,
                       name: true,
                       phone: true,
+                      source: true,
+                      tags: true,
+                      tasks: {
+                        where: { doneAt: null },
+                        orderBy: [{ dueAt: { sort: 'asc', nulls: 'last' } }, { createdAt: 'asc' }],
+                        take: 1,
+                        select: { id: true, title: true, kind: true, dueAt: true },
+                      },
                       appointments: {
                         where: {
                           status: { in: ['SCHEDULED', 'CONFIRMED'] },
@@ -490,21 +513,68 @@ export class PanelService {
         },
       });
       if (!pipeline) throw new NotFoundException('Nenhuma etapa configurada.');
-      return {
-        ...pipeline,
-        timeZone: tenant.timezone,
-        stages: pipeline.stages.map((stage) => ({
-          ...stage,
-          deals: stage.deals.map(({ id, updatedAt, contact: { appointments, ...contact } }) => ({
+      const ownerIds = [
+        ...new Set(
+          pipeline.stages.flatMap((s) => s.deals.map((d) => d.ownerUserId).filter(isString)),
+        ),
+      ];
+      const owners = ownerIds.length
+        ? await tx.user.findMany({
+            where: { id: { in: ownerIds }, tenantId },
+            select: { id: true, name: true },
+          })
+        : [];
+      const stages = pipeline.stages.map(({ probability, ...stage }) => ({
+        ...stage,
+        probability,
+        deals: stage.deals.map(
+          ({
+            id,
+            updatedAt,
+            title,
+            valueCents: own,
+            ownerUserId,
+            expectedCloseOn,
+            fields,
+            campaign,
+            contact: { appointments, tasks, ...contact },
+          }) => ({
             id,
             since: updatedAt,
+            title,
             nextAt: appointments[0]?.startsAt ?? null,
-            // Valor do quadro: o preço do serviço do próximo horário (sem preço, fica nulo).
             nextService: appointments[0]?.service.name ?? null,
-            valueCents: appointments[0]?.service.priceCents ?? null,
+            // Valor do quadro: o valor do atendimento, se a equipe escreveu um; senão, o preço
+            // do serviço do próximo horário (sem preço, fica nulo).
+            valueCents: own ?? appointments[0]?.service.priceCents ?? null,
+            ownValue: own != null,
+            owner: owners.find((o) => o.id === ownerUserId) ?? null,
+            campaign,
+            expectedCloseOn: expectedCloseOn ? expectedCloseOn.toISOString().slice(0, 10) : null,
+            fields: (fields && typeof fields === 'object' && !Array.isArray(fields)
+              ? fields
+              : {}) as Record<string, string | number>,
+            nextTask: tasks[0] ?? null,
             contact,
-          })),
-        })),
+          }),
+        ),
+      }));
+      return {
+        id: pipeline.id,
+        name: pipeline.name,
+        isDefault: pipeline.isDefault,
+        timeZone: tenant.timezone,
+        stages,
+        forecast: forecast(
+          stages.flatMap((s) =>
+            s.deals.map((d) => ({
+              valueCents: d.valueCents,
+              probability: s.probability,
+              stageKind: s.kind,
+              expectedCloseOn: d.expectedCloseOn,
+            })),
+          ),
+        ),
       };
     });
   }

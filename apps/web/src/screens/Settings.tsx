@@ -5,7 +5,10 @@ import {
   CreditCard,
   Headset,
   MessageSquareText,
+  Palette,
+  ScrollText,
   Settings as SettingsIcon,
+  ShieldCheck,
   Store,
   UserRound,
   Users,
@@ -29,6 +32,8 @@ export interface SettingsItem {
   hint: string;
   Icon: LucideIcon;
   group: 'Você' | 'Negócio' | 'nexo';
+  /** Quem vê: área liberada por papel (Acessos) ou só o dono. Sem isto, todos do painel. */
+  needs?: 'settings' | 'owner';
 }
 
 export const SETTINGS: SettingsItem[] = [
@@ -41,6 +46,7 @@ export const SETTINGS: SettingsItem[] = [
   },
   {
     to: '/configurar',
+    needs: 'settings',
     label: 'Dados do negócio',
     hint: 'Serviços, horários de atendimento e dúvidas',
     Icon: Store,
@@ -48,13 +54,23 @@ export const SETTINGS: SettingsItem[] = [
   },
   {
     to: '/equipe',
+    needs: 'owner',
     label: 'Equipe',
     hint: 'Profissionais, serviços de cada uma e acessos',
     Icon: Users,
     group: 'Negócio',
   },
   {
+    to: '/acessos',
+    needs: 'owner',
+    label: 'Acessos',
+    hint: 'O que cada papel da equipe vê e a verificação em duas etapas',
+    Icon: ShieldCheck,
+    group: 'Negócio',
+  },
+  {
     to: '/mensagens',
+    needs: 'settings',
     label: 'Mensagens do robô',
     hint: 'Os textos que o robô manda no WhatsApp',
     Icon: MessageSquareText,
@@ -62,6 +78,7 @@ export const SETTINGS: SettingsItem[] = [
   },
   {
     to: '/avisos',
+    needs: 'settings',
     label: 'Avisos',
     hint: 'O que te avisar e o lembrete do próximo horário',
     Icon: BellRing,
@@ -69,13 +86,31 @@ export const SETTINGS: SettingsItem[] = [
   },
   {
     to: '/folgas',
+    needs: 'settings',
     label: 'Folgas e bloqueios',
     hint: 'Dias e horários em que você não atende',
     Icon: CalendarOff,
     group: 'Negócio',
   },
   {
+    to: '/marca',
+    needs: 'settings',
+    label: 'Marca e domínio',
+    hint: 'Logo, cor, fonte e endereço próprio',
+    Icon: Palette,
+    group: 'Negócio',
+  },
+  {
+    to: '/modelos',
+    needs: 'settings',
+    label: 'Modelos de mensagem',
+    hint: 'Textos prontos de WhatsApp e e-mail',
+    Icon: ScrollText,
+    group: 'Negócio',
+  },
+  {
     to: '/assinatura',
+    needs: 'owner',
     label: 'Plano e assinatura',
     hint: 'Seu plano atual',
     Icon: CreditCard,
@@ -286,9 +321,6 @@ function SessionsCard({ profile, onChange }: { profile: Profile; onChange: (p: P
             : `Além deste, ${others} outros aparelhos estão com o painel aberto.`}{' '}
         Se você não reconhece algum, saia deles e troque a senha.
       </p>
-      {profile.twoFactor && (
-        <p className="muted small">A verificação em duas etapas está ligada nesta conta.</p>
-      )}
       {message && <Banner kind={message.kind}>{message.text}</Banner>}
       <button
         type="button"
@@ -298,6 +330,166 @@ function SessionsCard({ profile, onChange }: { profile: Profile; onChange: (p: P
       >
         Sair dos outros aparelhos
       </button>
+    </section>
+  );
+}
+
+/**
+ * Verificação em duas etapas: na entrada, além da senha, um código de 6 dígitos do app
+ * autenticador do celular (Google Authenticator, Microsoft Authenticator, Authy...).
+ */
+export function TwoFactorCard({
+  enabled,
+  onChange,
+  forced = false,
+}: {
+  enabled: boolean;
+  onChange?: (on: boolean) => void;
+  forced?: boolean;
+}) {
+  const { refresh } = useAuth();
+  const [setup, setSetup] = useState<{ secret: string; uri: string } | null>(null);
+  const [code, setCode] = useState('');
+  const [turningOff, setTurningOff] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
+
+  async function run(action: () => Promise<void>) {
+    setBusy(true);
+    setMessage(null);
+    try {
+      await action();
+    } catch (err) {
+      setMessage({
+        kind: 'error',
+        text: err instanceof ApiError ? err.message : 'Não foi possível agora.',
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const start = () =>
+    run(async () => {
+      setSetup(await api<{ secret: string; uri: string }>('/auth/2fa/start', { method: 'POST' }));
+      setCode('');
+    });
+
+  const confirm = (e: FormEvent) => {
+    e.preventDefault();
+    if (!setup) return;
+    void run(async () => {
+      await api('/auth/2fa/enable', { method: 'POST', body: { secret: setup.secret, code } });
+      setSetup(null);
+      setCode('');
+      setMessage({
+        kind: 'ok',
+        text: 'Verificação ligada. Na próxima entrada, o painel pede o código.',
+      });
+      onChange?.(true);
+      await refresh();
+    });
+  };
+
+  const disable = (e: FormEvent) => {
+    e.preventDefault();
+    void run(async () => {
+      await api('/auth/2fa/disable', { method: 'POST', body: { code } });
+      setTurningOff(false);
+      setCode('');
+      setMessage({ kind: 'ok', text: 'Verificação desligada.' });
+      onChange?.(false);
+      await refresh();
+    });
+  };
+
+  const codeInput = (
+    <label>
+      Código de 6 dígitos do app
+      <input
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        pattern="[0-9]{6}"
+        maxLength={6}
+        required
+        value={code}
+        onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+      />
+    </label>
+  );
+
+  return (
+    <section className="card" aria-labelledby="dois-fatores">
+      <h2 id="dois-fatores">Verificação em duas etapas</h2>
+      {forced && (
+        <Banner>
+          O negócio exige a verificação em duas etapas. Ligue para voltar a usar o painel.
+        </Banner>
+      )}
+      <p className="muted">
+        {enabled
+          ? 'Ligada: ao entrar, além da senha, o painel pede o código do app autenticador do seu celular.'
+          : 'Além da senha, pede um código do app autenticador do celular ao entrar. Protege o painel se alguém descobrir sua senha.'}
+      </p>
+      {message && <Banner kind={message.kind}>{message.text}</Banner>}
+      {setup ? (
+        <form className="form" onSubmit={confirm}>
+          <ol className="two-factor__steps">
+            <li>
+              Abra o app autenticador (Google Authenticator, Microsoft Authenticator ou Authy) e
+              adicione uma conta.
+            </li>
+            <li>
+              Digite esta chave no app:{' '}
+              <code className="secret">{setup.secret.match(/.{1,4}/g)?.join(' ')}</code> ou, no
+              celular, <a href={setup.uri}>toque aqui para abrir no app</a>.
+            </li>
+            <li>Digite abaixo o código que o app mostrar.</li>
+          </ol>
+          {codeInput}
+          <div className="row">
+            <button type="submit" className="button" disabled={busy || code.length !== 6}>
+              {busy ? 'Conferindo…' : 'Ligar verificação'}
+            </button>
+            <button type="button" className="button button--ghost" onClick={() => setSetup(null)}>
+              Cancelar
+            </button>
+          </div>
+        </form>
+      ) : enabled ? (
+        turningOff ? (
+          <form className="form" onSubmit={disable}>
+            {codeInput}
+            <div className="row">
+              <button type="submit" className="button" disabled={busy || code.length !== 6}>
+                Desligar
+              </button>
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={() => setTurningOff(false)}
+              >
+                Voltar
+              </button>
+            </div>
+          </form>
+        ) : (
+          <button
+            type="button"
+            className="button button--ghost"
+            onClick={() => {
+              setCode('');
+              setTurningOff(true);
+            }}
+          >
+            Desligar verificação
+          </button>
+        )
+      ) : (
+        <button type="button" className="button" disabled={busy} onClick={() => void start()}>
+          Ligar verificação
+        </button>
+      )}
     </section>
   );
 }
@@ -350,6 +542,12 @@ export function Settings({ acting, items }: { acting: boolean; items: SettingsIt
           <section className="card">
             <ChangePassword forced={false} />
           </section>
+          {profile && (
+            <TwoFactorCard
+              enabled={profile.twoFactor}
+              onChange={(on) => setProfile({ ...profile, twoFactor: on })}
+            />
+          )}
           {profile && <SessionsCard profile={profile} onChange={setProfile} />}
         </>
       )}

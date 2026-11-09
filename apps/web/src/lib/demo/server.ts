@@ -11,7 +11,8 @@ import {
   TZ,
   weekday,
 } from './data';
-import { leaveDemo } from './mode';
+import { isPremiumDemo, leaveDemo } from './mode';
+import { PREMIUM_FEATURES, premiumRequest, resetPremium, UNHANDLED } from './premium';
 
 /**
  * "Servidor" da demonstração: responde às mesmas rotas da API, só na memória do navegador.
@@ -28,6 +29,7 @@ function db(): DemoStore {
 /** Recomeça a demo (usado nos testes e ao sair). */
 export function resetDemo(now?: Date): void {
   store = now ? createDemoStore(now) : null;
+  resetPremium();
 }
 
 const NOT_HERE = 'Isto não está disponível na demonstração.';
@@ -493,8 +495,9 @@ function me() {
     mustChangePassword: false,
     businessName: s.business.name,
     onboardingPending: false,
-    plan: 'COMPLETE',
-    features: ['report', 'agenda', 'bot', 'reminders'],
+    plan: isPremiumDemo() ? 'PREMIUM' : 'COMPLETE',
+    features: isPremiumDemo() ? PREMIUM_FEATURES : ['report', 'agenda', 'bot', 'reminders'],
+    userId: isPremiumDemo() ? 'demo-u-1' : null,
     acting: null,
   };
 }
@@ -888,6 +891,11 @@ export async function demoRequest(
     // Nex: na demo, só os atalhos (nada vai para o Google).
     case 'GET /panel/assistant':
       return { enabled: false, left: 0 };
+  }
+  if (isPremiumDemo()) {
+    const ids = seg.filter((p, i) => i > 1 && /^demo-/.test(p));
+    const out = premiumRequest(s, route, ids, q, body);
+    if (out !== UNHANDLED) return out;
   }
   fail(404, NOT_HERE);
 }

@@ -1,8 +1,12 @@
+import type { AccessArea } from './roles';
+
 export type AppointmentStatus = 'SCHEDULED' | 'CONFIRMED' | 'DONE' | 'NO_SHOW' | 'CANCELLED';
 
 export interface Me {
+  /** Login da sessão (nulo para a nexo numa entrada controlada). */
+  userId?: string | null;
   name: string;
-  role: 'OWNER' | 'STAFF' | 'NEXO_ADMIN';
+  role: 'OWNER' | 'MANAGER' | 'CONSULTANT' | 'STAFF' | 'NEXO_ADMIN';
   csrfToken: string;
   mustChangePassword: boolean;
   /** Negócio da sessão (para o admin nexo, só durante uma entrada registrada). */
@@ -10,11 +14,33 @@ export interface Me {
   onboardingPending: boolean;
   acting: { until: string } | null;
   /** Plano do negócio e o que ele libera. Quem trava de verdade é o servidor. */
-  plan?: 'FREE' | 'CRM' | 'COMPLETE' | null;
+  plan?: PlanId | null;
   features?: Feature[];
+  /** Áreas que o papel acessa (Acessos por papel). Sem a lista, o servidor decide. */
+  access?: AccessArea[];
+  twoFactor?: boolean;
+  /** O negócio exige 2FA e este login ainda não ligou: só a tela de ligar aparece. */
+  mfaSetupRequired?: boolean;
+  /** Marca do negócio (Premium): cor, fonte e logo. Nulo: a da nexo. */
+  brand?: { color: string | null; font: string | null; logoVersion: number | null } | null;
 }
 
-export type Feature = 'report' | 'agenda' | 'bot' | 'reminders';
+export type PlanId = 'FREE' | 'CRM' | 'COMPLETE' | 'PREMIUM';
+
+export type Feature =
+  | 'report'
+  | 'agenda'
+  | 'bot'
+  | 'reminders'
+  | 'team_roles'
+  | 'crm_plus'
+  | 'contacts_plus'
+  | 'dashboards'
+  | 'team_chat'
+  | 'wiki'
+  | 'whiteboard'
+  | 'branding'
+  | 'templates';
 
 export interface ContactRef {
   id: string;
@@ -124,7 +150,84 @@ export interface PipelineDeal {
   /** Serviço e preço do próximo horário (preço nulo quando o serviço não tem preço). */
   nextService?: string | null;
   valueCents?: number | null;
-  contact: ContactRef;
+  /** Premium: o valor foi escrito pela equipe (não é o preço do próximo horário). */
+  ownValue?: boolean;
+  title?: string | null;
+  owner?: { id: string; name: string } | null;
+  campaign?: { id: string; name: string } | null;
+  /** AAAA-MM-DD. */
+  expectedCloseOn?: string | null;
+  fields?: Record<string, string | number>;
+  nextTask?: { id: string; title: string; kind: TaskKind; dueAt: string | null } | null;
+  contact: ContactRef & { source?: string; tags?: string[] };
+}
+
+export type TaskKind = 'todo' | 'call' | 'follow_up' | 'meeting';
+
+export interface ForecastBucket {
+  month: string | null;
+  count: number;
+  openCents: number;
+  weightedCents: number;
+}
+
+export interface Forecast {
+  count: number;
+  openCents: number;
+  weightedCents: number;
+  byMonth: ForecastBucket[];
+}
+
+export interface CrmPipeline {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  openDeals: number;
+  stages: {
+    id: string;
+    name: string;
+    kind: 'OPEN' | 'WON' | 'LOST';
+    probability: number | null;
+    key: string | null;
+  }[];
+}
+
+export interface Campaign {
+  id: string;
+  name: string;
+  channel: string | null;
+  startsOn: string | null;
+  endsOn: string | null;
+  budgetCents: number | null;
+  archivedAt: string | null;
+  pipeline: { id: string; name: string } | null;
+  deals: number;
+  won: number;
+  wonCents: number;
+}
+
+export interface CustomField {
+  id: string;
+  label: string;
+  type: 'text' | 'number' | 'date' | 'select';
+  options: string[];
+}
+
+export interface Person {
+  id: string;
+  name: string;
+  role: string;
+}
+
+export interface CrmTask {
+  id: string;
+  title: string;
+  kind: TaskKind;
+  dueAt: string | null;
+  doneAt: string | null;
+  dealId: string | null;
+  contact: ContactRef | null;
+  assignee: { id: string; name: string } | null;
 }
 
 export interface PipelineStage {
@@ -132,14 +235,17 @@ export interface PipelineStage {
   name: string;
   key: string | null;
   kind: 'OPEN' | 'WON' | 'LOST';
+  probability?: number | null;
   deals: PipelineDeal[];
 }
 
 export interface Pipeline {
   id: string;
   name: string;
+  isDefault?: boolean;
   timeZone: string;
   stages: PipelineStage[];
+  forecast?: Forecast;
 }
 
 export interface SetupService {
@@ -173,7 +279,7 @@ export interface TenantRow {
   id: string;
   name: string;
   niche: string;
-  plan?: 'FREE' | 'CRM' | 'COMPLETE';
+  plan?: PlanId;
   createdAt: string;
   onboardingStartedAt: string | null;
   onboardingCompletedAt: string | null;

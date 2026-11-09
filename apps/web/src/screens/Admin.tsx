@@ -273,7 +273,12 @@ function EnterTenant({ tenant, onCancel }: { tenant: TenantRow; onCancel: () => 
   );
 }
 
-const PLAN_LABEL = { FREE: 'Grátis', CRM: 'CRM', COMPLETE: 'Completo' } as const;
+const PLAN_LABEL = {
+  COMPLETE: 'Básico',
+  PREMIUM: 'Premium',
+  FREE: 'Grátis (antigo)',
+  CRM: 'CRM (antigo)',
+} as const;
 type PlanId = keyof typeof PLAN_LABEL;
 
 /** Troca o plano do negócio. O servidor registra na auditoria do negócio. */

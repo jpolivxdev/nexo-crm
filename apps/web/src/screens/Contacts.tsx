@@ -1,4 +1,4 @@
-import { Users } from 'lucide-react';
+import { Download, Upload, Users } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { type FormEvent, useState } from 'react';
 import { Banner, Empty, Loading } from '../components/ui';
@@ -6,6 +6,8 @@ import { api, ApiError } from '../lib/api';
 import { contactName, phone } from '../lib/format';
 import { useLoad, useRealtime } from '../lib/hooks';
 import type { ContactListItem } from '../lib/types';
+import { isDemo } from '../lib/demo/mode';
+import { ImportContacts } from './Portfolio';
 
 type Segment = '' | 'frequent' | 'missing' | 'no_show';
 
@@ -43,8 +45,18 @@ export function segmentNote(c: ContactListItem, now = new Date()): string | null
   return null;
 }
 
-export function Contacts({ go }: { go: (to: string) => void }) {
+/**
+ * `canTransfer`: Premium com a área Dados pessoais (importar e exportar planilha).
+ */
+export function Contacts({
+  go,
+  canTransfer = false,
+}: {
+  go: (to: string) => void;
+  canTransfer?: boolean;
+}) {
   const [q, setQ] = useState('');
+  const [importing, setImporting] = useState(false);
   const [segment, setSegment] = useState<Segment>('');
   const [adding, setAdding] = useState(false);
   const { data, error, loading, reload } = useLoad(
@@ -66,13 +78,38 @@ export function Contacts({ go }: { go: (to: string) => void }) {
         title="Clientes"
         subtitle="Quem já falou com você pelo WhatsApp ou foi cadastrada aqui."
         actions={
-          !adding && (
-            <button type="button" className="button" onClick={() => setAdding(true)}>
-              Nova cliente
-            </button>
-          )
+          <>
+            {canTransfer && (
+              <>
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={() => setImporting(true)}
+                >
+                  <Upload aria-hidden="true" size={16} /> Importar
+                </button>
+                {!isDemo() && (
+                  <a
+                    className="button button--ghost"
+                    href="/api/panel/crm/contacts/export.csv"
+                    download
+                  >
+                    <Download aria-hidden="true" size={16} /> Exportar
+                  </a>
+                )}
+              </>
+            )}
+            {!adding && (
+              <button type="button" className="button" onClick={() => setAdding(true)}>
+                Nova cliente
+              </button>
+            )}
+          </>
         }
       />
+      {importing && (
+        <ImportContacts onClose={() => setImporting(false)} onDone={() => void reload()} />
+      )}
       {adding && (
         <NewContact
           onCancel={() => setAdding(false)}

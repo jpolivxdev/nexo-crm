@@ -33,7 +33,9 @@ export const PREMIUM_PLAN: PlanInfo = {
     'Vários funis e campos do seu jeito',
     'Painéis com metas e previsão de receita',
     'Importar e exportar clientes',
-    'Sua marca no painel',
+    'Carteira de clientes: quem está em dia e quem está sumindo',
+    'Chat da equipe, Wiki e quadro branco',
+    'Sua marca no painel e modelos de mensagem',
     'Acessos por função na equipe',
   ],
 };

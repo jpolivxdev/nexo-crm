@@ -20,52 +20,76 @@ datasource db {
 
 // ---------- Negócio e acesso ----------
 
-/// Grátis (CRM básico), CRM e Completo (CRM + agenda + robô). O que cada um libera: @nexo/core.
+/// Planos à venda: COMPLETE (Básico) e PREMIUM. FREE e CRM são do tempo dos três planos.
+/// O que cada um libera: @nexo/core.
 enum Plan {
   FREE
   CRM
   COMPLETE
+  PREMIUM
 }
 
 /// Negócio (tenant).
 model Tenant {
-  id        String   @id @default(uuid()) @db.Uuid
-  name      String
+  id                    String    @id @default(uuid()) @db.Uuid
+  name                  String
   /// Nicho do negócio, usado para escolher o modelo de etapas (ex.: "cilios").
-  niche     String
-  timezone  String   @default("America/Sao_Paulo")
-  plan      Plan     @default(COMPLETE)
+  niche                 String
+  timezone              String    @default("America/Sao_Paulo")
+  plan                  Plan      @default(COMPLETE)
   /// Recursos liberados além do plano (feature flags).
-  features  String[] @default([])
+  features              String[]  @default([])
   /// Mensagens do robô editáveis pelo dono. Vazio = padrão do sistema.
-  botMessages Json   @default("{}") @map("bot_messages")
+  botMessages           Json      @default("{}") @map("bot_messages")
   /// Dúvidas frequentes respondidas pelo robô: [{ question, answer }].
-  faq         Json   @default("[]")
+  faq                   Json      @default("[]")
   /// Nome de quem atende, usado em "Falar com ...".
-  attendantName String @default("a equipe") @map("attendant_name")
+  attendantName         String    @default("a equipe") @map("attendant_name")
   /// De quanto em quanto tempo oferecer horários.
-  slotStepMinutes  Int @default(30) @map("slot_step_minutes")
+  slotStepMinutes       Int       @default(30) @map("slot_step_minutes")
   /// Antecedência mínima para marcar.
-  minNoticeMinutes Int @default(60) @map("min_notice_minutes")
+  minNoticeMinutes      Int       @default(60) @map("min_notice_minutes")
   /// Avisar a dona por e-mail quando uma cliente marca, remarca ou cancela pelo WhatsApp.
-  notifyEmail      Boolean @default(false) @map("notify_email")
+  notifyEmail           Boolean   @default(false) @map("notify_email")
   /// Dias depois do atendimento para o "a fazer" de oferecer o próximo horário. Nulo = não criar.
-  nextVisitDays    Int?    @default(0) @map("next_visit_days")
+  nextVisitDays         Int?      @default(0) @map("next_visit_days")
   /// Metas do mês: { doneCount?, revenueCents? }. Vazio = sem meta.
-  goals            Json    @default("{}")
+  goals                 Json      @default("{}")
+  /// Premium: o que gestor, consultor e profissional acessam ({ MANAGER: { reports: true, ... } }).
+  /// Vazio = padrão de @nexo/core.
+  accessRules           Json      @default("{}") @map("access_rules")
+  /// Premium: dono e gestores só usam o painel com a verificação em duas etapas ligada.
+  requireMfa            Boolean   @default(false) @map("require_mfa")
+  /// Premium: dias da Carteira (atenção, risco, perdida). Vazio: padrão de @nexo/core.
+  portfolioRules        Json      @default("{}") @map("portfolio_rules")
+  /// Premium: cor dos botões (#RRGGBB, contraste conferido) e fonte do painel. Nulo = da nexo.
+  brandColor            String?   @map("brand_color")
+  brandFont             String?   @map("brand_font")
+  /// Premium: domínio próprio do painel. Só vale depois de verificado pelo registro DNS.
+  customDomain          String?   @unique @map("custom_domain")
+  domainToken           String?   @map("domain_token")
+  domainVerifiedAt      DateTime? @map("domain_verified_at") @db.Timestamptz
   /// Cronômetro do onboarding: quando o negócio foi criado pela nexo e quando a dona terminou de configurar.
   onboardingStartedAt   DateTime? @map("onboarding_started_at") @db.Timestamptz
   onboardingCompletedAt DateTime? @map("onboarding_completed_at") @db.Timestamptz
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  createdAt             DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt             DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  users         User[]
-  professionals Professional[]
-  services      Service[]
-  contacts      Contact[]
-  pipelines     Pipeline[]
-  channelRoutes ChannelRoute[]
+  users          User[]
+  professionals  Professional[]
+  services       Service[]
+  contacts       Contact[]
+  pipelines      Pipeline[]
+  campaigns      Campaign[]
+  customFields   CustomField[]
+  channelRoutes  ChannelRoute[]
   supportTickets SupportTicket[]
+  chatChannels   ChatChannel[]
+  wikiCategories WikiCategory[]
+  wikiArticles   WikiArticle[]
+  boards         Board[]
+  brandLogo      BrandLogo?
+  templates      MessageTemplate[]
 
   @@map("tenants")
 }
@@ -73,16 +97,16 @@ model Tenant {
 /// Sessão de login no servidor. O cookie leva um token aleatório; aqui fica só o hash dele.
 /// Sem tenant_id: o negócio vem do usuário. Só o módulo de autenticação usa esta tabela.
 model Session {
-  id         String   @id
-  userId     String   @map("user_id") @db.Uuid
-  csrfToken  String   @map("csrf_token")
+  id             String    @id
+  userId         String    @map("user_id") @db.Uuid
+  csrfToken      String    @map("csrf_token")
   /// Entrada controlada do admin nexo num negócio: qual, até quando e por quê (também na auditoria).
   actingTenantId String?   @map("acting_tenant_id") @db.Uuid
   actingUntil    DateTime? @map("acting_until") @db.Timestamptz
   actingReason   String?   @map("acting_reason")
-  expiresAt  DateTime @map("expires_at") @db.Timestamptz
-  lastSeenAt DateTime @default(now()) @map("last_seen_at") @db.Timestamptz
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  expiresAt      DateTime  @map("expires_at") @db.Timestamptz
+  lastSeenAt     DateTime  @default(now()) @map("last_seen_at") @db.Timestamptz
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -90,9 +114,12 @@ model Session {
   @@map("sessions")
 }
 
+/// MANAGER (gestor) e CONSULTANT (consultor) só existem no Premium.
 enum Role {
   NEXO_ADMIN
   OWNER
+  MANAGER
+  CONSULTANT
   STAFF
 }
 
@@ -100,34 +127,34 @@ enum Role {
 /// Esta tabela não usa RLS por negócio porque o login acontece antes de saber o negócio.
 /// Só o módulo de autenticação pode lê-la (SEGURANCA.md, seção 3).
 model User {
-  id                String    @id @default(uuid()) @db.Uuid
-  tenantId          String?   @map("tenant_id") @db.Uuid
-  email             String    @unique
-  name              String
-  passwordHash      String    @map("password_hash")
-  role              Role
+  id                 String    @id @default(uuid()) @db.Uuid
+  tenantId           String?   @map("tenant_id") @db.Uuid
+  email              String    @unique
+  name               String
+  passwordHash       String    @map("password_hash")
+  role               Role
   /// Segredo do 2FA, criptografado no nível do campo.
-  totpSecretEnc     String?   @map("totp_secret_enc")
-  failedLoginCount  Int       @default(0) @map("failed_login_count")
-  lockedUntil       DateTime? @map("locked_until") @db.Timestamptz
-  passwordChangedAt DateTime  @default(now()) @map("password_changed_at") @db.Timestamptz
+  totpSecretEnc      String?   @map("totp_secret_enc")
+  failedLoginCount   Int       @default(0) @map("failed_login_count")
+  lockedUntil        DateTime? @map("locked_until") @db.Timestamptz
+  passwordChangedAt  DateTime  @default(now()) @map("password_changed_at") @db.Timestamptz
   /// Senha provisória (criada pela nexo): precisa trocar no primeiro acesso.
-  mustChangePassword Boolean  @default(false) @map("must_change_password")
+  mustChangePassword Boolean   @default(false) @map("must_change_password")
   /// E-mail confirmado. Logins criados pela nexo já nascem confirmados; o cadastro pelo site
   /// nasce sem confirmação e só entra depois do link enviado por e-mail.
-  emailVerifiedAt   DateTime? @default(now()) @map("email_verified_at") @db.Timestamptz
+  emailVerifiedAt    DateTime? @default(now()) @map("email_verified_at") @db.Timestamptz
   /// Quando aceitou os termos no cadastro pelo site.
-  termsAcceptedAt   DateTime? @map("terms_accepted_at") @db.Timestamptz
-  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  termsAcceptedAt    DateTime? @map("terms_accepted_at") @db.Timestamptz
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
   tenant       Tenant?       @relation(fields: [tenantId], references: [id])
   professional Professional?
   sessions     Session[]
   authTokens   AuthToken[]
 
-  @@index([tenantId])
   @@unique([tenantId, id])
+  @@index([tenantId])
   @@map("users")
 }
 
@@ -171,10 +198,10 @@ model TenantDirectory {
 }
 
 model ChannelRoute {
-  channel       String
-  externalId    String   @map("external_id")
-  tenantId      String   @map("tenant_id") @db.Uuid
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
+  channel    String
+  externalId String   @map("external_id")
+  tenantId   String   @map("tenant_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
 
@@ -201,9 +228,9 @@ model Professional {
   timeOff      TimeOff[]
   appointments Appointment[]
 
-  @@index([tenantId])
   @@unique([tenantId, id])
   @@unique([tenantId, userId])
+  @@index([tenantId])
   @@map("professionals")
 }
 
@@ -222,8 +249,8 @@ model Service {
   professionals ProfessionalService[]
   appointments  Appointment[]
 
-  @@index([tenantId])
   @@unique([tenantId, id])
+  @@index([tenantId])
   @@map("services")
 }
 
@@ -309,9 +336,9 @@ model Appointment {
   professional Professional @relation(fields: [tenantId, professionalId], references: [tenantId, id], onDelete: Restrict)
   reminders    Reminder[]
 
+  @@unique([tenantId, id])
   @@index([tenantId, startsAt])
   @@index([contactId])
-  @@unique([tenantId, id])
   @@map("appointments")
 }
 
@@ -347,21 +374,21 @@ model Reminder {
 
 /// Cliente final. Criado sozinho na primeira mensagem.
 model Contact {
-  id             String    @id @default(uuid()) @db.Uuid
-  tenantId       String    @map("tenant_id") @db.Uuid
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
   /// Nome do perfil do WhatsApp ou digitado pelo dono.
-  name           String?
+  name       String?
   /// Só dígitos, com código do país (ex.: 5515999990000).
-  phone          String
-  tags           String[]  @default([])
-  notes          String?
+  phone      String
+  tags       String[]  @default([])
+  notes      String?
   /// Recusou mensagens automáticas ("parar"/"sair").
-  optedOutAt     DateTime? @map("opted_out_at") @db.Timestamptz
+  optedOutAt DateTime? @map("opted_out_at") @db.Timestamptz
   /// Dados apagados a pedido da cliente (LGPD). Fica só o registro anônimo, para os números continuarem certos.
-  erasedAt       DateTime? @map("erased_at") @db.Timestamptz
-  source         Source
-  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  erasedAt   DateTime? @map("erased_at") @db.Timestamptz
+  source     Source
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
   tenant        Tenant         @relation(fields: [tenantId], references: [id])
   conversations Conversation[]
@@ -458,12 +485,13 @@ model Pipeline {
   rules     Json     @default("[]")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  tenant Tenant  @relation(fields: [tenantId], references: [id])
-  stages Stage[]
-  deals  Deal[]
+  tenant    Tenant     @relation(fields: [tenantId], references: [id])
+  stages    Stage[]
+  deals     Deal[]
+  campaigns Campaign[]
 
-  @@index([tenantId])
   @@unique([tenantId, id])
+  @@index([tenantId])
   @@map("pipelines")
 }
 
@@ -474,60 +502,119 @@ enum StageKind {
 }
 
 model Stage {
-  id         String    @id @default(uuid()) @db.Uuid
-  tenantId   String    @map("tenant_id") @db.Uuid
-  pipelineId String    @map("pipeline_id") @db.Uuid
-  name       String
+  id          String    @id @default(uuid()) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  pipelineId  String    @map("pipeline_id") @db.Uuid
+  name        String
   /// Identificador fixo da etapa para as regras de classificação (o nome o dono pode trocar).
-  key        String?
-  position   Int
-  kind       StageKind @default(OPEN)
+  key         String?
+  position    Int
+  kind        StageKind @default(OPEN)
+  /// Chance de fechar nesta etapa (0 a 100), para a previsão do Premium. Nulo: fica fora da conta.
+  probability Int?
 
   pipeline Pipeline @relation(fields: [tenantId, pipelineId], references: [tenantId, id], onDelete: Restrict)
   deals    Deal[]
 
   @@unique([pipelineId, position])
   @@unique([pipelineId, key])
-  @@index([tenantId])
   @@unique([tenantId, id])
+  @@index([tenantId])
   @@map("stages")
 }
 
 /// Atendimento em andamento.
 model Deal {
-  id         String    @id @default(uuid()) @db.Uuid
-  tenantId   String    @map("tenant_id") @db.Uuid
-  contactId  String    @map("contact_id") @db.Uuid
-  pipelineId String    @map("pipeline_id") @db.Uuid
-  stageId    String    @map("stage_id") @db.Uuid
-  valueCents Int?      @map("value_cents")
-  closedAt   DateTime? @map("closed_at") @db.Timestamptz
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  id              String    @id @default(uuid()) @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  contactId       String    @map("contact_id") @db.Uuid
+  pipelineId      String    @map("pipeline_id") @db.Uuid
+  stageId         String    @map("stage_id") @db.Uuid
+  valueCents      Int?      @map("value_cents")
+  closedAt        DateTime? @map("closed_at") @db.Timestamptz
+  /// Premium: nome do negócio em andamento (ex.: "Pacote de noiva"). Sem nome, vale o da cliente.
+  title           String?
+  /// Premium: login da equipe que cuida. Sem chave estrangeira; o serviço confere o negócio.
+  ownerUserId     String?   @map("owner_user_id") @db.Uuid
+  campaignId      String?   @map("campaign_id") @db.Uuid
+  expectedCloseOn DateTime? @map("expected_close_on") @db.Date
+  /// Premium: valores dos campos próprios do negócio ({ [customFieldId]: valor }).
+  fields          Json      @default("{}")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  contact  Contact  @relation(fields: [tenantId, contactId], references: [tenantId, id], onDelete: Restrict)
-  pipeline Pipeline @relation(fields: [tenantId, pipelineId], references: [tenantId, id], onDelete: Restrict)
-  stage    Stage    @relation(fields: [tenantId, stageId], references: [tenantId, id], onDelete: Restrict)
+  contact  Contact   @relation(fields: [tenantId, contactId], references: [tenantId, id], onDelete: Restrict)
+  pipeline Pipeline  @relation(fields: [tenantId, pipelineId], references: [tenantId, id], onDelete: Restrict)
+  stage    Stage     @relation(fields: [tenantId, stageId], references: [tenantId, id], onDelete: Restrict)
+  campaign Campaign? @relation(fields: [tenantId, campaignId], references: [tenantId, id], onDelete: Restrict)
 
   @@index([tenantId, stageId])
+  @@index([tenantId, ownerUserId])
   @@map("deals")
+}
+
+/// Premium: campanha (de onde vieram os atendimentos). Pode ter um funil próprio.
+model Campaign {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  name        String
+  /// Por onde a campanha corre (ex.: "Instagram"). Texto livre do dono.
+  channel     String?
+  pipelineId  String?   @map("pipeline_id") @db.Uuid
+  startsOn    DateTime? @map("starts_on") @db.Date
+  endsOn      DateTime? @map("ends_on") @db.Date
+  budgetCents Int?      @map("budget_cents")
+  archivedAt  DateTime? @map("archived_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
+  pipeline Pipeline? @relation(fields: [tenantId, pipelineId], references: [tenantId, id], onDelete: Restrict)
+  deals    Deal[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@map("campaigns")
+}
+
+/// Premium: campo próprio do negócio nos atendimentos (ex.: "Indicada por").
+model CustomField {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  label     String
+  /// text, number, date ou select.
+  type      String
+  options   String[] @default([])
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@map("custom_fields")
 }
 
 // ---------- Lembretes, eventos e auditoria ----------
 
 /// Lembrete / A fazer para o dono.
 model Task {
-  id        String    @id @default(uuid()) @db.Uuid
-  tenantId  String    @map("tenant_id") @db.Uuid
-  contactId String?   @map("contact_id") @db.Uuid
-  title     String
-  dueAt     DateTime? @map("due_at") @db.Timestamptz
-  doneAt    DateTime? @map("done_at") @db.Timestamptz
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  id             String    @id @default(uuid()) @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  contactId      String?   @map("contact_id") @db.Uuid
+  title          String
+  dueAt          DateTime? @map("due_at") @db.Timestamptz
+  doneAt         DateTime? @map("done_at") @db.Timestamptz
+  /// todo, call (ligar), follow_up (retorno) ou meeting (reunião).
+  kind           String    @default("todo")
+  /// Premium: login da equipe responsável. Sem chave estrangeira, como o dono do atendimento.
+  assigneeUserId String?   @map("assignee_user_id") @db.Uuid
+  dealId         String?   @map("deal_id") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
   contact Contact? @relation(fields: [tenantId, contactId], references: [tenantId, id], onDelete: Restrict)
 
   @@index([tenantId, doneAt])
+  @@index([tenantId, assigneeUserId])
   @@map("tasks")
 }
 
@@ -636,4 +723,191 @@ model AiUsage {
 
   @@index([tenantId, createdAt])
   @@map("ai_usage")
+}
+
+// ---------- Chat interno da equipe (Premium) ----------
+
+/// Canal (toda a equipe) ou conversa direta (duas pessoas, `directKey` = os dois ids em ordem).
+model ChatChannel {
+  id            String    @id @default(uuid()) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  /// channel ou direct.
+  kind          String
+  name          String?
+  directKey     String?   @map("direct_key")
+  createdById   String    @map("created_by_id") @db.Uuid
+  archivedAt    DateTime? @map("archived_at") @db.Timestamptz
+  lastMessageAt DateTime? @map("last_message_at") @db.Timestamptz
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant   Tenant        @relation(fields: [tenantId], references: [id])
+  messages ChatMessage[]
+  reads    ChatRead[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, directKey])
+  @@index([tenantId])
+  @@map("chat_channels")
+}
+
+model ChatMessage {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  channelId  String    @map("channel_id") @db.Uuid
+  authorId   String    @map("author_id") @db.Uuid
+  authorName String    @map("author_name")
+  /// Nulo quando a pessoa apagou a mensagem.
+  body       String?
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  channel ChatChannel @relation(fields: [tenantId, channelId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([channelId, createdAt])
+  @@index([tenantId])
+  @@map("chat_messages")
+}
+
+/// Participante (na conversa direta) e até onde leu.
+model ChatRead {
+  tenantId   String    @map("tenant_id") @db.Uuid
+  channelId  String    @map("channel_id") @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  lastReadAt DateTime? @map("last_read_at") @db.Timestamptz
+
+  channel ChatChannel @relation(fields: [tenantId, channelId], references: [tenantId, id], onDelete: Restrict)
+
+  @@id([channelId, userId])
+  @@index([tenantId, userId])
+  @@map("chat_reads")
+}
+
+/// Wiki do negócio (Premium): categorias de artigos.
+model WikiCategory {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  name      String
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant   Tenant        @relation(fields: [tenantId], references: [id])
+  articles WikiArticle[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@map("wiki_categories")
+}
+
+model WikiArticle {
+  id            String    @id @default(uuid()) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  categoryId    String?   @map("category_id") @db.Uuid
+  title         String
+  /// Texto no formato simples da Wiki (ver @nexo/core, wiki/doc).
+  body          String    @default("")
+  pinned        Boolean   @default(false)
+  createdById   String    @map("created_by_id") @db.Uuid
+  updatedByName String    @map("updated_by_name")
+  archivedAt    DateTime? @map("archived_at") @db.Timestamptz
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant      Tenant           @relation(fields: [tenantId], references: [id])
+  category    WikiCategory?    @relation(fields: [tenantId, categoryId], references: [tenantId, id], onDelete: Restrict)
+  attachments WikiAttachment[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@map("wiki_articles")
+}
+
+/// Anexo de artigo, guardado no banco (até 5 MB).
+model WikiAttachment {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  articleId   String    @map("article_id") @db.Uuid
+  name        String
+  mime        String
+  size        Int
+  data        Bytes
+  createdById String    @map("created_by_id") @db.Uuid
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  article WikiArticle @relation(fields: [tenantId, articleId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([articleId])
+  @@index([tenantId])
+  @@map("wiki_attachments")
+}
+
+/// Quadro branco (Premium). `elements` é conferido por checkBoard (@nexo/core).
+model Board {
+  id            String    @id @default(uuid()) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  title         String
+  elements      Json      @default("[]")
+  /// Sobe a cada salvamento: quem salvar com versão velha recebe 409 (alguém mudou antes).
+  version       Int       @default(1)
+  createdById   String    @map("created_by_id") @db.Uuid
+  updatedByName String    @map("updated_by_name")
+  archivedAt    DateTime? @map("archived_at") @db.Timestamptz
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant Tenant      @relation(fields: [tenantId], references: [id])
+  files  BoardFile[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@map("boards")
+}
+
+/// Imagem colada num quadro.
+model BoardFile {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  boardId     String   @map("board_id") @db.Uuid
+  mime        String
+  size        Int
+  data        Bytes
+  createdById String   @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  board Board @relation(fields: [tenantId, boardId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([boardId])
+  @@index([tenantId])
+  @@map("board_files")
+}
+
+/// Logo do negócio (Premium).
+model BrandLogo {
+  tenantId  String   @id @map("tenant_id") @db.Uuid
+  mime      String
+  data      Bytes
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("brand_logos")
+}
+
+/// Modelo de mensagem (Premium): whatsapp ou email, com campos entre chaves.
+model MessageTemplate {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  channel    String
+  name       String
+  subject    String?
+  body       String
+  archivedAt DateTime? @map("archived_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@map("message_templates")
 }

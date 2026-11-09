@@ -56,3 +56,5 @@ Respostas recebidas em 29/10/2026 (pelo Jandoza e pelo JP) estão em `CLAUDE.md`
 ## Planos (27/10/2026)
 - Divisão escolhida pelo Jandoza: Grátis / CRM / Completo (CRM + agenda + robô). Falta o Coca definir preço, desconto anual e o limite de clientes do Grátis.
 - Trava por plano no servidor: feita em 06/11/2026 (Grátis = clientes e etapas; CRM = + resultados; Completo = + agenda, robô e lembretes). Confirmar com o Coca se a divisão fica assim e qual o limite de clientes do Grátis.
+- Premium P1 (09/11/2026): QR code na tela de ligar o 2FA e ferramenta do admin para desligar o 2FA de quem perdeu o celular (com auditoria). Hoje é pelo Suporte.
+- Quadro branco (P7): biblioteca pronta de código aberto ou quadro simples nosso? Sugestão: biblioteca, carregada só na tela.

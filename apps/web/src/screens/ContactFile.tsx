@@ -3,11 +3,13 @@ import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { PageHeader } from '../components/PageHeader';
 import { Banner, Loading, StatusBadge } from '../components/ui';
 import { api, ApiError } from '../lib/api';
-import { BUSINESS_TZ_FALLBACK, contactName, dateTime, localDate, phone } from '../lib/format';
+import { useAuth } from '../lib/auth';
+import { BUSINESS_TZ_FALLBACK, contactName, dateTime, localDate, phone, time } from '../lib/format';
 import { useLoad, useRealtime } from '../lib/hooks';
 import type { ContactFile as ContactFileData, Message } from '../lib/types';
 import { BookForm } from './BookForm';
 import { ContactPrivacy } from './ContactPrivacy';
+import { TemplatePicker } from './Templates';
 
 /** Ficha da cliente: etapa, horários, conversa (responder / devolver ao robô) e anotações. */
 export function ContactFile({ id, go }: { id: string; go: (to: string) => void }) {
@@ -136,7 +138,11 @@ export function ContactFile({ id, go }: { id: string; go: (to: string) => void }
           </div>
           <Chat messages={conversation.messages} timeZone={tz} />
           {!data.optedOutAt && (
-            <Reply conversationId={conversation.id} onSent={() => void reload()} />
+            <Reply
+              conversationId={conversation.id}
+              onSent={() => void reload()}
+              fill={templateValues(data.name, data.appointments, tz)}
+            />
           )}
         </section>
       )}
@@ -171,7 +177,50 @@ export function Chat({ messages, timeZone: tz }: { messages: Message[]; timeZone
   );
 }
 
-export function Reply({ conversationId, onSent }: { conversationId: string; onSent: () => void }) {
+/** Valores dos campos dos modelos: nome da cliente e o próximo horário marcado, se houver. */
+export function templateValues(
+  name: string | null,
+  appointments: { startsAt: string; status: string; service: { name: string } }[],
+  timeZone: string,
+): ReplyFill {
+  const now = Date.now();
+  const next = appointments
+    .filter(
+      (a) =>
+        (a.status === 'SCHEDULED' || a.status === 'CONFIRMED') &&
+        new Date(a.startsAt).getTime() > now,
+    )
+    .sort((a, b) => a.startsAt.localeCompare(b.startsAt))[0];
+  const first = name?.trim().split(/\s+/)[0] ?? null;
+  return {
+    nome: name,
+    primeiro_nome: first,
+    servico: next?.service.name ?? null,
+    data: next
+      ? new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', timeZone }).format(
+          new Date(next.startsAt),
+        )
+      : null,
+    hora: next ? time(next.startsAt, timeZone) : null,
+  };
+}
+
+export type ReplyFill = Partial<
+  Record<'nome' | 'primeiro_nome' | 'servico' | 'data' | 'hora', string | null>
+>;
+
+export function Reply({
+  conversationId,
+  onSent,
+  fill,
+}: {
+  conversationId: string;
+  onSent: () => void;
+  /** Campos para os modelos de mensagem (Premium). */
+  fill?: ReplyFill;
+}) {
+  const { me } = useAuth();
+  const templates = Boolean(fill) && Boolean(me?.features?.includes('templates'));
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -207,9 +256,17 @@ export function Reply({ conversationId, onSent }: { conversationId: string; onSe
         />
       </label>
       {error && <Banner>{error}</Banner>}
-      <button type="submit" className="button" disabled={busy || !text.trim()}>
-        {busy ? 'Enviando…' : 'Enviar'}
-      </button>
+      <div className="row">
+        <button type="submit" className="button" disabled={busy || !text.trim()}>
+          {busy ? 'Enviando…' : 'Enviar'}
+        </button>
+        {templates && (
+          <TemplatePicker
+            values={{ ...fill, negocio: me?.businessName ?? null }}
+            onPick={(t) => setText((cur) => (cur.trim() ? `${cur}\n${t}` : t))}
+          />
+        )}
+      </div>
     </form>
   );
 }

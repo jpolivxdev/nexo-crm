@@ -69,6 +69,9 @@ describe('exportar e excluir os dados de uma cliente (LGPD)', () => {
             direction: 'INBOUND',
             type: 'text',
             body: 'Oi, quero marcar',
+            // Horários diferentes: na mesma instrução as duas teriam o mesmo instante e a ordem
+            // do export ficaria ao acaso.
+            createdAt: new Date(Date.now() - 60_000),
           },
           {
             tenantId: t.tenantId,
@@ -76,6 +79,7 @@ describe('exportar e excluir os dados de uma cliente (LGPD)', () => {
             direction: 'OUTBOUND',
             type: 'text',
             body: 'Claro! Qual serviço?',
+            createdAt: new Date(),
           },
         ],
       });

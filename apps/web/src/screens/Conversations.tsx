@@ -6,7 +6,7 @@ import { api, ApiError } from '../lib/api';
 import { contactName, dateTime, phone } from '../lib/format';
 import { useLoad, useRealtime } from '../lib/hooks';
 import type { Message } from '../lib/types';
-import { Chat, Reply } from './ContactFile';
+import { Chat, Reply, templateValues } from './ContactFile';
 
 type Tab = 'open' | 'waiting' | 'new' | 'archived';
 
@@ -273,6 +273,7 @@ function Open({
       ) : (
         <Reply
           conversationId={id}
+          fill={templateValues(data.contact.name, [], data.timeZone)}
           onSent={() => {
             void reload();
             onChange();

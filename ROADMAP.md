@@ -59,7 +59,15 @@ Ideia do JP: o básico é este sistema no layout do CRM de referência, com as n
 | L4 | Suporte (abrir chamado, lista, resposta na tela e no sino) e painel interno da nexo para responder | Em PR |
 | L5 | Nex com pergunta livre (Gemini gratuito, atrás do `AiProvider`, sem dado de cliente, limite por negócio) | Em PR (liga com a chave do Gemini) |
 | L6 | Configurações no molde novo: perfil, equipe, modelos de mensagem, segurança (duas etapas para o admin nexo) | Em PR |
-| LP | Página inicial com os 2 planos (Básico e Premium) e demonstração do Básico no navegador, com tour geral | Em PR |
+| LP | Página inicial com os 2 planos (Básico e Premium) e demonstração do Básico no navegador, com tour geral | Feito (PR #31) |
+| P1 | Premium: plano no banco, gestor e consultor, Acessos por papel, verificação em duas etapas para o painel (opcional ou exigida) | Em PR |
+| P2 | Premium: CRM completo (vários funis, campanhas, campos, valor, responsável, Minhas tarefas, previsão, exportar) | Em PR |
+| P3 | Premium: Contatos (importar e exportar) e Clientes (carteira recorrente, risco) | Em PR |
+| P4 | Premium: Painéis e Início | Em PR |
+| P5 | Premium: Chat interno | Em PR |
+| P6 | Premium: Wiki | Em PR |
+| P7 | Premium: Quadro branco | Em PR |
+| P8 | Premium: Marca, domínio próprio e modelos de mensagem; demo do Premium | Em PR |
 
 Em 09/11/2026 o JP decidiu ficar com dois planos: Básico e Premium (o do meio saiu).
 

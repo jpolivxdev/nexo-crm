@@ -1,10 +1,15 @@
 import {
+  BookOpen,
   CalendarDays,
   ChartColumn,
   Compass,
   House,
+  LayoutDashboard,
   LogOut,
+  MessageCircle,
   MessagesSquare,
+  Presentation,
+  Repeat2,
   SquareKanban,
   Settings as Settings2,
   Users,
@@ -22,17 +27,26 @@ import { api } from './lib/api';
 import { AuthProvider, useAuth } from './lib/auth';
 import { time } from './lib/format';
 import { useRoute } from './lib/hooks';
+import { applyBrand, logoUrl } from './lib/brand';
 import { DEMO_TOUR, markTourSeen, tourFor, tourSeen } from './lib/tours';
 import { enterDemo, isDemo, leaveDemo, takeDemoTour } from './lib/demo/mode';
 import { DemoBanner } from './components/DemoBanner';
+import type { AccessArea } from './lib/roles';
 import type { Feature, Me } from './lib/types';
+import { AccessByRole } from './screens/AccessByRole';
 import { Admin } from './screens/Admin';
 import { AdminSupport } from './screens/AdminSupport';
 import { Support } from './screens/Support';
 import { Alerts } from './screens/Alerts';
 import { Agenda } from './screens/Agenda';
 import { ChangePassword } from './screens/ChangePassword';
-import { Settings, SETTINGS, SETTINGS_ROUTES, SettingsLayout } from './screens/Settings';
+import {
+  Settings,
+  SETTINGS,
+  SETTINGS_ROUTES,
+  SettingsLayout,
+  TwoFactorCard,
+} from './screens/Settings';
 import { ContactFile } from './screens/ContactFile';
 import { Contacts } from './screens/Contacts';
 import { Conversations } from './screens/Conversations';
@@ -40,13 +54,20 @@ import { ConfirmEmail, ForgotPassword, ResetPassword, Signup } from './screens/A
 import { Landing } from './screens/Landing';
 import { Login } from './screens/Login';
 import { Pipeline } from './screens/Pipeline';
-import { NotInPlan, Plans } from './screens/Plans';
+import { Portfolio } from './screens/Portfolio';
+import { Dashboards } from './screens/Dashboards';
+import { NoAccess, NotInPlan, Plans } from './screens/Plans';
 import { Report } from './screens/Report';
 import { Setup } from './screens/Setup';
 import { TimeOff } from './screens/TimeOff';
 import { BotMessages } from './screens/BotMessages';
 import { StageRules } from './screens/StageRules';
 import { Team } from './screens/Team';
+import { TeamChat } from './screens/TeamChat';
+import { Wiki } from './screens/Wiki';
+import { BrandSettings } from './screens/BrandSettings';
+import { Templates } from './screens/Templates';
+import { Boards } from './screens/Boards';
 import { Today } from './screens/Today';
 
 const NAV: (SidebarItem & { feature?: Feature })[] = [
@@ -74,11 +95,27 @@ const NAV: (SidebarItem & { feature?: Feature })[] = [
     hint: 'Ficha de cada cliente, frequentes e sumidas',
   },
   {
+    to: '/carteira',
+    label: 'Carteira',
+    Icon: Repeat2,
+    feature: 'contacts_plus',
+    group: 'Atendimento',
+    hint: 'Quem volta sempre e quem está em risco de sumir',
+  },
+  {
     to: '/etapas',
     label: 'Etapas',
     Icon: SquareKanban,
     group: 'Atendimento',
     hint: 'Onde cada cliente está, do contato ao retorno',
+  },
+  {
+    to: '/paineis',
+    label: 'Painéis',
+    Icon: LayoutDashboard,
+    feature: 'dashboards',
+    group: 'Gestão',
+    hint: 'Números do comercial, metas e funil de conversão; Modo TV',
   },
   {
     to: '/resultados',
@@ -88,12 +125,54 @@ const NAV: (SidebarItem & { feature?: Feature })[] = [
     group: 'Gestão',
     hint: 'Números do mês: horários, faltas e retornos',
   },
+  {
+    to: '/chat',
+    label: 'Chat',
+    Icon: MessageCircle,
+    feature: 'team_chat',
+    group: 'Equipe',
+    hint: 'Converse com a equipe em canais ou só com uma pessoa',
+  },
+  {
+    to: '/wiki',
+    label: 'Wiki',
+    Icon: BookOpen,
+    feature: 'wiki',
+    group: 'Equipe',
+    hint: 'Passo a passo, regras e combinados do negócio',
+  },
+  {
+    to: '/quadros',
+    label: 'Quadro branco',
+    Icon: Presentation,
+    feature: 'whiteboard',
+    group: 'Equipe',
+    hint: 'Rascunhos, fluxos e ideias desenhados com a equipe',
+  },
 ];
+
+/** Id na rota: UUID do servidor ou o id da demonstração ("demo-..."). */
+const ROUTE_ID = /^[0-9a-f-]{36}$|^demo-[a-z0-9-]+$/;
+function routeId(section: string, route: string): [string, string] | null {
+  const [, s, id, extra] = route.split('/');
+  return s === section && id && extra === undefined && ROUTE_ID.test(id) ? [route, id] : null;
+}
+
+/** Telas internas da equipe: a nexo, numa entrada de suporte, não entra. */
+const TEAM_ONLY = ['/chat', '/wiki', '/quadros'];
 
 /** Seções que dependem do plano (o servidor também barra). */
 const SECTION_FEATURE: Record<string, { feature: Feature; name: string }> = {
+  '/acessos': { feature: 'team_roles', name: 'Acessos por papel' },
   '/agenda': { feature: 'agenda', name: 'A agenda' },
+  '/carteira': { feature: 'contacts_plus', name: 'A Carteira de clientes' },
+  '/chat': { feature: 'team_chat', name: 'O chat da equipe' },
+  '/wiki': { feature: 'wiki', name: 'A Wiki' },
+  '/quadros': { feature: 'whiteboard', name: 'O quadro branco' },
+  '/paineis': { feature: 'dashboards', name: 'Os Painéis' },
   '/folgas': { feature: 'agenda', name: 'Folgas e bloqueios' },
+  '/marca': { feature: 'branding', name: 'Marca e domínio' },
+  '/modelos': { feature: 'templates', name: 'Os modelos de mensagem' },
   '/resultados': { feature: 'report', name: 'Resultados' },
 };
 
@@ -120,6 +199,7 @@ function publicScreen(route: string, loggedIn: boolean): ReactNode {
   const [path, query = ''] = route.split('?');
   const token = new URLSearchParams(query).get('token') ?? '';
   if (path === '/demo') return <DemoStart />;
+  if (path === '/demo-premium') return <DemoStart premium />;
   if (path === '/nova-senha') return <ResetPassword token={token} />;
   if (path === '/confirmar-email') return <ConfirmEmail token={token} />;
   if (loggedIn) return null;
@@ -151,6 +231,19 @@ function Shell() {
       <div className="app app--auth">
         <div className="auth-card">
           <ChangePassword forced />
+        </div>
+        <MadeByNexo />
+      </div>
+    );
+  }
+  if (me.mfaSetupRequired) {
+    return (
+      <div className="app app--auth">
+        <div className="auth-card">
+          <TwoFactorCard enabled={false} forced />
+          <button type="button" className="link" onClick={() => void logout()}>
+            Sair
+          </button>
         </div>
         <MadeByNexo />
       </div>
@@ -203,6 +296,13 @@ function Panel({ me }: { me: Me }) {
   const { logout, refresh } = useAuth();
   const [route, go] = useRoute();
 
+  // Marca do negócio (Premium): cor e fonte valem no painel todo; ao sair, volta a da nexo.
+  const brandKey = JSON.stringify(me.brand ?? null);
+  useEffect(() => {
+    applyBrand(JSON.parse(brandKey) as Me['brand']);
+    return () => applyBrand(null);
+  }, [brandKey]);
+
   // A entrada do admin vence sozinha; ao vencer, volta para a área do admin.
   const actingUntil = me.acting?.until;
   useEffect(() => {
@@ -222,15 +322,37 @@ function Panel({ me }: { me: Me }) {
   const staff = me.role === 'STAFF';
   // Sem a lista (versão antiga da API), mostra tudo e deixa o servidor decidir.
   const has = (f: Feature) => !me.features || me.features.includes(f);
-  const nav = (staff ? NAV.filter((n) => n.to === '/hoje' || n.to === '/agenda') : NAV).filter(
-    (n) => !n.feature || has(n.feature),
+  // Dono (ou a nexo numa entrada controlada) vê tudo; gestor e consultor seguem os Acessos.
+  const owner = me.role === 'OWNER' || Boolean(me.acting);
+  const canArea = (area: AccessArea) => owner || !me.access || me.access.includes(area);
+  const allowedSection = (to: string) => {
+    const item = SETTINGS.find((i) => i.to === to);
+    if (item?.needs === 'owner') return owner;
+    if (item?.needs === 'settings' || to === '/regras') return canArea('settings');
+    if (to === '/resultados' || to === '/paineis') return canArea('reports');
+    return true;
+  };
+  // Chat e Wiki são da equipe: a nexo, numa entrada de suporte, não entra (o servidor barra).
+  const nav = (
+    staff
+      ? NAV.filter((n) => ['/hoje', '/agenda', '/chat', '/wiki', '/quadros'].includes(n.to))
+      : NAV
+  ).filter(
+    (n) =>
+      (!n.feature || has(n.feature)) &&
+      allowedSection(n.to) &&
+      (!TEAM_ONLY.includes(n.to) || !me.acting),
   );
   const rawSection = '/' + (route.split('/')[1] ?? 'hoje');
   const section =
-    staff && !['/hoje', '/agenda', '/conta'].includes(rawSection) ? '/hoje' : rawSection;
-  const contactMatch = staff ? null : /^\/clientes\/([0-9a-f-]{36})$/.exec(route);
-  const conversationMatch = /^\/conversas\/([0-9a-f-]{36})$/.exec(route);
-  const supportMatch = /^\/suporte\/([0-9a-f-]{36})$/.exec(route);
+    staff && !['/hoje', '/agenda', '/conta', '/chat', '/wiki', '/quadros'].includes(rawSection)
+      ? '/hoje'
+      : rawSection;
+  const contactMatch = staff ? null : routeId('clientes', route);
+  const conversationMatch = routeId('conversas', route);
+  const supportMatch = routeId('suporte', route);
+  const chatMatch = routeId('chat', route);
+  const boardMatch = routeId('quadros', route);
 
   // Tour guiado: abre sozinho uma vez por aparelho (fora dos testes) e pela bússola do topo.
   const [touring, setTouring] = useState(
@@ -254,50 +376,85 @@ function Panel({ me }: { me: Me }) {
   const settingsItems = SETTINGS.filter(
     (i) =>
       (!staff || i.to === '/conta') &&
+      allowedSection(i.to) &&
       (!SECTION_FEATURE[i.to] || has(SECTION_FEATURE[i.to]!.feature)),
   );
   const inSettings = SETTINGS_ROUTES.has(section) && !staff;
-  const content =
-    SECTION_FEATURE[section] && !has(SECTION_FEATURE[section].feature) ? (
-      <NotInPlan go={go} name={SECTION_FEATURE[section].name} />
-    ) : contactMatch ? (
-      <ContactFile id={contactMatch[1]!} go={go} />
-    ) : section === '/avisos' ? (
-      <Alerts go={go} />
-    ) : section === '/equipe' ? (
-      <Team go={go} />
-    ) : section === '/regras' ? (
-      <StageRules go={go} />
-    ) : section === '/mensagens' ? (
-      <BotMessages go={go} />
-    ) : section === '/folgas' ? (
-      <TimeOff go={go} />
-    ) : section === '/configurar' ? (
-      <Setup go={go} />
-    ) : section === '/assinatura' ? (
-      <Plans go={go} />
-    ) : section === '/conta' ? (
-      <Settings acting={Boolean(me.acting)} items={settingsItems} />
-    ) : section === '/agenda' ? (
-      <Agenda go={go} staff={staff} />
-    ) : section === '/suporte' && !staff ? (
-      <Support id={supportMatch?.[1] ?? null} go={go} />
-    ) : section === '/conversas' ? (
-      <Conversations id={conversationMatch?.[1] ?? null} go={go} />
-    ) : section === '/clientes' ? (
-      <Contacts go={go} />
-    ) : section === '/etapas' ? (
-      <Pipeline go={go} />
-    ) : section === '/resultados' ? (
-      <Report />
-    ) : (
-      <Today go={go} staff={staff} />
-    );
+  const content = !allowedSection(section) ? (
+    <NoAccess go={go} />
+  ) : SECTION_FEATURE[section] && !has(SECTION_FEATURE[section].feature) ? (
+    <NotInPlan go={go} name={SECTION_FEATURE[section].name} />
+  ) : contactMatch ? (
+    <ContactFile id={contactMatch[1]!} go={go} />
+  ) : section === '/avisos' ? (
+    <Alerts go={go} />
+  ) : section === '/equipe' ? (
+    <Team go={go} />
+  ) : section === '/acessos' ? (
+    <AccessByRole go={go} />
+  ) : section === '/regras' ? (
+    <StageRules go={go} />
+  ) : section === '/mensagens' ? (
+    <BotMessages go={go} />
+  ) : section === '/folgas' ? (
+    <TimeOff go={go} />
+  ) : section === '/marca' ? (
+    <BrandSettings />
+  ) : section === '/modelos' ? (
+    <Templates canEdit={canArea('settings')} />
+  ) : section === '/configurar' ? (
+    <Setup go={go} />
+  ) : section === '/assinatura' ? (
+    <Plans go={go} />
+  ) : section === '/conta' ? (
+    <Settings acting={Boolean(me.acting)} items={settingsItems} />
+  ) : section === '/agenda' ? (
+    <Agenda go={go} staff={staff} />
+  ) : section === '/suporte' && !staff ? (
+    <Support id={supportMatch?.[1] ?? null} go={go} />
+  ) : section === '/conversas' ? (
+    <Conversations id={conversationMatch?.[1] ?? null} go={go} />
+  ) : section === '/clientes' ? (
+    <Contacts go={go} canTransfer={has('contacts_plus') && canArea('privacy')} />
+  ) : section === '/carteira' ? (
+    <Portfolio go={go} canSettings={canArea('settings')} />
+  ) : section === '/etapas' ? (
+    <Pipeline
+      go={go}
+      crm={
+        me.features?.includes('crm_plus')
+          ? {
+              userId: me.userId ?? null,
+              owner,
+              canSettings: canArea('settings'),
+              canExport: canArea('privacy'),
+            }
+          : undefined
+      }
+    />
+  ) : section === '/chat' && !me.acting ? (
+    <TeamChat
+      id={chatMatch?.[1] ?? null}
+      go={go}
+      canManage={me.role === 'OWNER' || me.role === 'MANAGER'}
+    />
+  ) : section === '/quadros' && !me.acting ? (
+    <Boards id={boardMatch?.[1] ?? null} go={go} />
+  ) : section === '/wiki' && !me.acting ? (
+    <Wiki route={route} go={go} />
+  ) : section === '/paineis' ? (
+    <Dashboards />
+  ) : section === '/resultados' ? (
+    <Report />
+  ) : (
+    <Today go={go} staff={staff} overview={has('dashboards') && canArea('reports')} />
+  );
 
   return (
     <div className="app app--with-nav">
       <Sidebar
         businessName={me.businessName ?? 'nexo'}
+        logo={me.brand?.logoVersion ? logoUrl(me.brand.logoVersion) : null}
         items={nav}
         section={
           inSettings && section !== '/assinatura' && section !== '/suporte' ? '/conta' : section
@@ -389,7 +546,11 @@ function Panel({ me }: { me: Me }) {
       <Nex topics={nexTopics} onTour={openTour} />
       {touring && <Tour key={section} steps={tourFor(section)} onClose={closeTour} />}
       {demoTouring && <Tour steps={DEMO_TOUR} onClose={() => setDemoTouring(false)} onRoute={go} />}
-      <nav className="tabbar" aria-label="Seções do painel">
+      {/* Com muitas seções (Premium), a barra rola para o lado em vez de espremer os nomes. */}
+      <nav
+        className={nav.length > 6 ? 'tabbar tabbar--scroll' : 'tabbar'}
+        aria-label="Seções do painel"
+      >
         {nav.map(({ to, label, Icon }) => (
           <a
             key={to}
@@ -409,13 +570,13 @@ function Panel({ me }: { me: Me }) {
 }
 
 /** Entra na demonstração: liga o modo demo, lê a "sessão" fictícia e abre o Hoje. */
-function DemoStart() {
+function DemoStart({ premium = false }: { premium?: boolean }) {
   const { refresh } = useAuth();
   useEffect(() => {
-    enterDemo();
+    enterDemo(premium);
     void refresh().then(() => {
       window.location.hash = '/hoje';
     });
-  }, [refresh]);
+  }, [refresh, premium]);
   return <Loading />;
 }

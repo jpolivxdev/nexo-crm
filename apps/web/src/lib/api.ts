@@ -65,3 +65,50 @@ function safeJson(text: string): unknown {
     return null;
   }
 }
+
+/** Envia um arquivo cru (anexos da Wiki, imagens do quadro). Nome no cabeçalho x-file-name. */
+export function uploadFile<T>(path: string, file: File): Promise<T> {
+  return sendRaw<T>(path, 'POST', file, file.name);
+}
+
+/**
+ * Corpo cru (application/octet-stream), para o que passa do limite do JSON comum: arquivos e o
+ * desenho do quadro branco.
+ */
+export async function sendRaw<T>(
+  path: string,
+  method: 'POST' | 'PUT',
+  body: Blob | string,
+  fileName?: string,
+): Promise<T> {
+  if (isDemo()) {
+    // O quadro branco manda o desenho como texto JSON; arquivos não entram na demo.
+    if (typeof body !== 'string') throw new ApiError(400, 'Na demonstração isto não fica salvo.');
+    const { demoRequest } = await import('./demo/server');
+    return (await demoRequest(method, path, {}, JSON.parse(body))) as T;
+  }
+  const headers: Record<string, string> = {
+    accept: 'application/json',
+    'content-type': 'application/octet-stream',
+  };
+  if (fileName !== undefined) headers['x-file-name'] = encodeURIComponent(fileName);
+  if (csrfToken) headers['x-csrf-token'] = csrfToken;
+  let res: Response;
+  try {
+    res = await fetch(`/api${path}`, { method, headers, credentials: 'same-origin', body });
+  } catch {
+    throw new ApiError(0, 'Sem conexão. Confira a internet e tente de novo.');
+  }
+  const text = await res.text();
+  const data: unknown = text ? safeJson(text) : null;
+  if (!res.ok) {
+    const message =
+      res.status === 413
+        ? 'Passou do tamanho máximo. Diminua e tente de novo.'
+        : data && typeof data === 'object' && 'message' in data && typeof data.message === 'string'
+          ? data.message
+          : FALLBACK;
+    throw new ApiError(res.status, res.status >= 500 ? FALLBACK : message, data);
+  }
+  return data as T;
+}

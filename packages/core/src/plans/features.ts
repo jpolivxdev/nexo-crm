@@ -1,19 +1,58 @@
 /**
- * O que cada plano libera. Divisão pedida pelo Jandoza em 27/10/2026: Grátis (CRM básico),
- * CRM e Completo (CRM + agenda + robô). Preços e limites: [A DEFINIR com o Coca].
+ * O que cada plano libera. Desde 09/11/2026 são dois planos à venda (decisão do JP):
+ * COMPLETE é o Básico e PREMIUM é o Premium. FREE e CRM ficam do tempo dos três planos, sem
+ * cliente, até sair. Preços e limites: [A DEFINIR com o Coca].
  * Clientes, ficha, etapas e "a fazer" valem para todos; o resto depende do plano.
  */
-export type PlanId = 'FREE' | 'CRM' | 'COMPLETE';
+export type PlanId = 'FREE' | 'CRM' | 'COMPLETE' | 'PREMIUM';
 
-export type Feature = 'report' | 'agenda' | 'bot' | 'reminders';
+/**
+ * team_roles: gestor e consultor na equipe, Acessos por papel e verificação obrigatória.
+ * crm_plus: CRM completo (vários funis, campanhas, campos próprios, previsão, tarefas da equipe).
+ * contacts_plus: importar e exportar clientes e a Carteira (quem volta e quem está em risco).
+ * dashboards: Painéis (comercial, metas por período, funil de conversão, Modo TV) e painel geral no Hoje.
+ * team_chat: chat interno da equipe (canais e conversas diretas).
+ * wiki: Wiki do negócio (artigos, categorias, busca e anexos).
+ * whiteboard: Quadro branco (formas, setas, texto, lápis e imagem; quadros salvos por negócio).
+ * branding: marca do negócio no painel e no login (logo, cor, fonte) e domínio próprio.
+ * templates: modelos de mensagem de WhatsApp e e-mail.
+ */
+export type Feature =
+  | 'report'
+  | 'agenda'
+  | 'bot'
+  | 'reminders'
+  | 'team_roles'
+  | 'crm_plus'
+  | 'contacts_plus'
+  | 'dashboards'
+  | 'team_chat'
+  | 'wiki'
+  | 'whiteboard'
+  | 'branding'
+  | 'templates';
+
+const BASIC: readonly Feature[] = ['report', 'agenda', 'bot', 'reminders'];
+const PREMIUM: readonly Feature[] = [
+  'team_roles',
+  'crm_plus',
+  'contacts_plus',
+  'dashboards',
+  'team_chat',
+  'wiki',
+  'whiteboard',
+  'branding',
+  'templates',
+];
 
 export const PLAN_FEATURES: Record<PlanId, readonly Feature[]> = {
   FREE: [],
   CRM: ['report'],
-  COMPLETE: ['report', 'agenda', 'bot', 'reminders'],
+  COMPLETE: BASIC,
+  PREMIUM: [...BASIC, ...PREMIUM],
 };
 
-export const FEATURES: readonly Feature[] = ['report', 'agenda', 'bot', 'reminders'];
+export const FEATURES: readonly Feature[] = [...BASIC, ...PREMIUM];
 
 const isFeature = (value: string): value is Feature => (FEATURES as string[]).includes(value);
 

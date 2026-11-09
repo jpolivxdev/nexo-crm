@@ -22,10 +22,16 @@ export function Plans({ go }: { go: (to: string) => void }) {
     : current === 'COMPLETE'
       ? 'Seu plano atual'
       : 'Em breve';
+  const premium = current === 'PREMIUM';
 
   const cards: { plan: PlanInfo; tag: string; button: string; main: boolean }[] = [
-    { plan: BASIC_PLAN, tag: 'Disponível', button: basicLabel, main: true },
-    { plan: PREMIUM_PLAN, tag: 'Em construção', button: 'Em construção', main: false },
+    { plan: BASIC_PLAN, tag: 'Disponível', button: basicLabel, main: !premium },
+    {
+      plan: PREMIUM_PLAN,
+      tag: premium ? 'Seu plano' : 'Em construção',
+      button: premium ? 'Seu plano atual' : 'Em construção',
+      main: premium,
+    },
   ];
 
   return (
@@ -102,6 +108,22 @@ export function Plans({ go }: { go: (to: string) => void }) {
         ))}
       </ul>
     </>
+  );
+}
+
+/** Tela de uma seção que o papel da pessoa na equipe não acessa (Acessos por papel). */
+export function NoAccess({ go }: { go: (to: string) => void }) {
+  return (
+    <section className="card" aria-labelledby="sem-acesso">
+      <h1 id="sem-acesso">Esta parte não está liberada para você</h1>
+      <p className="muted">
+        Quem decide o que cada papel da equipe vê é o dono do negócio. Se precisar, peça para ele
+        liberar em Configurações, Acessos.
+      </p>
+      <button type="button" className="button button--small" onClick={() => go('/hoje')}>
+        Voltar para o início
+      </button>
+    </section>
   );
 }
 

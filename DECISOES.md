@@ -346,3 +346,92 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Nada sai da demo:** sem tempo real, sem WhatsApp, sem e-mail; o Nex fica só com os atalhos (nada vai para o Google); chamados de suporte ficam na memória; criar acesso da equipe, trocar senha e excluir dados de cliente dão aviso.
 - **Faixa fixa** "Demonstração com dados fictícios" com "Ver o tour", "Criar conta" e sair (princípio 7: demo identificado como demo). O **tour geral da demo** passa por Hoje, Agenda, Conversas, Clientes, Etapas e Resultados e abre sozinho ao entrar.
 - **Manutenção:** a demo imita as respostas da API. Quando uma rota mudar de formato, ajustar `lib/demo/server.ts`; o teste `Demo.test.tsx` e a varredura das telas pegam o grosso.
+
+## Premium, fase P1: planos, papéis e segurança (09/11/2026)
+
+- **Escopo do Premium (JP, 09/11/2026):** tudo o que o sistema de referência tem, menos o Meu Dia (e o que vive nele: Cockpit, Finanças, Biblioteca, Workspace). Igual em funções, telas e fluxos; nomes, textos, ícones, logo e cores são da nexo. Plano em 8 fases (P1 a P8) no documento "Plano Premium do nexo CRM".
+- **Planos no banco:** entra `PREMIUM`. `COMPLETE` passa a ser o Básico. `FREE` e `CRM` ficam sem uso até sair (não há negócio neles). O Premium libera o recurso `team_roles`; os próximos recursos do Premium entram na mesma lista.
+- **Papéis:** dono (`OWNER`), gestor (`MANAGER`), consultor (`CONSULTANT`) e profissional (`STAFF`, a de antes). Gestor e consultor só no Premium; se o negócio voltar para o Básico, eles param de entrar e nada é apagado. O acesso continua ligado a uma pessoa da Equipe.
+- **Acessos por papel** (Configurações → Acessos, só o dono): três áreas que o dono liga e desliga por papel: Resultados e metas, Configurações do negócio e Dados pessoais das clientes (baixar e apagar). Padrão: gestor com tudo; consultor só com Resultados; profissional sem nenhuma (vê só a própria agenda). O dia a dia (Hoje, Agenda, Conversas, Clientes, Etapas, Suporte, Nex) é de gestor e consultor sempre. Equipe, Acessos e Plano são só do dono. As áreas do sistema de referência (Financeiro, RH) não existem aqui; trocamos pelas que existem no nosso painel.
+- **Onde trava:** no servidor, no `TenantGuard` (`@RequiresAccess(área)` e `@OwnerOnly()`), consultando o plano e as regras do negócio a cada pedido. A tela só esconde.
+- **Verificação em duas etapas para o painel:** qualquer pessoa do negócio liga em Meu perfil e segurança (chave para digitar no app autenticador ou link que abre o app no celular; confirma com um código). Com 2FA ligado, o login pede o código. No Premium, o dono pode **exigir** de dono e gestores: quem não ligou só vê a tela de ligar até ligar. Para exigir, o dono precisa ter o próprio ligado (senão se trancaria para fora). Enquanto o negócio exige, dono e gestor não conseguem desligar. Precisa da `FIELD_ENCRYPTION_KEY` no servidor; sem ela, a tela avisa que não está disponível.
+- **Ficou para depois:** QR code na tela de ligar (hoje é a chave ou o link do app) e recuperação se a pessoa perder o celular (hoje: chamado no Suporte; falta a ferramenta do admin para desligar o 2FA de alguém, com auditoria).
+
+## Premium, fase P2: CRM completo (09/11/2026)
+
+- **Recurso novo `crm_plus`** no plano Premium. O quadro do Básico continua igual; no Premium a tela Etapas ganha funis, campanhas, campos próprios, valor, responsável, previsão, exportar e Minhas tarefas. Trava no servidor (`PlanGuard`) em todas as rotas `/panel/crm/*`.
+- **Vários funis:** o funil principal é o de antes e é o único que o robô e as regras automáticas mexem. Funil novo nasce com o modelo padrão (Novo contato, Qualificado, Orçamento, Negociação, Fechado, Perdido) e chances 10/30/50/70/100/0. O dono renomeia, reordena, acrescenta e tira etapas; etapa que já teve atendimento não sai (mover antes), e funil que já teve atendimento não é apagado (fica guardado). O principal nunca sai.
+- **Uma cliente, um atendimento em aberto por funil.** Atendimento criado pelo CRM num funil extra não cria cartão no principal; se a cliente escrever pelo WhatsApp depois, o robô abre o do principal, como sempre.
+- **Valor:** o que a equipe escrever no atendimento; sem valor escrito, vale o preço do serviço do próximo horário (como no Básico).
+- **Previsão:** soma em aberto e previsão pesada pela chance da etapa (0 a 100, o dono muda em Editar funil), por mês da previsão de fechamento. Etapas de saída (Fechou, Não seguiu) não entram. Conta em `@nexo/core` (`forecast`), testada.
+- **Responsável:** um login da equipe. Sem chave estrangeira no banco (o login pode sair); o servidor confere que é do mesmo negócio, e quando o dono tira o acesso de alguém, os atendimentos e tarefas dessa pessoa ficam sem responsável.
+- **Campanhas:** nome, por onde, datas, verba e funil (existente, nenhum, ou um funil novo criado na hora, como o assistente do sistema de referência). Mostram quantos atendimentos e quantos fecharam. Arquivar em vez de apagar.
+- **Campos próprios:** texto, número, data ou lista de opções (até 20). O tipo não muda depois de criado. Tirar o campo some da tela; o que já foi preenchido fica guardado no atendimento.
+- **Minhas tarefas:** ligar, retorno, reunião ou a fazer, com data e responsável; agrupadas em Atrasadas, Hoje, Próximas e Sem data; Minhas ou Da equipe; Abertas ou Feitas (dá para reabrir). O dono também vê as sem responsável (as que o sistema cria sozinho).
+- **Quem pode o quê:** dono, gestor e consultor usam o quadro, criam e editam atendimentos e tarefas. Mexer em funis, campanhas e campos é da área Configurações. Exportar (planilha com telefone) é da área Dados pessoais e fica na auditoria (`crm.exported`). A planilha usa `;` e protege contra fórmula (célula que começa com `=`, `+`, `-`, `@`).
+- **Ficou para depois:** importar planilha de leads, formulário de captura da campanha e primeira mensagem automática da campanha (o assistente do sistema de referência cria os três; aqui cria só o funil). Dependem do canal real do WhatsApp e de página pública; vão para a P8 ou depois.
+
+## Premium, fase P3: Contatos e Carteira de clientes (09/11/2026)
+
+- **Recurso novo `contacts_plus`** no Premium: importar e exportar clientes e a tela **Carteira**.
+- **Importar:** planilha CSV (`;` ou `,`, com ou sem cabeçalho; acha as colunas Nome, Telefone e Etiquetas pelo nome). Primeiro a **conferência**, que não salva nada: cada linha aparece como Nova, Já cadastrada, Repetida (mesmo telefone mais acima na planilha) ou Não entra (sem nome ou telefone inválido). Só depois a pessoa confirma. O servidor confere a planilha de novo ao salvar (não confia no que a tela mandou). Duplicado é pelo telefone, já normalizado com 55. Novas entram com origem "Planilha", no funil principal, primeira etapa. Já cadastradas não mudam, a não ser somar as etiquetas novas (se a pessoa deixar marcado). Até cerca de 1.500 por vez (limite de tamanho do pedido); maior que isso, dividir.
+- **Exportar clientes:** planilha com nome, telefone, etiquetas, origem, etapa, atendimentos realizados, último atendimento, se não quer mensagens e desde quando. Clientes excluídas a pedido não saem. Fica na auditoria (`contacts.exported`).
+- **Quem pode:** importar e exportar são da área Dados pessoais (dono e gestor por padrão). A Carteira todo mundo do dia a dia vê; as regras dela são da área Configurações.
+- **Carteira:** só quem já foi atendida (pelo menos um "realizado"). Situação: **Em dia** (tem horário marcado ou voltou dentro do costume), **Atenção** (passou do intervalo médio dela vezes 1,25, ou de 30 dias para quem veio uma vez só), **Em risco** (mais de 45 dias, a "sumida" da piloto) e **Perdida** (mais de 90 dias). Os três números o negócio muda. Mostra também quantas vezes veio, quanto já gastou (preço dos serviços realizados) e de quanto em quanto tempo costuma voltar. Conta em `@nexo/core` (`portfolioStatus`), testada.
+- **Nome:** "Carteira" para não confundir com "Clientes", que continua sendo a lista de todo mundo que falou com o negócio.
+
+## Premium, fase P4: Painéis e painel geral no Hoje (09/11/2026)
+
+- **Recurso novo `dashboards`** no Premium: tela **Painéis** (em Gestão) e o **Painel geral** no topo do Hoje. Os dois seguem a área Resultados dos Acessos.
+- **Período:** semana (segunda a domingo), mês ou trimestre do calendário, no fuso do negócio, até hoje; cada número vem com a variação em relação ao período anterior do mesmo tipo. Filtros por funil e por responsável.
+- **Indicadores:** novos contatos, atendimentos novos, fechados (e valor), conversão (fechados sobre fechados + não seguiram), realizados, faturamento (preço dos serviços realizados), ticket médio e faltas. "Fechado" é o atendimento que foi para uma etapa de tipo Fechou no período; "não seguiu", para uma etapa de saída. Realizados, faturamento e faltas vêm da agenda e não mudam com o filtro de responsável (a agenda é por profissional, não por responsável do atendimento).
+- **Metas por período:** novos contatos, fechados, realizados e faturamento, separadas para semana, mês e trimestre. A meta do mês é a mesma da tela Resultados do Básico (mudar uma muda a outra).
+- **Funil de conversão:** dos atendimentos que entraram no funil escolhido no período, quantos chegaram a cada etapa (pela etapa atual e pelo histórico de mudanças). Etapas de saída ficam fora. Conta em `@nexo/core` (`conversionFunnel`), testada.
+- **Por responsável** e **previsão mensal** (a mesma conta da P2, somando os funis).
+- **Modo TV:** tela cheia escura com os números grandes, metas e funil; atualiza sozinho a cada minuto; sai no botão ou no Esc.
+- **Painel geral no Hoje:** receita do mês, previsão de receita (todos os funis), chamados de suporte abertos, quantos estão em cada etapa do funil principal e a previsão dos próximos meses.
+- **Celular:** com mais de 6 seções (Premium), a barra de baixo rola para o lado em vez de espremer os nomes.
+
+## Premium, fase P5: Chat interno da equipe (10/11/2026)
+
+- **Recurso novo `team_chat`** no Premium: tela **Chat** (grupo Equipe). Toda a equipe usa, inclusive a profissional (STAFF). A nexo, numa entrada de suporte, **não entra**: é conversa interna do negócio (o servidor barra e o menu esconde).
+- **Canais:** de toda a equipe. O **Geral** nasce sozinho na primeira vez (chave fixa, então não duplica) e não pode ser arquivado. Qualquer pessoa cria canal (nome de 2 a 40 letras, sem repetir); arquivar é de quem criou, da dona ou do gestor. Arquivar só tira da lista: as mensagens ficam.
+- **Conversas diretas:** entre duas pessoas; só elas veem (quem participa fica em `chat_reads`; para a terceira pessoa a conversa "não existe", resposta 404). A mesma dupla sempre cai na mesma conversa.
+- **Mensagens:** texto de até 2.000 letras, de 50 em 50 ("Ver mensagens anteriores"). Enter envia, Shift+Enter quebra linha. Só quem escreveu apaga; o texto sai e fica "Mensagem apagada" (o banco não deixa apagar a linha: `REVOKE DELETE`).
+- **Não lidas:** contador por canal e conversa (mensagens de outras pessoas depois da última leitura). Abrir a conversa marca como lida.
+- **Tempo real:** aviso novo `chat.updated` (só o id da conversa, sem texto) pelo mesmo canal SSE do painel; lista e conversa aberta atualizam sozinhas.
+- **Isolamento:** tabelas `chat_channels`, `chat_messages` e `chat_reads` com `tenant_id`, RLS forçado e chaves compostas. Teste automatizado garante que um negócio não vê nem escreve no chat do outro.
+- **Fora desta fase:** anexos, reações, menções e busca no chat. Ficam para quando houver pedido real.
+
+## Premium, fase P6: Wiki do negócio (10/11/2026)
+
+- **Recurso novo `wiki`** no Premium: tela **Wiki** (grupo Equipe). Toda a equipe lê, inclusive a profissional; **só a dona e o gestor escrevem** (artigos, categorias e anexos). A nexo, numa entrada de suporte, não entra.
+- **Artigos:** título (até 120 letras), texto (até 50 mil letras), categoria opcional e "fixar no topo". Lista mostra fixados primeiro e depois os mais recentes, com quem atualizou por último. **Arquivar** tira da Wiki, mas o artigo fica no banco (`REVOKE DELETE`).
+- **Texto:** formato simples escrito pela barra do editor (título de seção, subtítulo, negrito, itálico, listas, destaque, link) com "Ver como fica". A conta fica em `@nexo/core` (`parseDoc`, testada) e a tela desenha cada bloco com elementos próprios: **HTML do texto nunca vira HTML** e link só abre http(s), mailto ou telas do painel. Para isso o painel passa a usar o `@nexo/core` (já era construído antes em todo lugar).
+- **Categorias:** criar, renomear e tirar. Tirar a categoria não apaga artigo: eles ficam sem categoria.
+- **Busca:** por título e texto (sem diferenciar maiúscula); quem tem o termo no título vem antes; mostra um trecho do texto em volta do termo.
+- **Anexos:** imagem (PNG, JPG, WEBP, GIF), PDF, texto (TXT, CSV) e Office (DOCX, XLSX, PPTX), **até 5 MB cada**. O tipo é conferido pelo conteúdo, não só pelo nome (`checkWikiFile`); SVG e HTML ficam fora porque podem levar script. Imagem abre na página e pode entrar no texto; o resto sempre baixa (`attachment`, `nosniff`). Guardados no próprio Postgres (sem serviço de arquivos novo, custo zero na Fase 1). Limite provisório de **100 MB de anexos por negócio** até o Coca definir limites por plano. Remover anexo só marca como removido (o arquivo fica no banco; política de limpeza **[A DEFINIR]**).
+- **Upload:** corpo cru (`application/octet-stream`) só na rota de anexo, com limite de tamanho no próprio leitor do corpo; as outras rotas continuam só com JSON.
+- **Isolamento:** `wiki_categories`, `wiki_articles` e `wiki_attachments` com `tenant_id`, RLS forçado e chaves compostas; teste automatizado de vazamento entre negócios (artigo, anexo, categoria e envio).
+- **Fora desta fase:** histórico de versões, comentários e editor visual (sem marcação). Ficam para quando houver pedido real.
+
+## Premium, fase P7: Quadro branco (10/11/2026)
+
+- **Recurso novo `whiteboard`** no Premium: tela **Quadro branco** (grupo Equipe). Toda a equipe abre e desenha, inclusive a profissional. Arquivar é de quem criou, da dona ou do gestor; arquivado sai da lista e fica no banco. A nexo, numa entrada de suporte, não entra.
+- **Biblioteca pronta x quadro nosso (fato):** no plano a sugestão era usar uma biblioteca de código aberto. Testamos a mais conhecida (Excalidraw 0.18.1, licença MIT): ela traz **9 alertas de segurança altos** em dependências (mermaid, lodash-es, nanoid), e o CI falha em alerta alto (`npm audit --audit-level=high`). Ela também carrega 14 MB de fontes de fora do nosso domínio, o que a política de segurança do painel (CSP) bloqueia. **Decisão:** quadro próprio em SVG, sem dependência nova, nas cores da marca. Se o JP preferir a biblioteca, dá para trocar quando ela corrigir as dependências.
+- **Ferramentas:** selecionar e mover, arrastar o quadro (mão), retângulo, círculo, seta, linha, texto (3 tamanhos), lápis e imagem. Cores da paleta da nexo (7), três espessuras e "preencher" nas formas. Desfazer e refazer (Ctrl+Z, Ctrl+Shift+Z), apagar (Delete), atalhos por letra, zoom (botões e Ctrl+roda) e "mostrar o quadro inteiro". Funciona com dedo no celular (arrastar o fundo move o quadro).
+- **Salvar:** sozinho, logo depois de cada mudança ("Salvando…" e "Salvo"). Cada salvamento sobe a **versão**; se outra pessoa salvou antes, o servidor recusa (409) e a tela avisa, em vez de apagar o trabalho da outra pessoa. Quem está só olhando recebe a versão nova sozinho (aviso `board.updated`, só com o id).
+- **Conferência no servidor:** `checkBoard` (`@nexo/core`, testada) aceita só os tipos conhecidos, cores da paleta, tamanhos da lista e números dentro de limites; descarta qualquer campo a mais. Limites: 2.000 itens e 50 mil pontos de lápis por quadro, 2.000 letras por texto. O desenho vai como corpo cru (até 3 MB) só na rota de salvar.
+- **Imagens:** PNG, JPG, WEBP ou GIF até 5 MB, conferidas pelo conteúdo (sem SVG). Ficam no Postgres (`board_files`) e só podem ser usadas no quadro onde foram enviadas.
+- **Isolamento:** `boards` e `board_files` com `tenant_id`, RLS forçado e chaves compostas; teste automatizado de vazamento entre negócios.
+- **Fora desta fase:** edição ao mesmo tempo com cursor das outras pessoas, modelos prontos de quadro, exportar como imagem e mapa mental automático.
+
+## Premium, fase P8: Marca, domínio próprio, modelos de mensagem e demo do Premium (10/11/2026)
+
+- **Marca:** logo (PNG, JPG ou WEBP, até 1 MB, conferida pelo conteúdo do arquivo), cor dos botões e destaques e fonte do painel (Padrão, Clássica ou Do aparelho). A cor só é aceita com contraste de pelo menos 4,5:1 com o texto branco (regra de acessibilidade da seção 11), conferido na tela e no servidor. O "feito pela nexo" continua no rodapé.
+- **Domínio próprio:** a dona cadastra o endereço e prova que é dela com um registro TXT (`_nexo-verificacao.<domínio>`). Só domínio verificado mostra a marca na tela de entrada, por uma função do banco que devolve apenas o negócio daquele domínio. **Fato:** ligar o endereço no ar depende da hospedagem (certificado e apontamento), que ainda é **[A DEFINIR]**; a tela diz isso sem prometer prazo.
+- **Modelos de mensagem:** WhatsApp e e-mail, com campos `{nome}`, `{primeiro_nome}`, `{negocio}`, `{servico}`, `{data}` e `{hora}`. Campo desconhecido trava o salvar. Os de WhatsApp aparecem em "Usar modelo" na resposta das Conversas e da ficha, já preenchidos com a cliente e o próximo horário; o que não se sabe vira `___`. O painel não manda e-mail para clientes, então o de e-mail é copiado com os espaços `___` para completar (sem dados de exemplo no texto copiado).
+- **Quem mexe:** dono e quem tem a área Configurações; o resto só lê os modelos.
+- **Demo do Premium:** botão "Demo do Premium" na página inicial (`#/demo-premium`). O mesmo negócio fictício da demo do Básico, com tudo do Premium ligado e dados marcados "(demo)": CRM, painéis, carteira, chat, Wiki, quadro, marca e modelos. Nada sai do navegador; enviar arquivo e ligar domínio avisam que não funcionam na demo.
+- **Correção:** na demo, tocar numa cliente ou conversa não abria a ficha (a rota só aceitava ids do servidor). Agora aceita também os ids da demo.
+- **Página inicial:** o Premium passou de "Em construção" para "Em teste", com a lista do que ele tem. Preço continua **[A DEFINIR com o Coca]**.

@@ -120,7 +120,13 @@ export const professionalBody = z.object({
   windows: z.array(windowSchema).max(7 * 6),
 });
 
-export const staffLoginBody = z.object({ email: z.email().max(200) });
+/** Papel do acesso: profissional (STAFF) em todo plano; gestor e consultor só no Premium. */
+export const teamRole = z.enum(['MANAGER', 'CONSULTANT', 'STAFF']);
+export const staffLoginBody = z.object({
+  email: z.email().max(200),
+  role: teamRole.default('STAFF'),
+});
+export const loginRoleBody = z.object({ role: teamRole });
 
 /** Conta → Avisos: e-mail para a dona e prazo do "oferecer o próximo horário". */
 export const alertsBody = z.object({

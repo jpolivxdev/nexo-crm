@@ -51,7 +51,8 @@ export async function recordEvent(
 /** Garante que o cliente tem um atendimento em andamento no funil padrão do negócio. */
 export async function ensureDeal(tx: TenantTx, tenantId: string, contactId: string) {
   const existing = await tx.deal.findFirst({
-    where: { contactId, closedAt: null },
+    // Vários funis (Premium): o robô e as regras só mexem no atendimento do funil padrão.
+    where: { contactId, closedAt: null, pipeline: { isDefault: true } },
     orderBy: { createdAt: 'desc' },
   });
   if (existing) return existing;

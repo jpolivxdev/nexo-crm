@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import type { z } from 'zod';
 import type { AuthedRequest } from '../auth/auth.types.js';
-import { SessionGuard, TenantGuard } from '../auth/session.guard.js';
+import { SessionGuard, TenantGuard, RequiresAccess } from '../auth/session.guard.js';
 import { businessBody, faqBody, hoursBody, messagesBody, servicesBody } from './setup.schemas.js';
 import { SetupService } from './setup.service.js';
 
@@ -26,6 +26,7 @@ function parse<T extends z.ZodType>(schema: T, value: unknown): z.infer<T> {
 
 /** Assistente de configuração (dona, ou admin nexo numa entrada controlada). */
 @Controller('panel/setup')
+@RequiresAccess('settings')
 @UseGuards(SessionGuard, TenantGuard)
 export class SetupController {
   constructor(@Inject(SetupService) private readonly setup: SetupService) {}

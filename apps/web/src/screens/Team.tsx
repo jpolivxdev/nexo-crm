@@ -4,6 +4,8 @@ import { type FormEvent, useState } from 'react';
 import { Banner, Empty, Loading } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { useLoad } from '../lib/hooks';
+import { useAuth } from '../lib/auth';
+import { ROLE_HINT, ROLE_LABEL, TEAM_ROLES, type TeamRole } from '../lib/roles';
 import type { SetupWindow } from '../lib/types';
 import { daysToWindows, WeekHours, windowsToDays } from './Setup';
 
@@ -15,6 +17,7 @@ interface Professional {
   serviceIds: string[];
   windows: SetupWindow[];
   login: string | null;
+  role?: TeamRole | null;
 }
 
 interface TeamData {
@@ -73,6 +76,9 @@ export function Team({ go }: { go: (to: string) => void }) {
                         <span className="tag tag--info">
                           {p.login ? `Acesso: ${p.login}` : 'Sem acesso ao painel'}
                         </span>
+                      )}
+                      {!p.isOwner && p.login && p.role && (
+                        <span className="tag">{ROLE_LABEL[p.role]}</span>
                       )}
                     </span>
                   </span>
@@ -238,7 +244,10 @@ function EditProfessional({
   );
 }
 
-/** Acesso ao painel: ela vê e marca só a própria agenda. Senha provisória aparece uma vez. */
+/**
+ * Acesso ao painel. No Básico, a profissional vê e marca só a própria agenda. No Premium, o
+ * dono escolhe o papel: gestor, consultor ou profissional. Senha provisória aparece uma vez.
+ */
 function Access({
   professional: p,
   onChanged,
@@ -246,7 +255,10 @@ function Access({
   professional: Professional;
   onChanged: () => void;
 }) {
+  const { me } = useAuth();
+  const premium = !!me?.features?.includes('team_roles');
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState<TeamRole>('STAFF');
   const [created, setCreated] = useState<{ email: string; temporaryPassword: string } | null>(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -260,12 +272,25 @@ function Access({
       setCreated(
         await api<{ email: string; temporaryPassword: string }>(`/panel/team/${p.id}/login`, {
           method: 'POST',
-          body: { email },
+          body: premium ? { email, role } : { email },
         }),
       );
       onChanged();
     } catch (e) {
       setError(message(e, 'Não foi possível criar o acesso.'));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function changeRole(next: TeamRole) {
+    setBusy(true);
+    setError(null);
+    try {
+      await api(`/panel/team/${p.id}/login`, { method: 'PUT', body: { role: next } });
+      onChanged();
+    } catch (e) {
+      setError(message(e, 'Não foi possível trocar o papel.'));
     } finally {
       setBusy(false);
     }
@@ -290,8 +315,9 @@ function Access({
     <section className="section card" aria-labelledby="acesso">
       <h2 id="acesso">Acesso ao painel</h2>
       <p className="muted small">
-        Com acesso, ela entra no painel e vê só a agenda dela: marca realizado ou faltou. Não vê
-        clientes, conversas nem resultados.
+        {premium
+          ? 'Escolha o papel: o que cada papel vê você ajusta em Configurações, Acessos.'
+          : 'Com acesso, ela entra no painel e vê só a agenda dela: marca realizado ou faltou. Não vê clientes, conversas nem resultados.'}
       </p>
       {error && <Banner>{error}</Banner>}
       {created ? (
@@ -335,6 +361,22 @@ function Access({
         ) : (
           <div className="row row--between">
             <span>{p.login}</span>
+            {premium && p.role && (
+              <label className="team__role">
+                <span className="sr-only">Papel de {p.name}</span>
+                <select
+                  value={p.role}
+                  disabled={busy}
+                  onChange={(e) => void changeRole(e.target.value as TeamRole)}
+                >
+                  {TEAM_ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {ROLE_LABEL[r]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <button
               type="button"
               className="button button--small button--ghost"
@@ -356,6 +398,26 @@ function Access({
               onChange={(e) => setEmail(e.target.value)}
             />
           </label>
+          {premium && (
+            <fieldset className="team__roles">
+              <legend>Papel</legend>
+              {TEAM_ROLES.map((r) => (
+                <label key={r} className="check choice">
+                  <input
+                    type="radio"
+                    name={`papel-${p.id}`}
+                    value={r}
+                    checked={role === r}
+                    onChange={() => setRole(r)}
+                  />
+                  <span>
+                    <strong>{ROLE_LABEL[r]}</strong>
+                    <span className="muted small"> {ROLE_HINT[r]}</span>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+          )}
           <button type="submit" className="button button--ghost" disabled={busy}>
             {busy ? 'Criando…' : 'Criar acesso'}
           </button>

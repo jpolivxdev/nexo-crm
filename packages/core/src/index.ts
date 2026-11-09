@@ -94,3 +94,105 @@ export {
   type Feature,
   type PlanId,
 } from './plans/features.js';
+export {
+  ACCESS_AREAS,
+  accessRulesOf,
+  areasFor,
+  DEFAULT_ACCESS,
+  TEAM_ROLES,
+  type AccessArea,
+  type AccessRules,
+  type TeamRole,
+} from './plans/access.js';
+export { forecast, type Forecast, type ForecastBucket, type ForecastDeal } from './crm/forecast.js';
+export {
+  checkFieldValues,
+  CUSTOM_FIELD_TYPES,
+  FIELD_TEXT_MAX,
+  type CustomFieldDef,
+  type CustomFieldType,
+  type FieldValue,
+} from './crm/custom-fields.js';
+export { csvCell, toCsv } from './crm/csv.js';
+export {
+  checkImport,
+  detectColumns,
+  IMPORT_MAX_ROWS,
+  normalizePhone,
+  parseCsv,
+  type ImportColumns,
+  type ImportRow,
+  type ImportStatus,
+} from './crm/import.js';
+export {
+  averageInterval,
+  checkPortfolioRules,
+  DEFAULT_PORTFOLIO_RULES,
+  portfolioRulesOf,
+  portfolioStatus,
+  type PortfolioRules,
+  type PortfolioStatus,
+} from './crm/portfolio.js';
+export {
+  change,
+  conversionFunnel,
+  DASHBOARD_PERIODS,
+  GOAL_KEYS,
+  periodRange,
+  readPeriodGoals,
+  type DashboardPeriod,
+  type FunnelStage,
+  type FunnelStep,
+  type PeriodGoals,
+  type PeriodRange,
+} from './crm/dashboard.js';
+export {
+  parseDoc,
+  parseInline,
+  plainText,
+  snippet,
+  type Block as WikiBlock,
+  type Span as WikiSpan,
+} from './wiki/doc.js';
+export {
+  checkWikiFile,
+  WIKI_FILE_MAX_BYTES,
+  WIKI_FILE_TYPES,
+  WIKI_TENANT_MAX_BYTES,
+  type FileCheck,
+  type WikiFileType,
+} from './wiki/files.js';
+export {
+  BOARD_COLORS,
+  BOARD_MAX_ELEMENTS,
+  BOARD_WIDTHS,
+  boardBounds,
+  checkBoard,
+  elementBox,
+  hitTest,
+  moveElement,
+  normalBox,
+  penElement,
+  TEXT_SIZES,
+  topAt,
+  type BoardColor,
+  type BoardElement,
+  type BoardElementType,
+  type Box,
+} from './board/elements.js';
+export {
+  BRAND_COLOR_SUGGESTIONS,
+  BRAND_FONTS,
+  checkBrandColor,
+  contrastRatio,
+  DOMAIN_TXT_PREFIX,
+  normalizeDomain,
+  type BrandFont,
+} from './brand/brand.js';
+export {
+  fillTemplate,
+  TEMPLATE_FIELDS,
+  templateFields,
+  unknownFields,
+  type TemplateField,
+} from './brand/templates.js';

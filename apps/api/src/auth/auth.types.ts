@@ -12,6 +12,8 @@ export interface AuthContext {
   csrfToken: string;
   /** Senha provisória: só pode trocar a senha até resolver isso. */
   mustChangePassword: boolean;
+  /** Verificação em duas etapas ligada para este login. */
+  twoFactor: boolean;
   /** Entrada controlada do admin nexo num negócio, se houver. */
   acting: { tenantId: string; until: Date } | null;
 }

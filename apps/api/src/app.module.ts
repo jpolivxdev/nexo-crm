@@ -5,11 +5,16 @@ import { SupportModule } from './support/support.module.js';
 import { AssistantModule } from './assistant/assistant.module.js';
 import { AdminModule } from './admin/admin.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { ChatModule } from './chat/chat.module.js';
+import { WikiModule } from './wiki/wiki.module.js';
+import { BoardModule } from './board/board.module.js';
+import { BrandModule } from './brand/brand.module.js';
 import { ChannelModule } from './channel/channel.module.js';
 import { ConversationModule } from './conversation/conversation.module.js';
 import { DatabaseModule } from './database/database.module.js';
 import { HealthController } from './health/health.controller.js';
 import { loggerParams } from './logger.js';
+import { CrmModule } from './crm/crm.module.js';
 import { PanelModule } from './panel/panel.module.js';
 import { QueueModule } from './queue/queue.module.js';
 import { RealtimeModule } from './realtime/realtime.module.js';
@@ -33,6 +38,11 @@ export class AppModule {
         ChannelModule,
         ConversationModule,
         PanelModule,
+        CrmModule,
+        ChatModule,
+        WikiModule,
+        BoardModule,
+        BrandModule,
         SetupModule,
         AdminModule,
         SupportModule,

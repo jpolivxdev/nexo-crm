@@ -170,7 +170,7 @@ export function Landing() {
 
         <section id="planos" className="lp-section">
           <h2>Planos</h2>
-          <p className="lp-section__lead">Comece pelo Básico. O Premium está em construção.</p>
+          <p className="lp-section__lead">Comece pelo Básico. O Premium está em teste.</p>
           <div className="lp-plans">
             <article className="lp-plan lp-plan--main" aria-labelledby="plano-basico">
               <p className="lp-plan__tag">Disponível</p>
@@ -198,7 +198,7 @@ export function Landing() {
               </div>
             </article>
             <article className="lp-plan" aria-labelledby="plano-premium">
-              <p className="lp-plan__tag lp-plan__tag--soon">Em construção</p>
+              <p className="lp-plan__tag lp-plan__tag--soon">Em teste</p>
               <h3 id="plano-premium">{PREMIUM_PLAN.name}</h3>
               <p className="lp-plan__lead">{PREMIUM_PLAN.lead}</p>
               <p className="lp-plan__price">Valor em breve</p>
@@ -210,7 +210,15 @@ export function Landing() {
                   </li>
                 ))}
               </ul>
-              <p className="lp-plan__note">O que está planejado. Avisamos quando estiver pronto.</p>
+              <div className="lp-plan__cta">
+                <a href="#/demo-premium" className="lp-button lp-button--secondary">
+                  <PlayCircle aria-hidden="true" size={18} />
+                  Demo do Premium
+                </a>
+              </div>
+              <p className="lp-plan__note">
+                Ainda em teste com o primeiro negócio. Valor em breve.
+              </p>
             </article>
           </div>
         </section>
