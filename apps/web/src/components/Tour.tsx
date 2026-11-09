@@ -32,7 +32,16 @@ function findTarget(selector?: string): HTMLElement | null {
  * Tour guiado: destaca uma parte da tela e explica em uma frase. Pular, Voltar e Próximo; Esc
  * fecha. É um diálogo: o foco fica dentro dele e volta para onde estava ao fechar.
  */
-export function Tour({ steps, onClose }: { steps: TourStep[]; onClose: () => void }) {
+export function Tour({
+  steps,
+  onClose,
+  onRoute,
+}: {
+  steps: TourStep[];
+  onClose: () => void;
+  /** Leva para a tela do passo (tour da demo). */
+  onRoute?: (to: string) => void;
+}) {
   const [index, setIndex] = useState(0);
   const [box, setBox] = useState<Box | null>(null);
   const card = useRef<HTMLDivElement>(null);
@@ -61,13 +70,32 @@ export function Tour({ steps, onClose }: { steps: TourStep[]; onClose: () => voi
     });
   }, [step.target]);
 
+  // Passo em outra tela: navega e espera a parte destacada aparecer (até ~2 s).
+  const route = step.route;
+  useEffect(() => {
+    if (route && onRoute && window.location.hash.replace(/^#/, '') !== route) onRoute(route);
+  }, [route, onRoute]);
+
   useLayoutEffect(() => {
-    const el = findTarget(step.target);
-    el?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
     primary.current?.focus();
-    const frame = requestAnimationFrame(measure);
-    return () => cancelAnimationFrame(frame);
-  }, [step.target, measure]);
+    let tries = 0;
+    let handle = 0;
+    const tick = () => {
+      const el = findTarget(step.target);
+      if (el || !step.target || tries >= 20) {
+        el?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+        measure();
+        return;
+      }
+      tries += 1;
+      handle = window.setTimeout(tick, 100);
+    };
+    const frame = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(handle);
+    };
+  }, [step.target, measure, index]);
 
   useEffect(() => {
     window.addEventListener('resize', measure);

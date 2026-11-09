@@ -337,3 +337,12 @@ Cada decisão com data, quem decidiu e o motivo.
 
 - **Pedido do JP:** o quadro de Etapas estava apagado, principalmente no modo escuro (todas as etapas em tons de roxo). O de referência usa uma cor bem diferente por etapa.
 - **Exceção ao guia de marca (só nas etapas):** além de Azul Elo e Roxo Nexo, entram âmbar, verde e ciano como cores de situação, no ponto, na linha do título, no contador e num fundo bem leve no topo da coluna. Cada cor tem versão mais clara no modo escuro. O nome da etapa vem sempre junto (nada só por cor). Botões, destaques e o resto do painel seguem a paleta. A confirmar com os sócios; voltar atrás é trocar cinco variáveis em `.board` (App.css).
+
+## Dois planos, página inicial e demonstração (09/11/2026)
+
+- **Dois planos** (JP, 09/11/2026): Básico (este painel) e Premium (em construção). O plano do meio saiu. Nome definitivo do Premium e preços: **[A DEFINIR]** com o Coca. A página mostra "Valor em breve" até lá.
+- **Página inicial:** nova seção Planos com os dois cartões. O Básico lista o que já existe; o Premium lista só o que está planejado, com o aviso "Em construção". Botões "Ver a demonstração" no topo e "Demo" no menu e no cartão do Básico. A imagem do painel foi trocada pela tela nova (dados fictícios da demo).
+- **Demonstração sem servidor** (`#/demo`, `apps/web/src/lib/demo`): o painel inteiro roda no navegador com um estúdio e clientes fictícios, todos marcados "(demo)" e com telefones de DDD 00. A função `api()` responde na memória quando a demo está ligada (sessionStorage, só naquela aba). Tudo pode ser mexido e nada é salvo: recarregar recomeça. Cada visitante tem a própria cópia, então ninguém vê o que o outro fez, e não há custo de servidor.
+- **Nada sai da demo:** sem tempo real, sem WhatsApp, sem e-mail; o Nex fica só com os atalhos (nada vai para o Google); chamados de suporte ficam na memória; criar acesso da equipe, trocar senha e excluir dados de cliente dão aviso.
+- **Faixa fixa** "Demonstração com dados fictícios" com "Ver o tour", "Criar conta" e sair (princípio 7: demo identificado como demo). O **tour geral da demo** passa por Hoje, Agenda, Conversas, Clientes, Etapas e Resultados e abre sozinho ao entrar.
+- **Manutenção:** a demo imita as respostas da API. Quando uma rota mudar de formato, ajustar `lib/demo/server.ts`; o teste `Demo.test.tsx` e a varredura das telas pegam o grosso.

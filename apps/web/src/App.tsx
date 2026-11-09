@@ -22,7 +22,9 @@ import { api } from './lib/api';
 import { AuthProvider, useAuth } from './lib/auth';
 import { time } from './lib/format';
 import { useRoute } from './lib/hooks';
-import { markTourSeen, tourFor, tourSeen } from './lib/tours';
+import { DEMO_TOUR, markTourSeen, tourFor, tourSeen } from './lib/tours';
+import { enterDemo, isDemo, leaveDemo, takeDemoTour } from './lib/demo/mode';
+import { DemoBanner } from './components/DemoBanner';
 import type { Feature, Me } from './lib/types';
 import { Admin } from './screens/Admin';
 import { AdminSupport } from './screens/AdminSupport';
@@ -117,6 +119,7 @@ export function App() {
 function publicScreen(route: string, loggedIn: boolean): ReactNode {
   const [path, query = ''] = route.split('?');
   const token = new URLSearchParams(query).get('token') ?? '';
+  if (path === '/demo') return <DemoStart />;
   if (path === '/nova-senha') return <ResetPassword token={token} />;
   if (path === '/confirmar-email') return <ConfirmEmail token={token} />;
   if (loggedIn) return null;
@@ -231,8 +234,11 @@ function Panel({ me }: { me: Me }) {
 
   // Tour guiado: abre sozinho uma vez por aparelho (fora dos testes) e pela bússola do topo.
   const [touring, setTouring] = useState(
-    () => import.meta.env.MODE !== 'test' && !tourSeen() && !me.acting,
+    () => import.meta.env.MODE !== 'test' && !tourSeen() && !me.acting && !isDemo(),
   );
+  // Demonstração: o tour geral passa pelas telas principais e abre sozinho ao entrar.
+  const demo = isDemo();
+  const [demoTouring, setDemoTouring] = useState(() => demo && takeDemoTour());
   function closeTour() {
     markTourSeen();
     setTouring(false);
@@ -298,6 +304,16 @@ function Panel({ me }: { me: Me }) {
         }
         onLogout={() => void logout()}
       />
+      {demo && (
+        <DemoBanner
+          onTour={() => setDemoTouring(true)}
+          onLeave={(to) => {
+            leaveDemo();
+            window.location.hash = to;
+            void refresh();
+          }}
+        />
+      )}
       {me.acting && (
         <div className="acting" role="status">
           <span>
@@ -372,6 +388,7 @@ function Panel({ me }: { me: Me }) {
       <MadeByNexo />
       <Nex topics={nexTopics} onTour={openTour} />
       {touring && <Tour key={section} steps={tourFor(section)} onClose={closeTour} />}
+      {demoTouring && <Tour steps={DEMO_TOUR} onClose={() => setDemoTouring(false)} onRoute={go} />}
       <nav className="tabbar" aria-label="Seções do painel">
         {nav.map(({ to, label, Icon }) => (
           <a
@@ -389,4 +406,16 @@ function Panel({ me }: { me: Me }) {
       </nav>
     </div>
   );
+}
+
+/** Entra na demonstração: liga o modo demo, lê a "sessão" fictícia e abre o Hoje. */
+function DemoStart() {
+  const { refresh } = useAuth();
+  useEffect(() => {
+    enterDemo();
+    void refresh().then(() => {
+      window.location.hash = '/hoje';
+    });
+  }, [refresh]);
+  return <Loading />;
 }

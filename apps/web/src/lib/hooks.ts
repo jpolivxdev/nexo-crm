@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ApiError } from './api';
+import { isDemo } from './demo/mode';
 
 /**
  * Carrega dados, guarda erro e permite recarregar (ex.: quando chega aviso em tempo real).
@@ -79,7 +80,7 @@ export function useRealtime(onNotice: (notice: Notice) => void): void {
   });
 
   useEffect(() => {
-    if (typeof EventSource === 'undefined') return;
+    if (typeof EventSource === 'undefined' || isDemo()) return;
     return subscribe((notice) => handler.current(notice));
   }, []);
 }

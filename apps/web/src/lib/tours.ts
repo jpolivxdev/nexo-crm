@@ -5,6 +5,8 @@
  */
 export interface TourStep {
   target?: string;
+  /** Tela do passo (só no tour da demo, que passa por várias telas). */
+  route?: string;
   title: string;
   text: string;
 }
@@ -136,6 +138,57 @@ const RESULTADOS: TourStep[] = [
     target: 'main .section',
     title: 'Seus números',
     text: 'Horários marcados pelo robô, faltas, clientes novas e quem voltou. Só números do seu negócio, nada inventado.',
+  },
+];
+
+/** Tour geral da demonstração: passa pelas telas principais com dados fictícios. */
+export const DEMO_TOUR: TourStep[] = [
+  {
+    route: '/hoje',
+    title: 'Boas-vindas à demonstração',
+    text: 'Este é o painel da nexo com um estúdio de mentira e clientes fictícias. Pode tocar em tudo: nada é salvo e nada sai para ninguém.',
+  },
+  {
+    route: '/hoje',
+    target: '[data-tour="resumo"]',
+    title: 'O dia num olhar',
+    text: 'Quantos horários tem hoje, quem está esperando resposta e o que falta fazer.',
+  },
+  {
+    route: '/agenda',
+    target: 'main .section, main .month',
+    title: 'Agenda',
+    text: 'O robô marca pelo WhatsApp e o horário aparece aqui sozinho. Você também marca, remarca e fecha folgas.',
+  },
+  {
+    route: '/conversas',
+    target: '.inbox__list',
+    title: 'Conversas',
+    text: 'As mensagens do WhatsApp num lugar só. Quem pediu para falar com você aparece em "Esperando você".',
+  },
+  {
+    route: '/clientes',
+    target: '.segmented',
+    title: 'Clientes',
+    text: 'Cada cliente entra sozinha. Separe as frequentes, as sumidas e as que faltaram, e chame de volta.',
+  },
+  {
+    route: '/etapas',
+    target: '.board',
+    title: 'Etapas',
+    text: 'Do primeiro contato até a cliente voltar. O robô move cada uma sozinho conforme a conversa.',
+  },
+  {
+    route: '/resultados',
+    target: 'main .section',
+    title: 'Resultados',
+    text: 'Horários marcados pelo robô, faltas e metas do mês. Os números aqui são de exemplo.',
+  },
+  {
+    route: '/hoje',
+    target: '[data-tour="nex"]',
+    title: 'Ficou com dúvida?',
+    text: 'O Nex mostra o caminho de cada coisa. Quando quiser usar com o seu negócio, toque em "Criar conta" lá em cima.',
   },
 ];
 
