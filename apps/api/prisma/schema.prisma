@@ -78,6 +78,8 @@ model Tenant {
   channelRoutes  ChannelRoute[]
   supportTickets SupportTicket[]
   chatChannels   ChatChannel[]
+  wikiCategories WikiCategory[]
+  wikiArticles   WikiArticle[]
 
   @@map("tenants")
 }
@@ -768,4 +770,63 @@ model ChatRead {
   @@id([channelId, userId])
   @@index([tenantId, userId])
   @@map("chat_reads")
+}
+
+/// Wiki do negócio (Premium): categorias de artigos.
+model WikiCategory {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  name      String
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant   Tenant        @relation(fields: [tenantId], references: [id])
+  articles WikiArticle[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@map("wiki_categories")
+}
+
+model WikiArticle {
+  id            String    @id @default(uuid()) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  categoryId    String?   @map("category_id") @db.Uuid
+  title         String
+  /// Texto no formato simples da Wiki (ver @nexo/core, wiki/doc).
+  body          String    @default("")
+  pinned        Boolean   @default(false)
+  createdById   String    @map("created_by_id") @db.Uuid
+  updatedByName String    @map("updated_by_name")
+  archivedAt    DateTime? @map("archived_at") @db.Timestamptz
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant      Tenant           @relation(fields: [tenantId], references: [id])
+  category    WikiCategory?    @relation(fields: [tenantId, categoryId], references: [tenantId, id], onDelete: Restrict)
+  attachments WikiAttachment[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@map("wiki_articles")
+}
+
+/// Anexo de artigo, guardado no banco (até 5 MB).
+model WikiAttachment {
+  id          String    @id @default(uuid()) @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  articleId   String    @map("article_id") @db.Uuid
+  name        String
+  mime        String
+  size        Int
+  data        Bytes
+  createdById String    @map("created_by_id") @db.Uuid
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  article WikiArticle @relation(fields: [tenantId, articleId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([articleId])
+  @@index([tenantId])
+  @@map("wiki_attachments")
 }

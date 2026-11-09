@@ -402,3 +402,15 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Tempo real:** aviso novo `chat.updated` (só o id da conversa, sem texto) pelo mesmo canal SSE do painel; lista e conversa aberta atualizam sozinhas.
 - **Isolamento:** tabelas `chat_channels`, `chat_messages` e `chat_reads` com `tenant_id`, RLS forçado e chaves compostas. Teste automatizado garante que um negócio não vê nem escreve no chat do outro.
 - **Fora desta fase:** anexos, reações, menções e busca no chat. Ficam para quando houver pedido real.
+
+## Premium, fase P6: Wiki do negócio (10/11/2026)
+
+- **Recurso novo `wiki`** no Premium: tela **Wiki** (grupo Equipe). Toda a equipe lê, inclusive a profissional; **só a dona e o gestor escrevem** (artigos, categorias e anexos). A nexo, numa entrada de suporte, não entra.
+- **Artigos:** título (até 120 letras), texto (até 50 mil letras), categoria opcional e "fixar no topo". Lista mostra fixados primeiro e depois os mais recentes, com quem atualizou por último. **Arquivar** tira da Wiki, mas o artigo fica no banco (`REVOKE DELETE`).
+- **Texto:** formato simples escrito pela barra do editor (título de seção, subtítulo, negrito, itálico, listas, destaque, link) com "Ver como fica". A conta fica em `@nexo/core` (`parseDoc`, testada) e a tela desenha cada bloco com elementos próprios: **HTML do texto nunca vira HTML** e link só abre http(s), mailto ou telas do painel. Para isso o painel passa a usar o `@nexo/core` (já era construído antes em todo lugar).
+- **Categorias:** criar, renomear e tirar. Tirar a categoria não apaga artigo: eles ficam sem categoria.
+- **Busca:** por título e texto (sem diferenciar maiúscula); quem tem o termo no título vem antes; mostra um trecho do texto em volta do termo.
+- **Anexos:** imagem (PNG, JPG, WEBP, GIF), PDF, texto (TXT, CSV) e Office (DOCX, XLSX, PPTX), **até 5 MB cada**. O tipo é conferido pelo conteúdo, não só pelo nome (`checkWikiFile`); SVG e HTML ficam fora porque podem levar script. Imagem abre na página e pode entrar no texto; o resto sempre baixa (`attachment`, `nosniff`). Guardados no próprio Postgres (sem serviço de arquivos novo, custo zero na Fase 1). Limite provisório de **100 MB de anexos por negócio** até o Coca definir limites por plano. Remover anexo só marca como removido (o arquivo fica no banco; política de limpeza **[A DEFINIR]**).
+- **Upload:** corpo cru (`application/octet-stream`) só na rota de anexo, com limite de tamanho no próprio leitor do corpo; as outras rotas continuam só com JSON.
+- **Isolamento:** `wiki_categories`, `wiki_articles` e `wiki_attachments` com `tenant_id`, RLS forçado e chaves compostas; teste automatizado de vazamento entre negócios (artigo, anexo, categoria e envio).
+- **Fora desta fase:** histórico de versões, comentários e editor visual (sem marcação). Ficam para quando houver pedido real.

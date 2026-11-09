@@ -16,6 +16,7 @@ describe('recursos por plano', () => {
       'contacts_plus',
       'dashboards',
       'team_chat',
+      'wiki',
     ]);
   });
 

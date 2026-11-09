@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   CalendarDays,
   ChartColumn,
   Compass,
@@ -61,6 +62,7 @@ import { BotMessages } from './screens/BotMessages';
 import { StageRules } from './screens/StageRules';
 import { Team } from './screens/Team';
 import { TeamChat } from './screens/TeamChat';
+import { Wiki } from './screens/Wiki';
 import { Today } from './screens/Today';
 
 const NAV: (SidebarItem & { feature?: Feature })[] = [
@@ -126,6 +128,14 @@ const NAV: (SidebarItem & { feature?: Feature })[] = [
     group: 'Equipe',
     hint: 'Converse com a equipe em canais ou só com uma pessoa',
   },
+  {
+    to: '/wiki',
+    label: 'Wiki',
+    Icon: BookOpen,
+    feature: 'wiki',
+    group: 'Equipe',
+    hint: 'Passo a passo, regras e combinados do negócio',
+  },
 ];
 
 /** Seções que dependem do plano (o servidor também barra). */
@@ -134,6 +144,7 @@ const SECTION_FEATURE: Record<string, { feature: Feature; name: string }> = {
   '/agenda': { feature: 'agenda', name: 'A agenda' },
   '/carteira': { feature: 'contacts_plus', name: 'A Carteira de clientes' },
   '/chat': { feature: 'team_chat', name: 'O chat da equipe' },
+  '/wiki': { feature: 'wiki', name: 'A Wiki' },
   '/paineis': { feature: 'dashboards', name: 'Os Painéis' },
   '/folgas': { feature: 'agenda', name: 'Folgas e bloqueios' },
   '/resultados': { feature: 'report', name: 'Resultados' },
@@ -287,16 +298,20 @@ function Panel({ me }: { me: Me }) {
     if (to === '/resultados' || to === '/paineis') return canArea('reports');
     return true;
   };
-  // O chat é da equipe: a nexo, numa entrada de suporte, não entra (o servidor também barra).
+  // Chat e Wiki são da equipe: a nexo, numa entrada de suporte, não entra (o servidor barra).
   const nav = (
-    staff ? NAV.filter((n) => ['/hoje', '/agenda', '/chat'].includes(n.to)) : NAV
+    staff ? NAV.filter((n) => ['/hoje', '/agenda', '/chat', '/wiki'].includes(n.to)) : NAV
   ).filter(
     (n) =>
-      (!n.feature || has(n.feature)) && allowedSection(n.to) && (n.to !== '/chat' || !me.acting),
+      (!n.feature || has(n.feature)) &&
+      allowedSection(n.to) &&
+      ((n.to !== '/chat' && n.to !== '/wiki') || !me.acting),
   );
   const rawSection = '/' + (route.split('/')[1] ?? 'hoje');
   const section =
-    staff && !['/hoje', '/agenda', '/conta', '/chat'].includes(rawSection) ? '/hoje' : rawSection;
+    staff && !['/hoje', '/agenda', '/conta', '/chat', '/wiki'].includes(rawSection)
+      ? '/hoje'
+      : rawSection;
   const contactMatch = staff ? null : /^\/clientes\/([0-9a-f-]{36})$/.exec(route);
   const conversationMatch = /^\/conversas\/([0-9a-f-]{36})$/.exec(route);
   const supportMatch = /^\/suporte\/([0-9a-f-]{36})$/.exec(route);
@@ -382,6 +397,8 @@ function Panel({ me }: { me: Me }) {
       go={go}
       canManage={me.role === 'OWNER' || me.role === 'MANAGER'}
     />
+  ) : section === '/wiki' && !me.acting ? (
+    <Wiki route={route} go={go} />
   ) : section === '/paineis' ? (
     <Dashboards />
   ) : section === '/resultados' ? (

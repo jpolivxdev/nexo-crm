@@ -146,3 +146,19 @@ export {
   type PeriodGoals,
   type PeriodRange,
 } from './crm/dashboard.js';
+export {
+  parseDoc,
+  parseInline,
+  plainText,
+  snippet,
+  type Block as WikiBlock,
+  type Span as WikiSpan,
+} from './wiki/doc.js';
+export {
+  checkWikiFile,
+  WIKI_FILE_MAX_BYTES,
+  WIKI_FILE_TYPES,
+  WIKI_TENANT_MAX_BYTES,
+  type FileCheck,
+  type WikiFileType,
+} from './wiki/files.js';
