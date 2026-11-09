@@ -1,11 +1,16 @@
 import {
   ArrowRight,
   CalendarClock,
+  ClipboardList,
   Clock3,
   Columns3,
+  Download,
+  LineChart,
   List,
+  Megaphone,
   MoreHorizontal,
   SquareKanban,
+  UserRound,
 } from 'lucide-react';
 import { PageHeader } from '../components/PageHeader';
 import { type DragEvent, useState } from 'react';
@@ -14,7 +19,26 @@ import { api, ApiError } from '../lib/api';
 import { contactName, money, phone } from '../lib/format';
 import { NewContact } from './Contacts';
 import { useLoad, useRealtime } from '../lib/hooks';
+import { isDemo } from '../lib/demo/mode';
 import type { Pipeline as PipelineData, PipelineDeal, PipelineStage } from '../lib/types';
+import {
+  CampaignsPanel,
+  CrmBar,
+  type CrmContext,
+  CrmFilters,
+  type CrmFilter,
+  CrmTotals,
+  DealPanel,
+  FieldsPanel,
+  ForecastPanel,
+  FunnelEditor,
+  matchFilter,
+  NewDeal,
+  NO_FILTER,
+  TASK_KIND_LABEL,
+  TasksView,
+  loadCrmRefs,
+} from './CrmPremium';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -51,17 +75,35 @@ export function nextLabel(iso: string, timeZone: string): string {
  * Etapas em quadro: uma coluna por etapa, todas na mesma linha. "Não seguiu" fica no fim, como
  * saída do funil. Mover por toque (Avançar ou Mover) e, no computador, também arrastando.
  */
-export function Pipeline({ go }: { go: (to: string) => void }) {
+export function Pipeline({ go, crm }: { go: (to: string) => void; crm?: CrmContext }) {
+  // Premium: vários funis; o escolhido fica lembrado neste aparelho.
+  const [pipelineId, setPipelineId] = useState<string | null>(() => (crm ? readPipeline() : null));
   const { data, error, loading, reload } = useLoad(
-    () => api<PipelineData>('/panel/pipeline'),
-    'pipeline',
+    () => api<PipelineData>('/panel/pipeline', pipelineId ? { query: { pipelineId } } : undefined),
+    `pipeline-${pipelineId ?? 'padrao'}`,
   );
+  const refs = useLoad(async () => (crm ? loadCrmRefs() : null), crm ? 'crm-refs' : 'crm-refs-off');
   const [actionError, setActionError] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [view, setView] = useState<'quadro' | 'lista'>(readView);
   const [q, setQ] = useState('');
   const [adding, setAdding] = useState(false);
-  useRealtime(() => void reload());
+  const [mode, setMode] = useState<'funil' | 'tarefas'>('funil');
+  const [filter, setFilter] = useState<CrmFilter>(NO_FILTER);
+  const [panel, setPanel] = useState<
+    'novo' | 'previsao' | 'funil-novo' | 'funil' | 'campanhas' | 'campos' | null
+  >(null);
+  const [openDealId, setOpenDealId] = useState<string | null>(null);
+  useRealtime(() => {
+    void reload();
+    if (crm) void refs.reload();
+  });
+
+  function pickPipeline(id: string | null) {
+    setPipelineId(id);
+    savePipeline(id);
+    setFilter(NO_FILTER);
+  }
 
   function pickView(v: 'quadro' | 'lista') {
     setView(v);
@@ -79,16 +121,31 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
   }
 
   if (loading && !data) return <Loading />;
-  if (error && !data) return <Banner>{error}</Banner>;
+  if (error && !data) {
+    // Funil lembrado que não existe mais: oferece voltar para o principal.
+    return (
+      <>
+        <Banner>{error}</Banner>
+        {pipelineId && (
+          <button type="button" className="button" onClick={() => pickPipeline(null)}>
+            Ver o funil principal
+          </button>
+        )}
+      </>
+    );
+  }
   if (!data) return null;
+  const crmRefsData = crm ? refs.data : null;
 
   // Busca por nome ou telefone: filtra os cartões, as colunas continuam todas.
   const term = q.trim().toLowerCase();
   const digits = term.replace(/\D/g, '');
   const match = (d: PipelineDeal) =>
-    !term ||
-    (d.contact.name ?? '').toLowerCase().includes(term) ||
-    (digits.length > 0 && d.contact.phone.includes(digits));
+    (!crm || matchFilter(d, filter, crm.userId)) &&
+    (!term ||
+      (d.contact.name ?? '').toLowerCase().includes(term) ||
+      (d.title ?? '').toLowerCase().includes(term) ||
+      (digits.length > 0 && d.contact.phone.includes(digits)));
   const stagesShown = data.stages.map((s) => ({ ...s, deals: s.deals.filter(match) }));
   const funnel = stagesShown.filter((s) => s.kind !== 'LOST');
   const exits = stagesShown.filter((s) => s.kind === 'LOST');
@@ -149,7 +206,8 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
               next={nextOf(stage)}
               stages={data.stages}
               timeZone={data.timeZone}
-              onOpen={() => go(`/clientes/${deal.contact.id}`)}
+              premium={Boolean(crm)}
+              onOpen={() => (crm ? setOpenDealId(deal.id) : go(`/clientes/${deal.contact.id}`))}
               onMove={(stageId) => void move(deal.id, stageId)}
             />
           ))}
@@ -158,26 +216,156 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
     </section>
   );
 
+  const allDeals = data.stages.flatMap((s) => s.deals);
+  const openDeal = openDealId ? allDeals.find((d) => d.id === openDealId) : undefined;
+  const tags = [...new Set(allDeals.flatMap((d) => d.contact.tags ?? []))].sort();
+  const currentPipeline = crmRefsData?.pipelines.find((p) => p.id === data.id) ?? null;
+  const reloadAll = () => {
+    void reload();
+    void refs.reload();
+  };
+
+  if (crm && mode === 'tarefas') {
+    return (
+      <>
+        <PageHeader
+          Icon={SquareKanban}
+          title="Etapas"
+          subtitle="Ligar, retornar, marcar reunião: o que cada pessoa da equipe tem para fazer."
+          actions={<ModeSwitch mode={mode} onMode={setMode} />}
+        />
+        <TasksView ctx={crm} people={crmRefsData?.people ?? []} timeZone={data.timeZone} go={go} />
+      </>
+    );
+  }
+
   return (
     <>
       <PageHeader
         Icon={SquareKanban}
         title="Etapas"
-        subtitle="Cada cliente, do primeiro contato até voltar. O robô move sozinho; você pode mudar a qualquer momento."
+        subtitle={
+          crm
+            ? 'Cada atendimento, do primeiro contato até fechar. Funis, campanhas e tarefas da equipe num lugar só.'
+            : 'Cada cliente, do primeiro contato até voltar. O robô move sozinho; você pode mudar a qualquer momento.'
+        }
         actions={
-          <>
-            <button type="button" className="button button--ghost" onClick={() => go('/regras')}>
-              Regras automáticas
-            </button>
-            {!adding && (
-              <button type="button" className="button" onClick={() => setAdding(true)}>
-                Nova cliente
+          crm ? (
+            <>
+              <ModeSwitch mode={mode} onMode={setMode} />
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={() => setPanel('previsao')}
+              >
+                <LineChart aria-hidden="true" size={16} /> Previsão
               </button>
-            )}
-          </>
+              {crm.canExport && !isDemo() && (
+                <a
+                  className="button button--ghost"
+                  href={`/api/panel/crm/export.csv?pipelineId=${data.id}`}
+                  download
+                >
+                  <Download aria-hidden="true" size={16} /> Exportar
+                </a>
+              )}
+              {data.isDefault && crm.canSettings && (
+                <button
+                  type="button"
+                  className="button button--ghost"
+                  onClick={() => go('/regras')}
+                >
+                  Regras automáticas
+                </button>
+              )}
+              <button
+                type="button"
+                className="button"
+                disabled={!crmRefsData}
+                onClick={() => setPanel('novo')}
+              >
+                Novo atendimento
+              </button>
+            </>
+          ) : (
+            <>
+              <button type="button" className="button button--ghost" onClick={() => go('/regras')}>
+                Regras automáticas
+              </button>
+              {!adding && (
+                <button type="button" className="button" onClick={() => setAdding(true)}>
+                  Nova cliente
+                </button>
+              )}
+            </>
+          )
         }
       />
       {actionError && <Banner>{actionError}</Banner>}
+      {crm && refs.error && !crmRefsData && <Banner>{refs.error}</Banner>}
+      {crm && crmRefsData && (
+        <>
+          <CrmBar
+            refs={crmRefsData}
+            pipelineId={data.id}
+            onPick={(id) => pickPipeline(id)}
+            ctx={crm}
+            onPanel={setPanel}
+          />
+          {data.forecast && <CrmTotals forecast={data.forecast} />}
+        </>
+      )}
+      {crm && crmRefsData && panel === 'novo' && (
+        <NewDeal
+          refs={crmRefsData}
+          pipelineId={data.id}
+          userId={crm.userId}
+          onClose={() => setPanel(null)}
+          onDone={() => {
+            setPanel(null);
+            reloadAll();
+          }}
+        />
+      )}
+      {crm && panel === 'previsao' && data.forecast && (
+        <ForecastPanel forecast={data.forecast} onClose={() => setPanel(null)} />
+      )}
+      {crm && crmRefsData && (panel === 'funil' || panel === 'funil-novo') && (
+        <FunnelEditor
+          pipeline={panel === 'funil' ? currentPipeline : null}
+          onClose={() => setPanel(null)}
+          onSaved={(id) => {
+            setPanel(null);
+            if (id !== data.id) pickPipeline(id);
+            reloadAll();
+          }}
+        />
+      )}
+      {crm && crmRefsData && panel === 'campanhas' && (
+        <CampaignsPanel
+          refs={crmRefsData}
+          canSettings={crm.canSettings}
+          onClose={() => setPanel(null)}
+          onChanged={reloadAll}
+        />
+      )}
+      {crm && crmRefsData && panel === 'campos' && (
+        <FieldsPanel
+          fields={crmRefsData.fields}
+          onClose={() => setPanel(null)}
+          onChanged={reloadAll}
+        />
+      )}
+      {crm && crmRefsData && openDeal && (
+        <DealPanel
+          key={openDeal.id}
+          deal={openDeal}
+          refs={crmRefsData}
+          onClose={() => setOpenDealId(null)}
+          onSaved={reloadAll}
+          go={go}
+        />
+      )}
       {adding && (
         <NewContact
           onCancel={() => setAdding(false)}
@@ -198,14 +386,27 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
             onChange={(e) => setQ(e.target.value)}
           />
         </label>
-        <p className="board-tools__total">
-          <span className="muted small">Em andamento</span>
-          <strong>{funnel.reduce((n, s) => n + s.deals.length, 0)} clientes</strong>
-        </p>
-        <p className="board-tools__total" title="Soma do preço dos próximos horários marcados">
-          <span className="muted small">Previsto nos próximos horários</span>
-          <strong>{money(openValue)}</strong>
-        </p>
+        {crm && crmRefsData && (
+          <CrmFilters
+            filter={filter}
+            onChange={setFilter}
+            tags={tags}
+            campaigns={crmRefsData.campaigns}
+            canMine={Boolean(crm.userId)}
+          />
+        )}
+        {!crm && (
+          <>
+            <p className="board-tools__total">
+              <span className="muted small">Em andamento</span>
+              <strong>{funnel.reduce((n, s) => n + s.deals.length, 0)} clientes</strong>
+            </p>
+            <p className="board-tools__total" title="Soma do preço dos próximos horários marcados">
+              <span className="muted small">Previsto nos próximos horários</span>
+              <strong>{money(openValue)}</strong>
+            </p>
+          </>
+        )}
         <div className="segmented segmented--icons" role="group" aria-label="Como ver">
           <button
             type="button"
@@ -231,8 +432,9 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
           rows={all}
           stages={data.stages}
           timeZone={data.timeZone}
-          searching={Boolean(term)}
+          searching={Boolean(term) || (crm ? filter !== NO_FILTER : false)}
           go={go}
+          onOpen={crm ? (deal) => setOpenDealId(deal.id) : undefined}
           onMove={(dealId, stageId) => void move(dealId, stageId)}
         />
       ) : (
@@ -259,6 +461,54 @@ export function Pipeline({ go }: { go: (to: string) => void }) {
       )}
     </>
   );
+}
+
+function ModeSwitch({
+  mode,
+  onMode,
+}: {
+  mode: 'funil' | 'tarefas';
+  onMode: (m: 'funil' | 'tarefas') => void;
+}) {
+  return (
+    <div className="segmented segmented--icons" role="group" aria-label="O que ver">
+      <button
+        type="button"
+        aria-pressed={mode === 'funil'}
+        className={mode === 'funil' ? 'on' : ''}
+        onClick={() => onMode('funil')}
+      >
+        <SquareKanban aria-hidden="true" size={16} /> Funil
+      </button>
+      <button
+        type="button"
+        aria-pressed={mode === 'tarefas'}
+        className={mode === 'tarefas' ? 'on' : ''}
+        onClick={() => onMode('tarefas')}
+      >
+        <ClipboardList aria-hidden="true" size={16} /> Minhas tarefas
+      </button>
+    </div>
+  );
+}
+
+const PIPELINE_KEY = 'nexo-crm-funil';
+
+function readPipeline(): string | null {
+  try {
+    return window.localStorage.getItem(PIPELINE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function savePipeline(id: string | null) {
+  try {
+    if (id) window.localStorage.setItem(PIPELINE_KEY, id);
+    else window.localStorage.removeItem(PIPELINE_KEY);
+  } catch {
+    // sem armazenamento: vale até fechar a página
+  }
 }
 
 const VIEW_KEY = 'nexo-etapas-visao';
@@ -292,6 +542,7 @@ function DealList({
   timeZone,
   searching,
   go,
+  onOpen,
   onMove,
 }: {
   rows: { deal: PipelineDeal; stage: PipelineStage }[];
@@ -299,13 +550,15 @@ function DealList({
   timeZone: string;
   searching: boolean;
   go: (to: string) => void;
+  /** Premium: abre o atendimento (valor, responsável, campos) em vez da ficha. */
+  onOpen?: (deal: PipelineDeal) => void;
   onMove: (dealId: string, stageId: string) => void;
 }) {
   if (rows.length === 0) {
     return (
       <p className="card muted">
         {searching
-          ? 'Ninguém com esse nome ou telefone no quadro.'
+          ? 'Ninguém com esse nome, telefone ou filtro no quadro.'
           : 'Quem escrever pelo WhatsApp ou for cadastrada aqui aparece nesta lista.'}
       </p>
     );
@@ -320,11 +573,14 @@ function DealList({
               <button
                 type="button"
                 className="link"
-                onClick={() => go(`/clientes/${deal.contact.id}`)}
+                onClick={() => (onOpen ? onOpen(deal) : go(`/clientes/${deal.contact.id}`))}
               >
-                {name}
+                {deal.title ? `${deal.title} · ${name}` : name}
               </button>
-              <span className="muted small">{phone(deal.contact.phone)}</span>
+              <span className="muted small">
+                {phone(deal.contact.phone)}
+                {deal.owner ? ` · ${deal.owner.name}` : ''}
+              </span>
             </div>
             <div className="deal-list__info muted small">
               <span>{sinceLabel(deal.since)}</span>
@@ -359,6 +615,7 @@ function DealCard({
   next,
   stages,
   timeZone,
+  premium = false,
   onOpen,
   onMove,
 }: {
@@ -367,6 +624,7 @@ function DealCard({
   next: PipelineStage | null;
   stages: PipelineStage[];
   timeZone: string;
+  premium?: boolean;
   onOpen: () => void;
   onMove: (stageId: string) => void;
 }) {
@@ -384,8 +642,9 @@ function DealCard({
       }}
     >
       <button type="button" className="deal__name" onClick={onOpen}>
-        {name}
+        {premium && deal.title ? deal.title : name}
       </button>
+      {premium && deal.title && <p className="deal__sub">{name}</p>}
       <p className="deal__meta">
         <span>
           <Clock3 aria-hidden="true" size={14} /> {sinceLabel(deal.since)}
@@ -402,7 +661,27 @@ function DealCard({
             {money(deal.valueCents)}
           </span>
         )}
+        {premium && deal.nextTask && (
+          <span>
+            <ClipboardList aria-hidden="true" size={14} />{' '}
+            {TASK_KIND_LABEL[deal.nextTask.kind] ?? 'A fazer'}: {deal.nextTask.title}
+          </span>
+        )}
       </p>
+      {premium && (deal.owner || deal.campaign) && (
+        <p className="deal__tags">
+          {deal.owner && (
+            <span className="deal__owner" title={`Responsável: ${deal.owner.name}`}>
+              <UserRound aria-hidden="true" size={13} /> {deal.owner.name}
+            </span>
+          )}
+          {deal.campaign && (
+            <span className="deal__campaign">
+              <Megaphone aria-hidden="true" size={13} /> {deal.campaign.name}
+            </span>
+          )}
+        </p>
+      )}
       <div className="deal__actions">
         {next && stage.kind !== 'LOST' && (
           <button

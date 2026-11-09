@@ -54,7 +54,7 @@ export class PrivacyService {
             },
           },
           deals: {
-            where: { closedAt: null },
+            where: { closedAt: null, pipeline: { isDefault: true } },
             take: 1,
             orderBy: { createdAt: 'desc' },
             select: { stage: { select: { name: true } } },

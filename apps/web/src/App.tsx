@@ -323,7 +323,19 @@ function Panel({ me }: { me: Me }) {
   ) : section === '/clientes' ? (
     <Contacts go={go} />
   ) : section === '/etapas' ? (
-    <Pipeline go={go} />
+    <Pipeline
+      go={go}
+      crm={
+        me.features?.includes('crm_plus')
+          ? {
+              userId: me.userId ?? null,
+              owner,
+              canSettings: canArea('settings'),
+              canExport: canArea('privacy'),
+            }
+          : undefined
+      }
+    />
   ) : section === '/resultados' ? (
     <Report />
   ) : (

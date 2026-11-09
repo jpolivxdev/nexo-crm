@@ -6,7 +6,14 @@ describe('recursos por plano', () => {
     expect(featuresOf('FREE')).toEqual([]);
     expect(featuresOf('CRM')).toEqual(['report']);
     expect(featuresOf('COMPLETE')).toEqual(['report', 'agenda', 'bot', 'reminders']);
-    expect(featuresOf('PREMIUM')).toEqual(['report', 'agenda', 'bot', 'reminders', 'team_roles']);
+    expect(featuresOf('PREMIUM')).toEqual([
+      'report',
+      'agenda',
+      'bot',
+      'reminders',
+      'team_roles',
+      'crm_plus',
+    ]);
   });
 
   it('recurso liberado à parte soma ao plano; nome desconhecido é ignorado', () => {

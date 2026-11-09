@@ -36,6 +36,7 @@ import {
   eraseContactBody,
   goalsBody,
   moveDealBody,
+  pipelineQuery,
   replyBody,
   reportQuery,
   rescheduleBody,
@@ -219,8 +220,9 @@ export class PanelController {
   }
 
   @Get('pipeline')
-  pipeline(@Req() req: AuthedRequest) {
-    return this.panel.pipeline(this.tenant(req));
+  pipeline(@Req() req: AuthedRequest, @Query() query: unknown) {
+    const { pipelineId } = parse(pipelineQuery, query);
+    return this.panel.pipeline(this.tenant(req), new Date(), pipelineId);
   }
 
   @Get('pipeline/rules')

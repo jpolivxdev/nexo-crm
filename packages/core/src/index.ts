@@ -104,3 +104,13 @@ export {
   type AccessRules,
   type TeamRole,
 } from './plans/access.js';
+export { forecast, type Forecast, type ForecastBucket, type ForecastDeal } from './crm/forecast.js';
+export {
+  checkFieldValues,
+  CUSTOM_FIELD_TYPES,
+  FIELD_TEXT_MAX,
+  type CustomFieldDef,
+  type CustomFieldType,
+  type FieldValue,
+} from './crm/custom-fields.js';
+export { csvCell, toCsv } from './crm/csv.js';

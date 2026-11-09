@@ -129,6 +129,8 @@ export class AuthController {
         )
       : null;
     return {
+      // Para a tela saber o que é "meu" (Meus atendimentos, Minhas tarefas).
+      userId: auth.acting ? null : auth.userId,
       name: auth.name,
       role: auth.role,
       csrfToken: auth.csrfToken,

@@ -202,9 +202,15 @@ export class TeamService {
     if (!professional) throw new NotFoundException('Profissional não encontrada.');
     if (!professional.userId) return { ok: true };
     const userId = professional.userId;
-    await this.db.withTenant(tenantId, (tx) =>
-      tx.professional.update({ where: { id }, data: { userId: null } }),
-    );
+    await this.db.withTenant(tenantId, async (tx) => {
+      await tx.professional.update({ where: { id }, data: { userId: null } });
+      // Atendimentos e tarefas de quem saiu ficam sem responsável (voltam para a dona distribuir).
+      await tx.deal.updateMany({ where: { ownerUserId: userId }, data: { ownerUserId: null } });
+      await tx.task.updateMany({
+        where: { assigneeUserId: userId },
+        data: { assigneeUserId: null },
+      });
+    });
     await this.db.client.user.deleteMany({
       where: { id: userId, tenantId, role: { in: [...TEAM_ROLES] } },
     });

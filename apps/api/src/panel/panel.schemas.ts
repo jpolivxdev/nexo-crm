@@ -60,6 +60,8 @@ export const eraseContactBody = z.object({
 
 export const moveDealBody = z.object({ stageId: z.uuid() });
 
+export const pipelineQuery = z.object({ pipelineId: z.uuid().optional() });
+
 export const replyBody = z.object({ text: z.string().trim().min(1).max(4096) });
 
 export const stageRulesBody = z.object({ rules: stageRulesSchema });

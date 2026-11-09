@@ -10,6 +10,7 @@ import { ConversationModule } from './conversation/conversation.module.js';
 import { DatabaseModule } from './database/database.module.js';
 import { HealthController } from './health/health.controller.js';
 import { loggerParams } from './logger.js';
+import { CrmModule } from './crm/crm.module.js';
 import { PanelModule } from './panel/panel.module.js';
 import { QueueModule } from './queue/queue.module.js';
 import { RealtimeModule } from './realtime/realtime.module.js';
@@ -33,6 +34,7 @@ export class AppModule {
         ChannelModule,
         ConversationModule,
         PanelModule,
+        CrmModule,
         SetupModule,
         AdminModule,
         SupportModule,
