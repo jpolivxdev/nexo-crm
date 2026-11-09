@@ -1,4 +1,5 @@
-import { featuresOf } from '@nexo/core';
+import { accessRulesOf, areasFor, featuresOf } from '@nexo/core';
+import { verifyTotp } from './totp.js';
 import {
   BadRequestException,
   Body,
@@ -50,6 +51,15 @@ const passwordSchema = z.object({
   currentPassword: z.string().min(1).max(256),
   newPassword: z.string().max(256),
 });
+
+const twoFactorEnable = z.object({
+  secret: z.string().regex(/^[A-Z2-7]{16,64}$/),
+  code: z.string().regex(/^\d{6}$/),
+});
+const twoFactorCode = z.object({ code: z.string().regex(/^\d{6}$/) });
+const TWO_FACTOR_OFF =
+  'A verificação em duas etapas ainda não está ligada neste servidor. Fale com a nexo.';
+const WRONG_CODE = 'Código não confere. Confira o horário do celular e tente de novo.';
 
 const emailSchema = z.object({ email: z.email().max(254) });
 
@@ -107,7 +117,14 @@ export class AuthController {
       ? await this.db.withTenant(auth.tenantId, (tx) =>
           tx.tenant.findUnique({
             where: { id: auth.tenantId! },
-            select: { name: true, onboardingCompletedAt: true, plan: true, features: true },
+            select: {
+              name: true,
+              onboardingCompletedAt: true,
+              plan: true,
+              features: true,
+              accessRules: true,
+              requireMfa: true,
+            },
           }),
         )
       : null;
@@ -121,6 +138,16 @@ export class AuthController {
       // Só para a tela esconder o que o plano não tem; quem trava de verdade é o PlanGuard.
       plan: tenant?.plan ?? null,
       features: tenant ? featuresOf(tenant.plan, tenant.features) : [],
+      // Áreas que o papel acessa (Acessos por papel). Admin numa entrada controlada vê tudo.
+      access: tenant
+        ? areasFor(auth.acting ? 'OWNER' : auth.role, accessRulesOf(tenant.accessRules))
+        : [],
+      twoFactor: auth.twoFactor,
+      mfaSetupRequired:
+        !!tenant?.requireMfa &&
+        !auth.acting &&
+        (auth.role === 'OWNER' || auth.role === 'MANAGER') &&
+        !auth.twoFactor,
       acting: auth.acting ? { until: auth.acting.until } : null,
     };
   }
@@ -262,6 +289,60 @@ export class AuthController {
   revokeOthers(@Req() req: AuthedRequest) {
     this.ownAccount(req);
     return this.auth.revokeOtherSessions(req.auth!, { ip: req.ip ?? null });
+  }
+
+  /** Verificação em duas etapas: gera o segredo para cadastrar no app autenticador. */
+  @Post('2fa/start')
+  @HttpCode(200)
+  @UseGuards(SessionGuard)
+  startTwoFactor(@Req() req: AuthedRequest) {
+    this.ownAccount(req);
+    if (req.auth!.role === 'NEXO_ADMIN' || req.auth!.twoFactor) {
+      throw new BadRequestException('A verificação em duas etapas já está ligada.');
+    }
+    if (!this.auth.twoFactorAvailable) throw new ServiceUnavailableException(TWO_FACTOR_OFF);
+    return this.auth.startTwoFactor(req.auth!);
+  }
+
+  @Post('2fa/enable')
+  @HttpCode(200)
+  @UseGuards(SessionGuard)
+  async enableTwoFactor(@Body() body: unknown, @Req() req: AuthedRequest) {
+    this.ownAccount(req);
+    if (req.auth!.role === 'NEXO_ADMIN') throw new ForbiddenException();
+    if (!this.auth.twoFactorAvailable) throw new ServiceUnavailableException(TWO_FACTOR_OFF);
+    const parsed = twoFactorEnable.safeParse(body);
+    if (!parsed.success || !verifyTotp(parsed.data.secret, parsed.data.code)) {
+      throw new BadRequestException(WRONG_CODE);
+    }
+    const ok = await this.auth.enableTwoFactor(req.auth!, parsed.data, { ip: req.ip ?? null });
+    if (!ok) throw new BadRequestException(WRONG_CODE);
+    return this.publicUser({ ...req.auth!, twoFactor: true });
+  }
+
+  @Post('2fa/disable')
+  @HttpCode(200)
+  @UseGuards(SessionGuard)
+  async disableTwoFactor(@Body() body: unknown, @Req() req: AuthedRequest) {
+    this.ownAccount(req);
+    const auth = req.auth!;
+    if (auth.role === 'NEXO_ADMIN') throw new ForbiddenException();
+    const parsed = twoFactorCode.safeParse(body);
+    if (!parsed.success) throw new BadRequestException(WRONG_CODE);
+    if ((auth.role === 'OWNER' || auth.role === 'MANAGER') && auth.tenantId) {
+      const tenantId = auth.tenantId;
+      const tenant = await this.db.withTenant(tenantId, (tx) =>
+        tx.tenant.findUnique({ where: { id: tenantId }, select: { requireMfa: true } }),
+      );
+      if (tenant?.requireMfa) {
+        throw new BadRequestException(
+          'O negócio exige a verificação em duas etapas para dono e gestores.',
+        );
+      }
+    }
+    const ok = await this.auth.disableTwoFactor(auth, parsed.data.code, { ip: req.ip ?? null });
+    if (!ok) throw new BadRequestException(WRONG_CODE);
+    return this.publicUser({ ...auth, twoFactor: false });
   }
 
   /** O admin nexo, numa entrada controlada, não mexe na conta da dona nem na própria por aqui. */

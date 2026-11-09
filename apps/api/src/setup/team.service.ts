@@ -2,10 +2,12 @@ import { randomBytes } from 'node:crypto';
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { hasFeature, TEAM_ROLES, type TeamRole } from '@nexo/core';
 import type { z } from 'zod';
 import { AuditService } from '../auth/audit.service.js';
 import { hashPassword } from '../auth/password.js';
@@ -67,7 +69,7 @@ export class TeamService {
     const users = userIds.length
       ? await this.db.client.user.findMany({
           where: { id: { in: userIds }, tenantId },
-          select: { id: true, email: true },
+          select: { id: true, email: true, role: true },
         })
       : [];
     const ownerId = data.professionals.find((p) => p.active)?.id ?? null;
@@ -79,6 +81,7 @@ export class TeamService {
         serviceIds: services.map((s) => s.serviceId),
         windows: availability,
         login: users.find((u) => u.id === userId)?.email ?? null,
+        role: users.find((u) => u.id === userId)?.role ?? null,
       })),
     };
   }
@@ -154,8 +157,10 @@ export class TeamService {
     id: string,
     rawEmail: string,
     actor: { userId: string; ip: string | null },
+    role: TeamRole = 'STAFF',
   ) {
     const email = rawEmail.trim().toLowerCase();
+    await this.checkRole(tenantId, role);
     const professional = await this.db.withTenant(tenantId, (tx) =>
       tx.professional.findUnique({ where: { id }, select: { id: true, name: true, userId: true } }),
     );
@@ -169,7 +174,7 @@ export class TeamService {
       data: {
         email,
         name: professional.name,
-        role: 'STAFF',
+        role,
         tenantId,
         passwordHash: await hashPassword(temporaryPassword),
         mustChangePassword: true,
@@ -184,7 +189,7 @@ export class TeamService {
       actorUserId: actor.userId,
       action: 'team.login_created',
       ip: actor.ip,
-      metadata: { professionalId: id, userId: user.id },
+      metadata: { professionalId: id, userId: user.id, role },
     });
     return { email, temporaryPassword };
   }
@@ -200,7 +205,9 @@ export class TeamService {
     await this.db.withTenant(tenantId, (tx) =>
       tx.professional.update({ where: { id }, data: { userId: null } }),
     );
-    await this.db.client.user.deleteMany({ where: { id: userId, tenantId, role: 'STAFF' } });
+    await this.db.client.user.deleteMany({
+      where: { id: userId, tenantId, role: { in: [...TEAM_ROLES] } },
+    });
     await this.audit.record({
       tenantId,
       actorUserId: actor.userId,
@@ -209,6 +216,44 @@ export class TeamService {
       metadata: { professionalId: id, userId },
     });
     return { ok: true };
+  }
+
+  /** Troca o papel de um acesso da equipe (profissional, consultor ou gestor). */
+  async setLoginRole(
+    tenantId: string,
+    id: string,
+    role: TeamRole,
+    actor: { userId: string; ip: string | null },
+  ) {
+    await this.checkRole(tenantId, role);
+    const professional = await this.db.withTenant(tenantId, (tx) =>
+      tx.professional.findUnique({ where: { id }, select: { userId: true } }),
+    );
+    if (!professional?.userId) throw new NotFoundException('Ela ainda não tem acesso.');
+    const { count } = await this.db.client.user.updateMany({
+      where: { id: professional.userId, tenantId, role: { in: [...TEAM_ROLES] } },
+      data: { role },
+    });
+    if (count === 0) throw new NotFoundException('Ela ainda não tem acesso.');
+    await this.audit.record({
+      tenantId,
+      actorUserId: actor.userId,
+      action: 'team.role_changed',
+      ip: actor.ip,
+      metadata: { professionalId: id, userId: professional.userId, role },
+    });
+    return this.list(tenantId);
+  }
+
+  /** Gestor e consultor só no Premium; profissional em qualquer plano. */
+  private async checkRole(tenantId: string, role: TeamRole) {
+    if (role === 'STAFF') return;
+    const tenant = await this.db.withTenant(tenantId, (tx) =>
+      tx.tenant.findUnique({ where: { id: tenantId }, select: { plan: true, features: true } }),
+    );
+    if (!tenant || !hasFeature(tenant.plan, tenant.features, 'team_roles')) {
+      throw new ForbiddenException('Gestor e consultor fazem parte do plano Premium.');
+    }
   }
 
   /** Agenda da dona: a profissional ativa mais antiga (a mesma que o assistente edita). */

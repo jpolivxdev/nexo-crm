@@ -25,14 +25,22 @@ import { useRoute } from './lib/hooks';
 import { DEMO_TOUR, markTourSeen, tourFor, tourSeen } from './lib/tours';
 import { enterDemo, isDemo, leaveDemo, takeDemoTour } from './lib/demo/mode';
 import { DemoBanner } from './components/DemoBanner';
+import type { AccessArea } from './lib/roles';
 import type { Feature, Me } from './lib/types';
+import { AccessByRole } from './screens/AccessByRole';
 import { Admin } from './screens/Admin';
 import { AdminSupport } from './screens/AdminSupport';
 import { Support } from './screens/Support';
 import { Alerts } from './screens/Alerts';
 import { Agenda } from './screens/Agenda';
 import { ChangePassword } from './screens/ChangePassword';
-import { Settings, SETTINGS, SETTINGS_ROUTES, SettingsLayout } from './screens/Settings';
+import {
+  Settings,
+  SETTINGS,
+  SETTINGS_ROUTES,
+  SettingsLayout,
+  TwoFactorCard,
+} from './screens/Settings';
 import { ContactFile } from './screens/ContactFile';
 import { Contacts } from './screens/Contacts';
 import { Conversations } from './screens/Conversations';
@@ -40,7 +48,7 @@ import { ConfirmEmail, ForgotPassword, ResetPassword, Signup } from './screens/A
 import { Landing } from './screens/Landing';
 import { Login } from './screens/Login';
 import { Pipeline } from './screens/Pipeline';
-import { NotInPlan, Plans } from './screens/Plans';
+import { NoAccess, NotInPlan, Plans } from './screens/Plans';
 import { Report } from './screens/Report';
 import { Setup } from './screens/Setup';
 import { TimeOff } from './screens/TimeOff';
@@ -92,6 +100,7 @@ const NAV: (SidebarItem & { feature?: Feature })[] = [
 
 /** Seções que dependem do plano (o servidor também barra). */
 const SECTION_FEATURE: Record<string, { feature: Feature; name: string }> = {
+  '/acessos': { feature: 'team_roles', name: 'Acessos por papel' },
   '/agenda': { feature: 'agenda', name: 'A agenda' },
   '/folgas': { feature: 'agenda', name: 'Folgas e bloqueios' },
   '/resultados': { feature: 'report', name: 'Resultados' },
@@ -151,6 +160,19 @@ function Shell() {
       <div className="app app--auth">
         <div className="auth-card">
           <ChangePassword forced />
+        </div>
+        <MadeByNexo />
+      </div>
+    );
+  }
+  if (me.mfaSetupRequired) {
+    return (
+      <div className="app app--auth">
+        <div className="auth-card">
+          <TwoFactorCard enabled={false} forced />
+          <button type="button" className="link" onClick={() => void logout()}>
+            Sair
+          </button>
         </div>
         <MadeByNexo />
       </div>
@@ -222,8 +244,18 @@ function Panel({ me }: { me: Me }) {
   const staff = me.role === 'STAFF';
   // Sem a lista (versão antiga da API), mostra tudo e deixa o servidor decidir.
   const has = (f: Feature) => !me.features || me.features.includes(f);
+  // Dono (ou a nexo numa entrada controlada) vê tudo; gestor e consultor seguem os Acessos.
+  const owner = me.role === 'OWNER' || Boolean(me.acting);
+  const canArea = (area: AccessArea) => owner || !me.access || me.access.includes(area);
+  const allowedSection = (to: string) => {
+    const item = SETTINGS.find((i) => i.to === to);
+    if (item?.needs === 'owner') return owner;
+    if (item?.needs === 'settings' || to === '/regras') return canArea('settings');
+    if (to === '/resultados') return canArea('reports');
+    return true;
+  };
   const nav = (staff ? NAV.filter((n) => n.to === '/hoje' || n.to === '/agenda') : NAV).filter(
-    (n) => !n.feature || has(n.feature),
+    (n) => (!n.feature || has(n.feature)) && allowedSection(n.to),
   );
   const rawSection = '/' + (route.split('/')[1] ?? 'hoje');
   const section =
@@ -254,45 +286,49 @@ function Panel({ me }: { me: Me }) {
   const settingsItems = SETTINGS.filter(
     (i) =>
       (!staff || i.to === '/conta') &&
+      allowedSection(i.to) &&
       (!SECTION_FEATURE[i.to] || has(SECTION_FEATURE[i.to]!.feature)),
   );
   const inSettings = SETTINGS_ROUTES.has(section) && !staff;
-  const content =
-    SECTION_FEATURE[section] && !has(SECTION_FEATURE[section].feature) ? (
-      <NotInPlan go={go} name={SECTION_FEATURE[section].name} />
-    ) : contactMatch ? (
-      <ContactFile id={contactMatch[1]!} go={go} />
-    ) : section === '/avisos' ? (
-      <Alerts go={go} />
-    ) : section === '/equipe' ? (
-      <Team go={go} />
-    ) : section === '/regras' ? (
-      <StageRules go={go} />
-    ) : section === '/mensagens' ? (
-      <BotMessages go={go} />
-    ) : section === '/folgas' ? (
-      <TimeOff go={go} />
-    ) : section === '/configurar' ? (
-      <Setup go={go} />
-    ) : section === '/assinatura' ? (
-      <Plans go={go} />
-    ) : section === '/conta' ? (
-      <Settings acting={Boolean(me.acting)} items={settingsItems} />
-    ) : section === '/agenda' ? (
-      <Agenda go={go} staff={staff} />
-    ) : section === '/suporte' && !staff ? (
-      <Support id={supportMatch?.[1] ?? null} go={go} />
-    ) : section === '/conversas' ? (
-      <Conversations id={conversationMatch?.[1] ?? null} go={go} />
-    ) : section === '/clientes' ? (
-      <Contacts go={go} />
-    ) : section === '/etapas' ? (
-      <Pipeline go={go} />
-    ) : section === '/resultados' ? (
-      <Report />
-    ) : (
-      <Today go={go} staff={staff} />
-    );
+  const content = !allowedSection(section) ? (
+    <NoAccess go={go} />
+  ) : SECTION_FEATURE[section] && !has(SECTION_FEATURE[section].feature) ? (
+    <NotInPlan go={go} name={SECTION_FEATURE[section].name} />
+  ) : contactMatch ? (
+    <ContactFile id={contactMatch[1]!} go={go} />
+  ) : section === '/avisos' ? (
+    <Alerts go={go} />
+  ) : section === '/equipe' ? (
+    <Team go={go} />
+  ) : section === '/acessos' ? (
+    <AccessByRole go={go} />
+  ) : section === '/regras' ? (
+    <StageRules go={go} />
+  ) : section === '/mensagens' ? (
+    <BotMessages go={go} />
+  ) : section === '/folgas' ? (
+    <TimeOff go={go} />
+  ) : section === '/configurar' ? (
+    <Setup go={go} />
+  ) : section === '/assinatura' ? (
+    <Plans go={go} />
+  ) : section === '/conta' ? (
+    <Settings acting={Boolean(me.acting)} items={settingsItems} />
+  ) : section === '/agenda' ? (
+    <Agenda go={go} staff={staff} />
+  ) : section === '/suporte' && !staff ? (
+    <Support id={supportMatch?.[1] ?? null} go={go} />
+  ) : section === '/conversas' ? (
+    <Conversations id={conversationMatch?.[1] ?? null} go={go} />
+  ) : section === '/clientes' ? (
+    <Contacts go={go} />
+  ) : section === '/etapas' ? (
+    <Pipeline go={go} />
+  ) : section === '/resultados' ? (
+    <Report />
+  ) : (
+    <Today go={go} staff={staff} />
+  );
 
   return (
     <div className="app app--with-nav">

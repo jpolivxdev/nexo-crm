@@ -5,9 +5,9 @@ import { PrismaService } from '../database/prisma.service.js';
 import type { Session, User } from '../generated/prisma/client.js';
 import { AuditService } from './audit.service.js';
 import type { AuthContext } from './auth.types.js';
-import { decryptField } from './field-crypto.js';
+import { decryptField, encryptField } from './field-crypto.js';
 import { hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from './password.js';
-import { verifyTotp } from './totp.js';
+import { generateTotpSecret, verifyTotp } from './totp.js';
 
 export const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 /** Sem uso por 12 horas, a sessão cai. */
@@ -60,8 +60,8 @@ export class AuthService {
     }
 
     let ok = passwordOk;
-    if (ok && user.role === 'NEXO_ADMIN') {
-      // 2FA obrigatório para admin nexo. Sem segredo cadastrado, não entra.
+    // 2FA: obrigatório para admin nexo (sem segredo, não entra) e para quem ligou no painel.
+    if (ok && (user.role === 'NEXO_ADMIN' || user.totpSecretEnc)) {
       if (!input.totp) return { ok: false, reason: 'totp_required' };
       ok = this.checkTotp(user, input.totp, now);
     }
@@ -217,6 +217,65 @@ export class AuthService {
     return { ok: true, token, auth: next };
   }
 
+  /**
+   * Começa a ligar a verificação em duas etapas: gera um segredo novo, que só vale depois de
+   * confirmado com um código do app. O segredo vai para a pessoa uma vez, para ela cadastrar.
+   */
+  /** Sem chave de criptografia de campo no servidor, o segredo não pode ser guardado. */
+  get twoFactorAvailable(): boolean {
+    return !!this.env.FIELD_ENCRYPTION_KEY;
+  }
+
+  startTwoFactor(auth: AuthContext): { secret: string; uri: string } {
+    const secret = generateTotpSecret();
+    const label = encodeURIComponent(`nexo:${auth.name}`);
+    return { secret, uri: `otpauth://totp/${label}?secret=${secret}&issuer=nexo` };
+  }
+
+  /** Liga o 2FA se o código do app bater com o segredo. As outras sessões caem. */
+  async enableTwoFactor(
+    auth: AuthContext,
+    input: { secret: string; code: string },
+    meta: { ip: string | null },
+    now = new Date(),
+  ): Promise<boolean> {
+    const key = this.env.FIELD_ENCRYPTION_KEY;
+    if (!key || !verifyTotp(input.secret, input.code, now)) return false;
+    await this.db.client.user.update({
+      where: { id: auth.userId },
+      data: { totpSecretEnc: encryptField(input.secret, key) },
+    });
+    await this.db.client.session.deleteMany({
+      where: { userId: auth.userId, id: { not: auth.sessionId } },
+    });
+    await this.audit.record({
+      tenantId: auth.tenantId,
+      actorUserId: auth.userId,
+      action: 'mfa.enabled',
+      ip: meta.ip,
+    });
+    return true;
+  }
+
+  /** Desliga o 2FA com um código válido do app. Quem chama confere se o negócio permite. */
+  async disableTwoFactor(
+    auth: AuthContext,
+    code: string,
+    meta: { ip: string | null },
+    now = new Date(),
+  ): Promise<boolean> {
+    const user = await this.db.client.user.findUniqueOrThrow({ where: { id: auth.userId } });
+    if (!this.checkTotp(user, code, now)) return false;
+    await this.db.client.user.update({ where: { id: user.id }, data: { totpSecretEnc: null } });
+    await this.audit.record({
+      tenantId: auth.tenantId,
+      actorUserId: auth.userId,
+      action: 'mfa.disabled',
+      ip: meta.ip,
+    });
+    return true;
+  }
+
   /** Confere o código do 2FA de novo (ex.: antes de o admin entrar num negócio). */
   async verifySecondFactor(userId: string, code: string, now = new Date()): Promise<boolean> {
     const user = await this.db.client.user.findUnique({ where: { id: userId } });
@@ -282,6 +341,7 @@ function toContext(session: Session, user: User, now: Date): AuthContext {
     name: user.name,
     csrfToken: session.csrfToken,
     mustChangePassword: user.mustChangePassword,
+    twoFactor: user.totpSecretEnc !== null,
     acting,
   };
 }

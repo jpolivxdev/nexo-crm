@@ -20,11 +20,13 @@ datasource db {
 
 // ---------- Negócio e acesso ----------
 
-/// Grátis (CRM básico), CRM e Completo (CRM + agenda + robô). O que cada um libera: @nexo/core.
+/// Planos à venda: COMPLETE (Básico) e PREMIUM. FREE e CRM são do tempo dos três planos.
+/// O que cada um libera: @nexo/core.
 enum Plan {
   FREE
   CRM
   COMPLETE
+  PREMIUM
 }
 
 /// Negócio (tenant).
@@ -53,6 +55,11 @@ model Tenant {
   nextVisitDays    Int?    @default(0) @map("next_visit_days")
   /// Metas do mês: { doneCount?, revenueCents? }. Vazio = sem meta.
   goals            Json    @default("{}")
+  /// Premium: o que gestor, consultor e profissional acessam ({ MANAGER: { reports: true, ... } }).
+  /// Vazio = padrão de @nexo/core.
+  accessRules      Json    @default("{}") @map("access_rules")
+  /// Premium: dono e gestores só usam o painel com a verificação em duas etapas ligada.
+  requireMfa       Boolean @default(false) @map("require_mfa")
   /// Cronômetro do onboarding: quando o negócio foi criado pela nexo e quando a dona terminou de configurar.
   onboardingStartedAt   DateTime? @map("onboarding_started_at") @db.Timestamptz
   onboardingCompletedAt DateTime? @map("onboarding_completed_at") @db.Timestamptz
@@ -90,9 +97,12 @@ model Session {
   @@map("sessions")
 }
 
+/// MANAGER (gestor) e CONSULTANT (consultor) só existem no Premium.
 enum Role {
   NEXO_ADMIN
   OWNER
+  MANAGER
+  CONSULTANT
   STAFF
 }
 

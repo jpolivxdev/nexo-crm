@@ -40,7 +40,7 @@ const createTenantBody = z.object({
 });
 
 const planBody = z.object({
-  plan: z.enum(['FREE', 'CRM', 'COMPLETE']),
+  plan: z.enum(['FREE', 'CRM', 'COMPLETE', 'PREMIUM']),
   features: z.array(z.enum(FEATURES)).max(FEATURES.length).default([]),
 });
 

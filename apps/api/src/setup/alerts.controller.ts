@@ -9,13 +9,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import type { AuthedRequest } from '../auth/auth.types.js';
-import { SessionGuard, TenantGuard } from '../auth/session.guard.js';
+import { SessionGuard, TenantGuard, RequiresAccess } from '../auth/session.guard.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { MAILER, type Mailer } from '../mail/mailer.js';
 import { alertsBody } from './setup.schemas.js';
 
 /** Conta → Avisos (só a dona). O negócio vem sempre da sessão. */
 @Controller('panel/setup/alerts')
+@RequiresAccess('settings')
 @UseGuards(SessionGuard, TenantGuard)
 export class AlertsController {
   constructor(

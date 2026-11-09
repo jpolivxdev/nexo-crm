@@ -1,8 +1,10 @@
+import type { AccessArea } from './roles';
+
 export type AppointmentStatus = 'SCHEDULED' | 'CONFIRMED' | 'DONE' | 'NO_SHOW' | 'CANCELLED';
 
 export interface Me {
   name: string;
-  role: 'OWNER' | 'STAFF' | 'NEXO_ADMIN';
+  role: 'OWNER' | 'MANAGER' | 'CONSULTANT' | 'STAFF' | 'NEXO_ADMIN';
   csrfToken: string;
   mustChangePassword: boolean;
   /** Negócio da sessão (para o admin nexo, só durante uma entrada registrada). */
@@ -10,11 +12,18 @@ export interface Me {
   onboardingPending: boolean;
   acting: { until: string } | null;
   /** Plano do negócio e o que ele libera. Quem trava de verdade é o servidor. */
-  plan?: 'FREE' | 'CRM' | 'COMPLETE' | null;
+  plan?: PlanId | null;
   features?: Feature[];
+  /** Áreas que o papel acessa (Acessos por papel). Sem a lista, o servidor decide. */
+  access?: AccessArea[];
+  twoFactor?: boolean;
+  /** O negócio exige 2FA e este login ainda não ligou: só a tela de ligar aparece. */
+  mfaSetupRequired?: boolean;
 }
 
-export type Feature = 'report' | 'agenda' | 'bot' | 'reminders';
+export type PlanId = 'FREE' | 'CRM' | 'COMPLETE' | 'PREMIUM';
+
+export type Feature = 'report' | 'agenda' | 'bot' | 'reminders' | 'team_roles';
 
 export interface ContactRef {
   id: string;
@@ -173,7 +182,7 @@ export interface TenantRow {
   id: string;
   name: string;
   niche: string;
-  plan?: 'FREE' | 'CRM' | 'COMPLETE';
+  plan?: PlanId;
   createdAt: string;
   onboardingStartedAt: string | null;
   onboardingCompletedAt: string | null;

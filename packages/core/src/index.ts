@@ -94,3 +94,13 @@ export {
   type Feature,
   type PlanId,
 } from './plans/features.js';
+export {
+  ACCESS_AREAS,
+  accessRulesOf,
+  areasFor,
+  DEFAULT_ACCESS,
+  TEAM_ROLES,
+  type AccessArea,
+  type AccessRules,
+  type TeamRole,
+} from './plans/access.js';

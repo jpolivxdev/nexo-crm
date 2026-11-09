@@ -4126,3 +4126,146 @@ input[type='time'] {
   font-size: 0.875rem;
   color: rgb(239 234 255 / 65%);
 }
+
+/* Premium: papéis da equipe, Acessos por papel e verificação em duas etapas */
+.choice {
+  align-items: flex-start !important;
+  padding: 6px 0;
+}
+
+.choice input {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.team__roles {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.team__roles legend {
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.team__role select {
+  min-height: var(--toque-minimo);
+}
+
+.access__scroll {
+  overflow-x: auto;
+  margin: 8px 0 16px;
+}
+
+.access__table {
+  width: 100%;
+  min-width: 480px;
+  border-collapse: collapse;
+}
+
+.access__table th,
+.access__table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--cor-borda);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.access__table th[scope='row'] {
+  text-align: left;
+  font-weight: 400;
+}
+
+.access__table thead th {
+  font-size: 0.875rem;
+  color: var(--cor-texto-suave);
+}
+
+.access__table thead th:first-child {
+  text-align: left;
+}
+
+.access__area {
+  display: block;
+  font-weight: 600;
+}
+
+/* Interruptor: checkbox de verdade por baixo (teclado e leitor de tela), visual de chave. */
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--toque-minimo);
+  min-height: var(--toque-minimo);
+  cursor: pointer;
+}
+
+.switch input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.switch span {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--cor-borda);
+  transition: background 0.15s ease;
+}
+
+.switch span::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--branco);
+  box-shadow: 0 1px 2px rgb(16 12 36 / 30%);
+  transition: transform 0.15s ease;
+}
+
+.switch input:checked + span {
+  background: var(--roxo-nexo);
+}
+
+.switch input:checked + span::after {
+  transform: translateX(18px);
+}
+
+.switch input:focus-visible + span {
+  outline: 2px solid var(--azul-elo);
+  outline-offset: 2px;
+}
+
+.switch input:disabled + span {
+  opacity: 0.45;
+}
+
+.two-factor__steps {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+}
+
+.two-factor__steps .secret {
+  letter-spacing: 0.04em;
+  overflow-wrap: break-word;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch span,
+  .switch span::after {
+    transition: none;
+  }
+}

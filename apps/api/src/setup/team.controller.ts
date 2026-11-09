@@ -15,8 +15,13 @@ import {
 } from '@nestjs/common';
 import type { z } from 'zod';
 import type { AuthedRequest } from '../auth/auth.types.js';
-import { SessionGuard, TenantGuard } from '../auth/session.guard.js';
-import { newProfessionalBody, professionalBody, staffLoginBody } from './setup.schemas.js';
+import { OwnerOnly, SessionGuard, TenantGuard } from '../auth/session.guard.js';
+import {
+  loginRoleBody,
+  newProfessionalBody,
+  professionalBody,
+  staffLoginBody,
+} from './setup.schemas.js';
 import { TeamService } from './team.service.js';
 
 function parse<T extends z.ZodType>(schema: T, value: unknown): z.infer<T> {
@@ -27,8 +32,9 @@ function parse<T extends z.ZodType>(schema: T, value: unknown): z.infer<T> {
   return result.data;
 }
 
-/** Equipe (só a dona). O negócio vem sempre da sessão. */
+/** Equipe (só o dono). O negócio vem sempre da sessão. */
 @Controller('panel/team')
+@OwnerOnly()
 @UseGuards(SessionGuard, TenantGuard)
 export class TeamController {
   constructor(@Inject(TeamService) private readonly team: TeamService) {}
@@ -62,8 +68,18 @@ export class TeamController {
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() body: unknown,
   ) {
-    const { email } = parse(staffLoginBody, body);
-    return this.team.createLogin(req.auth!.tenantId!, id, email, this.actor(req));
+    const { email, role } = parse(staffLoginBody, body);
+    return this.team.createLogin(req.auth!.tenantId!, id, email, this.actor(req), role);
+  }
+
+  @Put(':id/login')
+  setRole(
+    @Req() req: AuthedRequest,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body() body: unknown,
+  ) {
+    const { role } = parse(loginRoleBody, body);
+    return this.team.setLoginRole(req.auth!.tenantId!, id, role, this.actor(req));
   }
 
   @Delete(':id/login')

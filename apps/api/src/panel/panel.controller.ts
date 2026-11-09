@@ -21,7 +21,7 @@ import { PlanGuard, RequiresFeature } from '../auth/plan.guard.js';
 import { interval, map, merge, Observable } from 'rxjs';
 import type { z } from 'zod';
 import type { AuthedRequest } from '../auth/auth.types.js';
-import { AllowStaff, SessionGuard, TenantGuard } from '../auth/session.guard.js';
+import { AllowStaff, RequiresAccess, SessionGuard, TenantGuard } from '../auth/session.guard.js';
 import { ConversationService } from '../conversation/conversation.service.js';
 import { RealtimeBus, type RealtimeNotice } from '../realtime/realtime.bus.js';
 import { SchedulingService } from '../scheduling/scheduling.service.js';
@@ -97,6 +97,7 @@ export class PanelController {
   }
 
   @RequiresFeature('report')
+  @RequiresAccess('reports')
   @Get('report')
   report(@Req() req: AuthedRequest, @Query() query: unknown) {
     const { days } = parse(reportQuery, query);
@@ -185,11 +186,13 @@ export class PanelController {
   }
 
   /** Direitos da cliente (LGPD): tudo o que o negócio guarda sobre ela. */
+  @RequiresAccess('privacy')
   @Get('contacts/:id/export')
   exportContact(@Req() req: AuthedRequest, @Param('id', uuid) id: string) {
     return this.privacy.export(this.tenant(req), id, this.privacyActor(req));
   }
 
+  @RequiresAccess('privacy')
   @Post('contacts/:id/erase')
   @HttpCode(200)
   eraseContact(@Req() req: AuthedRequest, @Param('id', uuid) id: string, @Body() body: unknown) {
@@ -198,12 +201,14 @@ export class PanelController {
   }
 
   @RequiresFeature('report')
+  @RequiresAccess('reports')
   @Get('goals')
   goals(@Req() req: AuthedRequest) {
     return this.reports.goals(this.tenant(req));
   }
 
   @RequiresFeature('report')
+  @RequiresAccess('reports')
   @Put('goals')
   saveGoals(@Req() req: AuthedRequest, @Body() body: unknown) {
     const { doneCount, revenueCents } = parse(goalsBody, body);
@@ -223,6 +228,7 @@ export class PanelController {
     return this.panel.stageRules(this.tenant(req));
   }
 
+  @RequiresAccess('settings')
   @Put('pipeline/rules')
   saveStageRules(@Req() req: AuthedRequest, @Body() body: unknown) {
     const { rules } = parse(stageRulesBody, body);
