@@ -46,6 +46,17 @@ describe('demonstração', () => {
     await waitFor(() => expect(window.location.hash).toBe('#/'));
   });
 
+  it('na demo, Plano e assinatura mostra os mesmos dois planos da página inicial', async () => {
+    window.location.hash = '/demo';
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(await screen.findByRole('button', { name: 'Pular tour' }));
+    window.location.hash = '/assinatura';
+    const basico = await screen.findByRole('listitem', { name: 'Básico' });
+    expect(within(basico).getByRole('button', { name: 'Plano desta demonstração' })).toBeDisabled();
+    expect(screen.getByRole('listitem', { name: 'Premium' })).toBeInTheDocument();
+  });
+
   it('as ações mudam só a memória: responder pausa o robô e marcar realizado move a etapa', async () => {
     const conv = (await demoRequest('GET', '/panel/conversations?tab=waiting')) as {
       conversations: { id: string; contact: { id: string } }[];

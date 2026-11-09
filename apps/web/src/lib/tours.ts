@@ -63,7 +63,7 @@ const AGENDA: TourStep[] = [
     text: 'Escolha como quer ver a agenda. No mês, toque num dia para ver os horários dele.',
   },
   {
-    target: 'main .section, main .month',
+    target: 'main .month',
     title: 'Os horários',
     text: 'Tudo que o robô marcou pelo WhatsApp aparece aqui sozinho, junto com o que você marcou.',
   },
@@ -112,7 +112,7 @@ const CLIENTES: TourStep[] = [
 
 const ETAPAS: TourStep[] = [
   {
-    target: '.board',
+    target: '.board .column',
     title: 'As etapas',
     text: 'Cada coluna é uma etapa, do primeiro contato até a cliente voltar. O robô move sozinho conforme a conversa.',
   },
@@ -156,7 +156,7 @@ export const DEMO_TOUR: TourStep[] = [
   },
   {
     route: '/agenda',
-    target: 'main .section, main .month',
+    target: 'main .month',
     title: 'Agenda',
     text: 'O robô marca pelo WhatsApp e o horário aparece aqui sozinho. Você também marca, remarca e fecha folgas.',
   },
@@ -174,7 +174,7 @@ export const DEMO_TOUR: TourStep[] = [
   },
   {
     route: '/etapas',
-    target: '.board',
+    target: '.board .column',
     title: 'Etapas',
     text: 'Do primeiro contato até a cliente voltar. O robô move cada uma sozinho conforme a conversa.',
   },

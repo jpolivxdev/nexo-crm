@@ -11,6 +11,7 @@ interface Box {
 
 const GAP = 12;
 const PAD = 6;
+const TOP_ROOM = 96;
 
 /** Primeiro elemento visível do seletor (o menu lateral some no celular, a barra de baixo no PC). */
 function findTarget(selector?: string): HTMLElement | null {
@@ -55,6 +56,8 @@ export function Tour({
     return () => before?.focus?.();
   }, []);
 
+  // Mede de novo sempre que pedir: a tela pode crescer depois (dados chegando), então o destaque
+  // acompanha o tamanho real e fica preso à parte visível da janela.
   const measure = useCallback(() => {
     const el = findTarget(step.target);
     if (!el) {
@@ -62,13 +65,55 @@ export function Tour({
       return;
     }
     const r = el.getBoundingClientRect();
-    setBox({
-      top: r.top - PAD,
+    const vh = window.innerHeight;
+    const top = Math.max(r.top - PAD, 4);
+    const bottom = Math.min(r.bottom + PAD, vh - 4);
+    const next = {
+      top,
       left: r.left - PAD,
       width: r.width + PAD * 2,
-      height: r.height + PAD * 2,
-    });
+      height: Math.max(bottom - top, 0),
+    };
+    setBox((prev) =>
+      prev &&
+      Math.abs(prev.top - next.top) < 0.5 &&
+      Math.abs(prev.left - next.left) < 0.5 &&
+      Math.abs(prev.width - next.width) < 0.5 &&
+      Math.abs(prev.height - next.height) < 0.5
+        ? prev
+        : next,
+    );
   }, [step.target]);
+
+  // Acompanha mudanças de tamanho e de conteúdo da tela enquanto o passo está aberto.
+  useEffect(() => {
+    let frame = 0;
+    let observed: HTMLElement | null = null;
+    const resize =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => schedule());
+    const follow = () => {
+      const el = findTarget(step.target);
+      if (el !== observed) {
+        if (observed) resize?.unobserve(observed);
+        if (el) resize?.observe(el);
+        observed = el;
+      }
+      measure();
+    };
+    function schedule() {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(follow);
+    }
+    follow();
+    const mutation =
+      typeof MutationObserver === 'undefined' ? null : new MutationObserver(schedule);
+    mutation?.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      resize?.disconnect();
+      mutation?.disconnect();
+    };
+  }, [measure, step.target]);
 
   // Passo em outra tela: navega e espera a parte destacada aparecer (até ~2 s).
   const route = step.route;
@@ -84,6 +129,9 @@ export function Tour({
       const el = findTarget(step.target);
       if (el || !step.target || tries >= 20) {
         el?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+        // Deixa um respiro em cima para a faixa fixa (demo) não cobrir o começo do destaque.
+        const top = el?.getBoundingClientRect().top ?? TOP_ROOM;
+        if (top < TOP_ROOM) window.scrollBy?.({ top: top - TOP_ROOM });
         measure();
         return;
       }
@@ -120,11 +168,33 @@ export function Tour({
     const vh = window.innerHeight;
     const h = c.offsetHeight;
     const w = c.offsetWidth;
-    let top = box.top + box.height + GAP;
-    if (top + h > vh - GAP) top = Math.max(GAP, box.top - h - GAP);
-    const left = Math.min(Math.max(GAP, box.left), Math.max(GAP, vw - w - GAP));
+    const fitsLeft = (x: number) => Math.min(Math.max(GAP, x), Math.max(GAP, vw - w - GAP));
+    const fitsTop = (y: number) => Math.min(Math.max(GAP, y), Math.max(GAP, vh - h - GAP));
+    const below = box.top + box.height + GAP;
+    const above = box.top - h - GAP;
+    const right = box.left + box.width + GAP;
+    const left = box.left - w - GAP;
+    let top: number;
+    let x: number;
+    if (below + h <= vh - GAP) {
+      top = below;
+      x = fitsLeft(box.left);
+    } else if (above >= GAP) {
+      top = above;
+      x = fitsLeft(box.left);
+    } else if (right + w <= vw - GAP) {
+      // Destaque alto (lista inteira): o cartão vai ao lado, sem cobrir nada.
+      top = fitsTop(box.top);
+      x = right;
+    } else if (left >= GAP) {
+      top = fitsTop(box.top);
+      x = left;
+    } else {
+      top = vh - h - GAP;
+      x = fitsLeft(box.left);
+    }
     c.style.top = `${top}px`;
-    c.style.left = `${left}px`;
+    c.style.left = `${x}px`;
   }, [box, index]);
 
   function next() {

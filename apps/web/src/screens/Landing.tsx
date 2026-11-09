@@ -14,34 +14,13 @@ import { MadeByNexo, NexoLogo } from '../components/Brand';
 import { NICHES } from '../lib/niches';
 import panelPreview from '../assets/painel-exemplo.webp';
 import { useAuthOptions } from './AuthPages';
+import { BASIC_PLAN, PREMIUM_PLAN } from '../lib/plans';
 
 /** Seções da página. Rolam até o lugar sem mexer no endereço (o painel usa o # para as rotas). */
 const SECTIONS = [
   { id: 'como-funciona', label: 'Como funciona' },
   { id: 'planos', label: 'Planos' },
   { id: 'para-quem', label: 'Para quem é' },
-];
-
-/**
- * Os dois planos (decisão do JP em 09/11/2026). Preço ainda [A DEFINIR] com o Coca: a página não
- * mostra valor inventado. O Premium está em construção e só lista o que está planejado.
- */
-const BASIC = [
-  'Robô que marca, remarca e cancela pelo WhatsApp, 24 horas',
-  'Agenda no celular, com folgas e lembretes',
-  'Conversas do WhatsApp num lugar só',
-  'Clientes e etapas que se organizam sozinhos',
-  'Resultados e metas do mês',
-  'Nex, guia de uso, e suporte direto com a nexo',
-];
-
-const PREMIUM = [
-  'Tudo do Básico',
-  'Vários funis e campos do seu jeito',
-  'Painéis com metas e previsão de receita',
-  'Importar e exportar clientes',
-  'Sua marca no painel',
-  'Acessos por função na equipe',
 ];
 
 const STEPS = [
@@ -195,13 +174,11 @@ export function Landing() {
           <div className="lp-plans">
             <article className="lp-plan lp-plan--main" aria-labelledby="plano-basico">
               <p className="lp-plan__tag">Disponível</p>
-              <h3 id="plano-basico">Básico</h3>
-              <p className="lp-plan__lead">
-                Atendimento automático pelo WhatsApp e um painel simples para organizar o dia.
-              </p>
+              <h3 id="plano-basico">{BASIC_PLAN.name}</h3>
+              <p className="lp-plan__lead">{BASIC_PLAN.lead}</p>
               <p className="lp-plan__price">Valor em breve</p>
               <ul className="lp-plan__list">
-                {BASIC.map((item) => (
+                {BASIC_PLAN.items.map((item) => (
                   <li key={item}>
                     <Check aria-hidden="true" size={18} />
                     {item}
@@ -222,13 +199,11 @@ export function Landing() {
             </article>
             <article className="lp-plan" aria-labelledby="plano-premium">
               <p className="lp-plan__tag lp-plan__tag--soon">Em construção</p>
-              <h3 id="plano-premium">Premium</h3>
-              <p className="lp-plan__lead">
-                Para quem tem equipe e quer acompanhar metas e receita mais de perto.
-              </p>
+              <h3 id="plano-premium">{PREMIUM_PLAN.name}</h3>
+              <p className="lp-plan__lead">{PREMIUM_PLAN.lead}</p>
               <p className="lp-plan__price">Valor em breve</p>
               <ul className="lp-plan__list">
-                {PREMIUM.map((item) => (
+                {PREMIUM_PLAN.items.map((item) => (
                   <li key={item}>
                     <Check aria-hidden="true" size={18} />
                     {item}

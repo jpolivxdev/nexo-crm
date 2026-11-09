@@ -2134,6 +2134,26 @@ textarea:focus-visible {
   }
 }
 
+.plan__flag--soon {
+  background: var(--cor-suave);
+  color: var(--cor-destaque-texto);
+}
+
+/* Dois planos (Básico e Premium): lado a lado, mesmo tamanho. */
+@media (min-width: 900px) {
+  .plans--two {
+    grid-template-columns: repeat(2, minmax(0, 360px));
+    justify-content: center;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .plans--two .plan:not(.plan--highlight),
+  .plans--two .plan--highlight {
+    transform: none;
+  }
+}
+
 @keyframes plan-in {
   from {
     opacity: 0;

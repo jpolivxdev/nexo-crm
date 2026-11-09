@@ -56,13 +56,14 @@ describe('o painel segue o plano do negócio', () => {
     expect(screen.getByRole('button', { name: 'Ver planos' })).toBeInTheDocument();
   });
 
-  it('a tela de planos marca o plano atual do negócio', async () => {
-    mockApi({ ...ME, plan: 'CRM', features: ['report'] });
+  it('a tela de planos mostra Básico e Premium e marca o plano atual', async () => {
+    mockApi({ ...ME, plan: 'COMPLETE', features: ['report'] });
     window.location.hash = '#/assinatura';
     render(<App />);
-    const crm = await screen.findByRole('listitem', { name: 'CRM' });
-    expect(within(crm).getByRole('button', { name: 'Seu plano atual' })).toBeInTheDocument();
-    const completo = screen.getByRole('listitem', { name: 'Completo' });
-    expect(within(completo).getByRole('button', { name: 'Em breve' })).toBeInTheDocument();
+    const basico = await screen.findByRole('listitem', { name: 'Básico' });
+    expect(within(basico).getByRole('button', { name: 'Seu plano atual' })).toBeDisabled();
+    const premium = screen.getByRole('listitem', { name: 'Premium' });
+    expect(within(premium).getByRole('button', { name: 'Em construção' })).toBeDisabled();
+    expect(screen.queryByRole('listitem', { name: 'Completo' })).toBeNull();
   });
 });

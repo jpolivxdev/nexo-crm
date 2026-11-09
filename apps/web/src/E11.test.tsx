@@ -133,11 +133,13 @@ describe('plano e assinatura (só visual)', () => {
     render(<App />);
     expect(await screen.findByRole('heading', { name: 'Plano e assinatura' })).toBeInTheDocument();
     expect(screen.getByText(/Nada é cobrado por enquanto/)).toBeInTheDocument();
-    expect(screen.getAllByText('R$ —')).toHaveLength(3);
-    for (const button of screen.getAllByRole('button', { name: /Seu plano atual|Em breve/ })) {
+    expect(screen.getAllByText('R$ —')).toHaveLength(2);
+    for (const button of screen.getAllByRole('button', {
+      name: /Seu plano atual|Em breve|Em construção/,
+    })) {
       expect(button).toBeDisabled();
     }
     await userEvent.click(screen.getByRole('button', { name: 'Anual' }));
-    expect(screen.getAllByText('/ ano')).toHaveLength(3);
+    expect(screen.getAllByText('/ ano')).toHaveLength(2);
   });
 });
