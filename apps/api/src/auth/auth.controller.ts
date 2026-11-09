@@ -39,6 +39,13 @@ const loginSchema = z.object({
     .optional(),
 });
 
+const profileSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, 'Escreva seu nome (pelo menos 2 letras).')
+    .max(80, 'Nome longo demais.'),
+});
 const passwordSchema = z.object({
   currentPassword: z.string().min(1).max(256),
   newPassword: z.string().max(256),
@@ -228,6 +235,38 @@ export class AuthController {
   @UseGuards(SessionGuard)
   me(@Req() req: AuthedRequest) {
     return this.publicUser(req.auth!);
+  }
+
+  @Get('profile')
+  @UseGuards(SessionGuard)
+  profile(@Req() req: AuthedRequest) {
+    this.ownAccount(req);
+    return this.auth.profile(req.auth!);
+  }
+
+  @Post('profile')
+  @HttpCode(200)
+  @UseGuards(SessionGuard)
+  updateProfile(@Body() body: unknown, @Req() req: AuthedRequest) {
+    this.ownAccount(req);
+    const parsed = profileSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException(parsed.error.issues[0]?.message ?? 'Confira o nome.');
+    }
+    return this.auth.updateProfile(req.auth!, parsed.data.name, { ip: req.ip ?? null });
+  }
+
+  @Post('sessions/revoke-others')
+  @HttpCode(200)
+  @UseGuards(SessionGuard)
+  revokeOthers(@Req() req: AuthedRequest) {
+    this.ownAccount(req);
+    return this.auth.revokeOtherSessions(req.auth!, { ip: req.ip ?? null });
+  }
+
+  /** O admin nexo, numa entrada controlada, não mexe na conta da dona nem na própria por aqui. */
+  private ownAccount(req: AuthedRequest): void {
+    if (req.auth!.acting) throw new ForbiddenException('Indisponível durante a entrada da nexo.');
   }
 
   @Post('password')

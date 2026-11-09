@@ -84,4 +84,66 @@ describe('quadro de etapas', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Mover Cliente Exemplo 1 (demo)' }));
     expect(screen.getByRole('button', { name: 'Mover para Não seguiu' })).toBeVisible();
   });
+
+  it('soma o valor por coluna, busca por nome e muda de etapa pela lista', async () => {
+    localStorage.clear();
+    const other = { id: 'c2', name: 'Outra Cliente (demo)', phone: '5500900000002' };
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const path = String(url).replace(/^\/api/, '');
+      const body =
+        path === '/auth/me'
+          ? OWNER
+          : path === '/panel/pipeline'
+            ? {
+                id: 'p1',
+                name: 'Funil',
+                timeZone: 'America/Sao_Paulo',
+                stages: [
+                  stage('s1', 'Agendou', 'scheduled', 'OPEN', [
+                    {
+                      id: 'd1',
+                      since: new Date().toISOString(),
+                      nextAt: '2031-01-16T17:00:00Z',
+                      nextService: 'Star Clássica (demo)',
+                      valueCents: 16000,
+                      contact,
+                    },
+                    {
+                      id: 'd2',
+                      since: new Date().toISOString(),
+                      nextAt: '2031-01-17T17:00:00Z',
+                      nextService: 'Design de sobrancelha (demo)',
+                      valueCents: 5000,
+                      contact: other,
+                    },
+                  ]),
+                  stage('s2', 'Atendido', 'attended'),
+                ],
+              }
+            : {};
+      void init;
+      return new Response(JSON.stringify(body), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    window.location.hash = '#/etapas';
+    const user = userEvent.setup();
+    render(<App />);
+
+    const column = await screen.findByRole('region', { name: /Agendou/ });
+    expect(within(column).getByText(/R\$\s?210,00/)).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText('Buscar cliente no quadro'), 'outra');
+    expect(screen.queryByText('Cliente Exemplo 1 (demo)')).toBeNull();
+    expect(screen.getByText('Outra Cliente (demo)')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Lista/ }));
+    const select = screen.getByLabelText('Etapa de Outra Cliente (demo)');
+    await user.selectOptions(select, 's2');
+    const post = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST');
+    expect(String(post?.[0])).toContain('/panel/deals/d2/stage');
+    expect(JSON.parse(String(post?.[1]?.body))).toEqual({ stageId: 's2' });
+  });
 });

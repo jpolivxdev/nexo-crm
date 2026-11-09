@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ApiError } from './api';
+import { isDemo } from './demo/mode';
 
 /**
  * Carrega dados, guarda erro e permite recarregar (ex.: quando chega aviso em tempo real).
@@ -33,7 +34,12 @@ export function useLoad<T>(load: () => Promise<T>, key: string) {
 }
 
 export interface Notice {
-  type: 'agenda.changed' | 'conversation.updated' | 'handoff.requested' | 'contact.updated';
+  type:
+    | 'agenda.changed'
+    | 'conversation.updated'
+    | 'handoff.requested'
+    | 'contact.updated'
+    | 'support.updated';
   id?: string;
   /** Mudança feita pela cliente no WhatsApp que merece aviso para a dona. */
   alert?: 'booked' | 'rescheduled' | 'cancelled';
@@ -74,7 +80,7 @@ export function useRealtime(onNotice: (notice: Notice) => void): void {
   });
 
   useEffect(() => {
-    if (typeof EventSource === 'undefined') return;
+    if (typeof EventSource === 'undefined' || isDemo()) return;
     return subscribe((notice) => handler.current(notice));
   }, []);
 }

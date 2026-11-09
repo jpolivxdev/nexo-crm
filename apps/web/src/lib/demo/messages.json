@@ -1,0 +1,332 @@
+{
+  "messages": [
+    {
+      "key": "privacyNotice",
+      "default": "Oi! Aqui é o atendimento automático do {negocio}. Usamos seu nome e telefone só para cuidar dos seus horários. Para parar de receber mensagens, é só escrever \"parar\".",
+      "custom": null,
+      "variables": ["negocio"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "menu",
+      "default": "Como posso ajudar? Escolha uma opção.",
+      "custom": null,
+      "variables": [],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "menuBook",
+      "default": "Marcar horário",
+      "custom": null,
+      "variables": [],
+      "max": 20,
+      "button": true
+    },
+    {
+      "key": "menuMine",
+      "default": "Meus horários",
+      "custom": null,
+      "variables": [],
+      "max": 20,
+      "button": true
+    },
+    {
+      "key": "menuFaq",
+      "default": "Dúvidas",
+      "custom": null,
+      "variables": [],
+      "max": 20,
+      "button": true
+    },
+    {
+      "key": "menuHuman",
+      "default": "Falar com {dona}",
+      "custom": null,
+      "variables": ["dona"],
+      "max": 20,
+      "button": true
+    },
+    {
+      "key": "chooseService",
+      "default": "Qual serviço você quer marcar?",
+      "custom": null,
+      "variables": [],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "noServices",
+      "default": "Ainda não há serviços para marcar por aqui. Toque abaixo para falar com {dona}.",
+      "custom": null,
+      "variables": ["dona"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "chooseProfessional",
+      "default": "Com quem você prefere?",
+      "custom": null,
+      "variables": [],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "anyProfessional",
+      "default": "Tanto faz",
+      "custom": null,
+      "variables": [],
+      "max": 20,
+      "button": true
+    },
+    {
+      "key": "chooseDate",
+      "default": "Qual dia fica melhor para {servico}?",
+      "custom": null,
+      "variables": ["servico"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "noDates",
+      "default": "Não encontrei horários livres nos próximos dias. Quer falar com {dona}?",
+      "custom": null,
+      "variables": ["dona"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "chooseTime",
+      "default": "Horários livres em {data}. Qual você prefere?",
+      "custom": null,
+      "variables": ["data"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "noTimes",
+      "default": "Esse dia acabou de lotar. Escolha outro dia.",
+      "custom": null,
+      "variables": [],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "confirm",
+      "default": "Confirma {servico} em {data} às {hora}?",
+      "custom": null,
+      "variables": ["servico", "data", "hora"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "confirmYes",
+      "default": "Confirmar",
+      "custom": null,
+      "variables": [],
+      "max": 20,
+      "button": true
+    },
+    {
+      "key": "confirmOtherTime",
+      "default": "Outro horário",
+      "custom": null,
+      "variables": [],
+      "max": 20,
+      "button": true
+    },
+    {
+      "key": "booked",
+      "default": "Pronto! Seu horário está marcado: {servico}, {data} às {hora}. Para remarcar ou cancelar, escreva \"menu\".",
+      "custom": null,
+      "variables": ["servico", "data", "hora"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "slotTaken",
+      "default": "Puxa, esse horário acabou de ser ocupado. Escolha outro.",
+      "custom": null,
+      "variables": [],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "mineEmpty",
+      "default": "Você não tem horários marcados. Quer marcar um?",
+      "custom": null,
+      "variables": [],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "mineList",
+      "default": "Seus próximos horários. Escolha um para remarcar ou cancelar.",
+      "custom": null,
+      "variables": [],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "manage",
+      "default": "{servico} em {data} às {hora}. O que você quer fazer?",
+      "custom": null,
+      "variables": ["servico", "data", "hora"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "manageReschedule",
+      "default": "Remarcar",
+      "custom": null,
+      "variables": [],
+      "max": 20,
+      "button": true
+    },
+    {
+      "key": "manageCancel",
+      "default": "Cancelar",
+      "custom": null,
+      "variables": [],
+      "max": 20,
+      "button": true
+    },
+    {
+      "key": "manageBack",
+      "default": "Voltar",
+      "custom": null,
+      "variables": [],
+      "max": 20,
+      "button": true
+    },
+    {
+      "key": "cancelConfirm",
+      "default": "Cancelar {servico} em {data} às {hora}?",
+      "custom": null,
+      "variables": ["servico", "data", "hora"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "cancelYes",
+      "default": "Sim, cancelar",
+      "custom": null,
+      "variables": [],
+      "max": 20,
+      "button": true
+    },
+    {
+      "key": "cancelNo",
+      "default": "Não",
+      "custom": null,
+      "variables": [],
+      "max": 20,
+      "button": true
+    },
+    {
+      "key": "cancelled",
+      "default": "Horário cancelado. Quando quiser marcar de novo, escreva \"menu\".",
+      "custom": null,
+      "variables": [],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "rescheduled",
+      "default": "Pronto! Seu horário foi remarcado para {data} às {hora}.",
+      "custom": null,
+      "variables": ["data", "hora"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "faqList",
+      "default": "Escolha sua dúvida.",
+      "custom": null,
+      "variables": [],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "faqEmpty",
+      "default": "Por enquanto não temos dúvidas cadastradas. Quer falar com {dona}?",
+      "custom": null,
+      "variables": ["dona"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "handoff",
+      "default": "Certo! Avisei {dona}, que vai continuar a conversa por aqui.",
+      "custom": null,
+      "variables": ["dona"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "handoffClosed",
+      "default": "Certo! Avisei {dona}. Agora estamos fora do horário de atendimento, então a resposta vem no próximo horário.",
+      "custom": null,
+      "variables": ["dona"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "optOut",
+      "default": "Tudo bem, você não vai mais receber mensagens automáticas. Se mudar de ideia, escreva \"oi\".",
+      "custom": null,
+      "variables": [],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "notUnderstood",
+      "default": "Não entendi. Escolha uma das opções abaixo.",
+      "custom": null,
+      "variables": [],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "more",
+      "default": "Ver mais",
+      "custom": null,
+      "variables": [],
+      "max": 20,
+      "button": true
+    },
+    {
+      "key": "reminder24h",
+      "default": "Oi! Passando para lembrar do seu horário no {negocio}: {servico}, amanhã ({data}) às {hora}. Você confirma?",
+      "custom": null,
+      "variables": ["negocio", "servico", "data", "hora"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "reminder1h",
+      "default": "Seu horário de {servico} no {negocio} é hoje às {hora}. Se não puder vir, toque em Cancelar.",
+      "custom": null,
+      "variables": ["servico", "negocio", "hora"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "reminderConfirmed",
+      "default": "Combinado! Até {data} às {hora}.",
+      "custom": null,
+      "variables": ["data", "hora"],
+      "max": 1024,
+      "button": false
+    },
+    {
+      "key": "reminderGone",
+      "default": "Esse horário não está mais marcado. Para ver seus horários, escreva \"menu\".",
+      "custom": null,
+      "variables": [],
+      "max": 1024,
+      "button": false
+    }
+  ]
+}

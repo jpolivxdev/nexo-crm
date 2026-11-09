@@ -48,7 +48,7 @@ export function StatusBadge({ status }: { status: AppointmentStatus }) {
 
 export function Loading() {
   return (
-    <p className="muted" role="status">
+    <p className="muted loading" role="status">
       Carregando…
     </p>
   );

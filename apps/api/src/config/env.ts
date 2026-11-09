@@ -47,6 +47,17 @@ const envSchema = z.object({
     .transform((v) => v === 'true'),
   // Limite geral de pedidos por IP por minuto em toda a API (o webhook da Meta tem limites próprios).
   RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(10).max(10_000).default(300),
+  // Nex, guia de uso: chave do Gemini (Google AI Studio). Vazia = o Nex só mostra os atalhos.
+  // No nível gratuito o Google pode usar o texto para melhorar os produtos dele: por isso o Nex
+  // nunca recebe dado de cliente (ver DECISOES.md).
+  GEMINI_API_KEY: optionalSecret,
+  // Modelo do Gemini. Confira no AI Studio qual está no nível gratuito antes de trocar.
+  GEMINI_MODEL: z
+    .string()
+    .regex(/^[a-z0-9.-]+$/)
+    .default('gemini-3.1-flash-lite'),
+  // Perguntas por negócio por dia (protege a cota gratuita).
+  NEX_DAILY_LIMIT: z.coerce.number().int().min(1).max(1000).default(30),
   // Liga o worker que processa as mensagens da fila neste processo.
   RUN_WORKER: z
     .enum(['true', 'false'])

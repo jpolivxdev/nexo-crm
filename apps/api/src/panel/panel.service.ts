@@ -17,7 +17,7 @@ import {
 } from '@nexo/core';
 import { ChannelRegistry } from '../channel/channel.registry.js';
 import type { ChannelName } from '../channel/channel.types.js';
-import { recordEvent } from '../crm/domain-events.js';
+import { ensureDeal, recordEvent } from '../crm/domain-events.js';
 import { readStageRules } from '../crm/stage-rules.js';
 import type { ContactSegment } from './panel.schemas.js';
 import type { TenantTx } from '../database/prisma.js';
@@ -322,6 +322,8 @@ export class PanelService {
       const created = await tx.contact.create({
         data: { tenantId, name: input.name, phone: input.phone, source: 'PANEL' },
       });
+      // Cadastrada pela tela também entra no quadro, na primeira etapa.
+      await ensureDeal(tx, tenantId, created.id);
       await recordEvent(tx, tenantId, {
         type: 'contact.created',
         entityType: 'contact',
@@ -474,7 +476,10 @@ export class PanelService {
                         },
                         orderBy: { startsAt: 'asc' },
                         take: 1,
-                        select: { startsAt: true },
+                        select: {
+                          startsAt: true,
+                          service: { select: { name: true, priceCents: true } },
+                        },
                       },
                     },
                   },
@@ -494,10 +499,121 @@ export class PanelService {
             id,
             since: updatedAt,
             nextAt: appointments[0]?.startsAt ?? null,
+            // Valor do quadro: o preço do serviço do próximo horário (sem preço, fica nulo).
+            nextService: appointments[0]?.service.name ?? null,
+            valueCents: appointments[0]?.service.priceCents ?? null,
             contact,
           })),
         })),
       };
+    });
+  }
+
+  /**
+   * Conversas (caixa de entrada). Abertas: não arquivadas. Esperando você: o robô passou para a
+   * dona. Novas: clientes que chegaram nos últimos 7 dias. Arquivadas: a dona tirou da lista.
+   */
+  conversations(
+    tenantId: string,
+    tab: 'open' | 'waiting' | 'new' | 'archived',
+    q: string | undefined,
+    now = new Date(),
+  ) {
+    return this.db.withTenant(tenantId, async (tx) => {
+      const term = q?.trim();
+      const digits = term?.replace(/\D/g, '') ?? '';
+      const contactWhere = {
+        erasedAt: null,
+        ...(tab === 'new' ? { createdAt: { gte: new Date(now.getTime() - 7 * DAY_MS) } } : {}),
+        ...(term
+          ? {
+              OR: [
+                { name: { contains: term, mode: 'insensitive' as const } },
+                ...(digits.length >= 3 ? [{ phone: { contains: digits } }] : []),
+              ],
+            }
+          : {}),
+      };
+      const rows = await tx.conversation.findMany({
+        where: {
+          archivedAt: tab === 'archived' ? { not: null } : null,
+          ...(tab === 'waiting' ? { botPausedAt: { not: null } } : {}),
+          contact: contactWhere,
+        },
+        orderBy: [{ lastMessageAt: { sort: 'desc', nulls: 'last' } }],
+        take: 100,
+        select: {
+          id: true,
+          channel: true,
+          botPausedAt: true,
+          archivedAt: true,
+          lastMessageAt: true,
+          contact: { select: { id: true, name: true, phone: true } },
+          messages: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: { body: true, direction: true, createdAt: true },
+          },
+        },
+      });
+      const tenant = await tx.tenant.findUniqueOrThrow({
+        where: { id: tenantId },
+        select: { timezone: true },
+      });
+      return {
+        timeZone: tenant.timezone,
+        conversations: rows.map(({ messages, ...c }) => ({
+          ...c,
+          lastMessage: messages[0] ?? null,
+        })),
+      };
+    });
+  }
+
+  /** Uma conversa aberta: as últimas 100 mensagens, da mais antiga para a mais nova. */
+  conversation(tenantId: string, id: string) {
+    return this.db.withTenant(tenantId, async (tx) => {
+      const c = await tx.conversation.findFirst({
+        where: { id, contact: { erasedAt: null } },
+        select: {
+          id: true,
+          channel: true,
+          botPausedAt: true,
+          archivedAt: true,
+          contact: { select: { id: true, name: true, phone: true, optedOutAt: true } },
+          messages: {
+            orderBy: { createdAt: 'desc' },
+            take: 100,
+            select: {
+              id: true,
+              direction: true,
+              type: true,
+              body: true,
+              status: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
+      if (!c) throw new NotFoundException('Conversa não encontrada.');
+      const tenant = await tx.tenant.findUniqueOrThrow({
+        where: { id: tenantId },
+        select: { timezone: true },
+      });
+      return { ...c, timeZone: tenant.timezone, messages: c.messages.reverse() };
+    });
+  }
+
+  /** Arquivar ou tirar do arquivo. Não apaga nada. */
+  archiveConversation(tenantId: string, id: string, archived: boolean, now = new Date()) {
+    return this.db.withTenant(tenantId, async (tx) => {
+      const found = await tx.conversation.findUnique({ where: { id }, select: { id: true } });
+      if (!found) throw new NotFoundException('Conversa não encontrada.');
+      return tx.conversation.update({
+        where: { id },
+        data: { archivedAt: archived ? now : null },
+        select: { id: true, archivedAt: true },
+      });
     });
   }
 

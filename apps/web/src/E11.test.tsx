@@ -42,7 +42,13 @@ function mockApi() {
       ? OWNER
       : url.includes('/panel/report')
         ? REPORT(days)
-        : {};
+        : url.includes('/panel/goals')
+          ? {
+              month: '2031-01',
+              goals: { doneCount: 40 },
+              progress: { doneCount: 10, revenueCents: 160000 },
+            }
+          : {};
     return new Response(JSON.stringify(body), {
       status: 200,
       headers: { 'content-type': 'application/json' },
@@ -65,6 +71,12 @@ describe('resultados (E11)', () => {
     window.location.hash = '#/resultados';
     render(<App />);
 
+    // Metas do mês: com meta vira barra; sem meta, convida a definir.
+    const goals = await screen.findByRole('region', { name: /Metas de janeiro/ });
+    expect(
+      within(goals).getByRole('progressbar', { name: 'Atendimentos realizados' }),
+    ).toHaveAttribute('aria-valuenow', '25');
+    expect(within(goals).getByText('Sem meta. Defina para ver quanto falta.')).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Resultados' })).toBeInTheDocument();
     const booked = await screen.findByRole('region', { name: 'Horários marcados' });
     expect(within(booked).getByText('Pelo robô').nextSibling).toHaveTextContent('6');
@@ -121,11 +133,13 @@ describe('plano e assinatura (só visual)', () => {
     render(<App />);
     expect(await screen.findByRole('heading', { name: 'Plano e assinatura' })).toBeInTheDocument();
     expect(screen.getByText(/Nada é cobrado por enquanto/)).toBeInTheDocument();
-    expect(screen.getAllByText('R$ —')).toHaveLength(3);
-    for (const button of screen.getAllByRole('button', { name: /Seu plano atual|Em breve/ })) {
+    expect(screen.getAllByText('R$ —')).toHaveLength(2);
+    for (const button of screen.getAllByRole('button', {
+      name: /Seu plano atual|Em breve|Em construção/,
+    })) {
       expect(button).toBeDisabled();
     }
     await userEvent.click(screen.getByRole('button', { name: 'Anual' }));
-    expect(screen.getAllByText('/ ano')).toHaveLength(3);
+    expect(screen.getAllByText('/ ano')).toHaveLength(2);
   });
 });

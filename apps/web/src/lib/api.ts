@@ -1,4 +1,5 @@
 /** Chamadas à API. Mesma origem (/api), cookie de sessão HttpOnly e token CSRF no cabeçalho. */
+import { isDemo } from './demo/mode';
 
 export class ApiError extends Error {
   constructor(
@@ -23,6 +24,11 @@ export async function api<T>(
   options: { method?: string; body?: unknown; query?: Record<string, string> } = {},
 ): Promise<T> {
   const method = options.method ?? 'GET';
+  // Demonstração: responde na memória do navegador, sem servidor (lib/demo).
+  if (isDemo()) {
+    const { demoRequest } = await import('./demo/server');
+    return (await demoRequest(method, path, options.query, options.body)) as T;
+  }
   const query = options.query ? `?${new URLSearchParams(options.query)}` : '';
   const headers: Record<string, string> = { accept: 'application/json' };
   if (options.body !== undefined) headers['content-type'] = 'application/json';

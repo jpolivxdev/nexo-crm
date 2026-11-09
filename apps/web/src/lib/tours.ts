@@ -1,0 +1,226 @@
+/**
+ * Tour guiado de cada tela: o caminho das coisas, em poucos passos. Textos escritos pela nexo.
+ * `target` é um seletor CSS; vale o primeiro elemento visível. Sem alvo (ou alvo fora da tela,
+ * como o menu lateral no celular), o passo aparece no meio da tela.
+ */
+export interface TourStep {
+  target?: string;
+  /** Tela do passo (só no tour da demo, que passa por várias telas). */
+  route?: string;
+  title: string;
+  text: string;
+}
+
+/** Menu: lateral no computador, barra de baixo no celular. */
+const MENU = '.sidebar__nav, .tabbar';
+
+const HOJE: TourStep[] = [
+  {
+    title: 'Boas-vindas',
+    text: 'Em menos de um minuto a gente mostra onde fica cada coisa. Dá para pular quando quiser e rever depois pela bússola lá em cima.',
+  },
+  {
+    target: MENU,
+    title: 'O menu',
+    text: 'Todas as partes do painel ficam aqui: agenda, conversas, clientes, etapas e resultados.',
+  },
+  {
+    target: '[data-tour="resumo"]',
+    title: 'O resumo do dia',
+    text: 'Quantos horários você tem hoje, quem está esperando resposta, o que falta fazer e o que já foi realizado.',
+  },
+  {
+    target: '[aria-labelledby="horarios"]',
+    title: 'Horários de hoje',
+    text: 'Cada horário marcado aparece aqui. Marque realizado ou faltou com um toque.',
+  },
+  {
+    target: '[data-tour="avisos"]',
+    title: 'Avisos',
+    text: 'O sino mostra o que as clientes fizeram pelo WhatsApp: marcou, remarcou, cancelou ou pediu para falar com você.',
+  },
+  {
+    target: '[data-tour="conta"]',
+    title: 'Configurações',
+    text: 'Seu perfil, senha, tema claro ou escuro, equipe, mensagens do robô e os dados do negócio.',
+  },
+  {
+    target: '[data-tour="nex"]',
+    title: 'Nex, guia de uso',
+    text: 'Ficou com dúvida de onde fica alguma coisa? Toque aqui e o Nex mostra o caminho.',
+  },
+];
+
+const AGENDA: TourStep[] = [
+  {
+    target: '.page-header__actions',
+    title: 'Marcar um horário',
+    text: 'Em "Marcar horário" você agenda uma cliente por aqui. Em "Folgas" você fecha dias ou horários em que não vai atender.',
+  },
+  {
+    target: '.segmented',
+    title: 'Dia, semana ou mês',
+    text: 'Escolha como quer ver a agenda. No mês, toque num dia para ver os horários dele.',
+  },
+  {
+    target: 'main .month',
+    title: 'Os horários',
+    text: 'Tudo que o robô marcou pelo WhatsApp aparece aqui sozinho, junto com o que você marcou.',
+  },
+];
+
+const CONVERSAS: TourStep[] = [
+  {
+    target: '.inbox__tabs',
+    title: 'Filtros',
+    text: 'Abertas são as conversas em andamento. "Esperando você" são as clientes que pediram para falar com você. Novas são de quem chegou nos últimos 7 dias.',
+  },
+  {
+    target: '.inbox__search',
+    title: 'Buscar',
+    text: 'Encontre uma conversa pelo nome ou pelo telefone da cliente.',
+  },
+  {
+    target: '.inbox__list',
+    title: 'A lista',
+    text: 'Toque numa conversa para abrir. As que têm mensagem nova aparecem primeiro.',
+  },
+  {
+    target: '.inbox__chat',
+    title: 'Responder',
+    text: 'Ao responder, o robô pausa nesta conversa. Quando terminar, use "Devolver para o robô".',
+  },
+];
+
+const CLIENTES: TourStep[] = [
+  {
+    target: '.page-header__actions',
+    title: 'Nova cliente',
+    text: 'Quem chama no WhatsApp entra sozinha. Para cadastrar alguém na mão, use "Nova cliente".',
+  },
+  {
+    target: '.search',
+    title: 'Buscar',
+    text: 'Encontre uma cliente pelo nome ou pelo telefone.',
+  },
+  {
+    target: '.segmented',
+    title: 'Frequentes, sumidas e faltosas',
+    text: 'Separa quem vem sempre, quem sumiu e quem costuma faltar, para você saber quem chamar de volta.',
+  },
+];
+
+const ETAPAS: TourStep[] = [
+  {
+    target: '.board .column',
+    title: 'As etapas',
+    text: 'Cada coluna é uma etapa, do primeiro contato até a cliente voltar. O robô move sozinho conforme a conversa.',
+  },
+  {
+    target: '.board .deal',
+    title: 'Mudar de etapa',
+    text: 'Use o botão do cartão para passar a cliente para a próxima etapa. No computador também dá para arrastar.',
+  },
+  {
+    target: '.page-header__actions',
+    title: 'Regras automáticas',
+    text: 'Aqui você cria regras do tipo "se a cliente faltou, colocar em tal etapa".',
+  },
+];
+
+const RESULTADOS: TourStep[] = [
+  {
+    target: '.segmented',
+    title: 'Escolha o período',
+    text: 'Troque o período e todos os números de baixo mudam na hora.',
+  },
+  {
+    target: 'main .section',
+    title: 'Seus números',
+    text: 'Horários marcados pelo robô, faltas, clientes novas e quem voltou. Só números do seu negócio, nada inventado.',
+  },
+];
+
+/** Tour geral da demonstração: passa pelas telas principais com dados fictícios. */
+export const DEMO_TOUR: TourStep[] = [
+  {
+    route: '/hoje',
+    title: 'Boas-vindas à demonstração',
+    text: 'Este é o painel da nexo com um estúdio de mentira e clientes fictícias. Pode tocar em tudo: nada é salvo e nada sai para ninguém.',
+  },
+  {
+    route: '/hoje',
+    target: '[data-tour="resumo"]',
+    title: 'O dia num olhar',
+    text: 'Quantos horários tem hoje, quem está esperando resposta e o que falta fazer.',
+  },
+  {
+    route: '/agenda',
+    target: 'main .month',
+    title: 'Agenda',
+    text: 'O robô marca pelo WhatsApp e o horário aparece aqui sozinho. Você também marca, remarca e fecha folgas.',
+  },
+  {
+    route: '/conversas',
+    target: '.inbox__list',
+    title: 'Conversas',
+    text: 'As mensagens do WhatsApp num lugar só. Quem pediu para falar com você aparece em "Esperando você".',
+  },
+  {
+    route: '/clientes',
+    target: '.segmented',
+    title: 'Clientes',
+    text: 'Cada cliente entra sozinha. Separe as frequentes, as sumidas e as que faltaram, e chame de volta.',
+  },
+  {
+    route: '/etapas',
+    target: '.board .column',
+    title: 'Etapas',
+    text: 'Do primeiro contato até a cliente voltar. O robô move cada uma sozinho conforme a conversa.',
+  },
+  {
+    route: '/resultados',
+    target: 'main .section',
+    title: 'Resultados',
+    text: 'Horários marcados pelo robô, faltas e metas do mês. Os números aqui são de exemplo.',
+  },
+  {
+    route: '/hoje',
+    target: '[data-tour="nex"]',
+    title: 'Ficou com dúvida?',
+    text: 'O Nex mostra o caminho de cada coisa. Quando quiser usar com o seu negócio, toque em "Criar conta" lá em cima.',
+  },
+];
+
+export const TOURS: Record<string, TourStep[]> = {
+  '/hoje': HOJE,
+  '/agenda': AGENDA,
+  '/conversas': CONVERSAS,
+  '/clientes': CLIENTES,
+  '/etapas': ETAPAS,
+  '/resultados': RESULTADOS,
+};
+
+/** Tour da tela, ou o geral (Hoje) quando a tela ainda não tem um próprio. */
+export function tourFor(section: string): TourStep[] {
+  return TOURS[section] ?? HOJE;
+}
+
+const SEEN_KEY = 'nexo-tour-visto';
+
+/** O tour geral abre sozinho uma vez por aparelho. */
+export function tourSeen(): boolean {
+  try {
+    return window.localStorage.getItem(SEEN_KEY) === '1';
+  } catch {
+    return true;
+  }
+}
+
+export function markTourSeen(): void {
+  try {
+    window.localStorage.setItem(SEEN_KEY, '1');
+  } catch {
+    // sem armazenamento: o tour pode abrir de novo na próxima visita
+  }
+}

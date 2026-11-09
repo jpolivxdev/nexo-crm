@@ -51,7 +51,7 @@ describe('página de entrada, criar conta e esqueci a senha (E12)', () => {
       '#/entrar',
     );
     expect(await screen.findAllByRole('link', { name: 'Criar conta' })).not.toHaveLength(0);
-    expect(screen.getByText('Painel com dados de exemplo.')).toBeInTheDocument();
+    expect(screen.getByText('Painel com dados de exemplo (fictícios).')).toBeInTheDocument();
   });
 
   it('com o cadastro desligado, não oferece criar conta nem esqueci a senha', async () => {

@@ -175,6 +175,10 @@ describe('login, sessão e painel', () => {
       .send(body);
     expect(ok.status).toBe(201);
     expect(ok.body.phone).toBe('00900001234');
+    // Cadastrada pela tela entra no quadro, na primeira etapa.
+    const board = await http().get('/panel/pipeline').set('cookie', cookie);
+    const first = board.body.stages[0] as { deals: { contact: { id: string } }[] };
+    expect(first.deals.some((d) => d.contact.id === ok.body.id)).toBe(true);
   });
 
   it('sair derruba a sessão', async () => {
@@ -242,15 +246,26 @@ describe('login, sessão e painel', () => {
   it('etapas: a dona move o atendimento por toque', async () => {
     const { cookie, csrf } = await login();
     const pipeline = await http().get('/panel/pipeline').set('cookie', cookie);
-    const stages = pipeline.body.stages as { id: string; name: string; deals: { id: string }[] }[];
-    const deal = stages.flatMap((s) => s.deals)[0]!;
+    const stages = pipeline.body.stages as {
+      id: string;
+      name: string;
+      deals: { id: string; nextAt: string | null }[];
+    }[];
+    // A cliente da semente tem horário marcado (as cadastradas pela tela entram sem horário).
+    const deal = stages.flatMap((s) => s.deals).find((d) => d.nextAt)!;
     const lost = stages.find((s) => s.name === 'Não seguiu')!;
     // Cartão do quadro: desde quando está na etapa e o próximo horário (ou nulo).
     expect(pipeline.body.timeZone).toBe('America/Sao_Paulo');
     expect(lost).toMatchObject({ key: 'lost', kind: 'LOST' });
     expect(deal).toEqual(
-      expect.objectContaining({ since: expect.any(String), nextAt: expect.anything() }),
+      expect.objectContaining({
+        since: expect.any(String),
+        nextAt: expect.anything(),
+        nextService: expect.any(String),
+      }),
     );
+    // Preço do serviço do próximo horário; serviço sem preço vem nulo.
+    expect(deal).toHaveProperty('valueCents');
     const moved = await http()
       .post(`/panel/deals/${deal.id}/stage`)
       .set('cookie', cookie)
@@ -317,6 +332,72 @@ describe('login, sessão e painel', () => {
     expect(
       after.body.handoffs.map((h: { conversationId: string }) => h.conversationId),
     ).not.toContain(conversationId);
+  });
+
+  it('conversas: abas, busca, conversa aberta, arquivar e voltar com mensagem nova', async () => {
+    const { cookie, csrf } = await login();
+    const conversations = app.get(ConversationService);
+    const phone = `55000${Date.now().toString().slice(-8)}`;
+    const inbound = (text: string) =>
+      conversations.handleInbound(t.tenantId, {
+        channel: 'simulator',
+        businessExternalId: 'sem-simulador',
+        externalId: `sim-${randomUUID()}`,
+        from: phone,
+        profileName: 'Conversa Teste (demo)',
+        type: 'text',
+        input: { kind: 'text', text },
+        body: text,
+        receivedAt: new Date().toISOString(),
+      });
+    await inbound('quero marcar');
+    const list = (query: string) =>
+      http().get(`/panel/conversations${query}`).set('cookie', cookie);
+
+    const open = await list('');
+    expect(open.status).toBe(200);
+    const mine = open.body.conversations.find(
+      (c: { contact: { phone: string } }) => c.contact.phone === phone,
+    );
+    // A última mensagem pode ser a resposta do robô.
+    expect(mine.lastMessage).toEqual(expect.objectContaining({ createdAt: expect.any(String) }));
+    expect((await list('?tab=new')).body.conversations.map((c: { id: string }) => c.id)).toContain(
+      mine.id,
+    );
+    const found = await list(`?q=${phone.slice(-6)}`);
+    expect(found.body.conversations.map((c: { id: string }) => c.id)).toEqual([mine.id]);
+    expect((await list('?tab=qualquer')).status).toBe(400);
+
+    const one = await http().get(`/panel/conversations/${mine.id}`).set('cookie', cookie);
+    expect(one.body.messages).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ direction: 'INBOUND', body: 'quero marcar' }),
+      ]),
+    );
+
+    const archived = await http()
+      .post(`/panel/conversations/${mine.id}/archive`)
+      .set('cookie', cookie)
+      .set('x-csrf-token', csrf)
+      .send({ archived: true });
+    expect(archived.status).toBe(200);
+    const ids = async (q: string) =>
+      (await list(q)).body.conversations.map((c: { id: string }) => c.id);
+    expect(await ids('')).not.toContain(mine.id);
+    expect(await ids('?tab=archived')).toContain(mine.id);
+
+    // Mensagem nova da cliente tira do arquivo.
+    await inbound('oi de novo');
+    expect(await ids('')).toContain(mine.id);
+
+    // Conversa de outro negócio: não existe para esta dona.
+    const foreign = await withTenant(prisma, other.tenantId, (tx) =>
+      tx.conversation.findFirst({ select: { id: true } }),
+    );
+    if (foreign) {
+      const res = await http().get(`/panel/conversations/${foreign.id}`).set('cookie', cookie);
+      expect(res.status).toBe(404);
+    }
   });
 
   it('ids malformados e campos inválidos são recusados com 400', async () => {

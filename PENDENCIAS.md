@@ -23,6 +23,8 @@ Respostas recebidas em 29/10/2026 (pelo Jandoza e pelo JP) estão em `CLAUDE.md`
 - Quando a conta da Meta destravar: cadastrar os dois modelos de lembrete (`docs/modelos-whatsapp.md`) e ligar `WHATSAPP_REMINDER_TEMPLATES`.
 - Destravar a conta da Meta: forma de pagamento, perfil da empresa, verificação, e de quem fica a conta (usar o MEI do Jandoza ou o da piloto).
 - Regras dos dados das clientes dela (onde ficam, quem acessa, o que acontece no fim do contrato), escritas antes do piloto e confirmadas com advogado.
+- Dois planos (09/11/2026): nome definitivo do Premium e preço dos dois (Coca). A página mostra "Valor em breve" até lá. Confirmar se a regra de não fazer peça nova de marca antes de 3 conversas reais vale para a página com a demo.
+- Nex com pergunta livre (06/11/2026): criar a chave do Gemini no AI Studio (em qual conta Google da nexo?) e pôr em `GEMINI_API_KEY`. Com clientes pagantes, decidir se passa para a camada paga (o Google deixa de usar as perguntas para melhorar o produto). Plano do meio dos três CRMs: **[A DEFINIR]**.
 
 ## Assinaturas (tela pronta, sem funcionar; pedido do JP em 27/10/2026)
 - A tela "Plano e assinatura" (Conta → Plano e assinatura) é só visual. Nomes (Básico, Com IA, Equipe), preços e o que entra em cada plano são provisórios: definir com o Coca.

@@ -7,7 +7,7 @@ const DEVICE_KEY = 'nexo.avisos-aparelho';
 /** Texto do aviso. Sem nome da cliente: pode aparecer na tela bloqueada do celular. */
 export function alertText(notice: Notice): { text: string; to: string } | null {
   if (notice.type === 'handoff.requested') {
-    return { text: 'Uma cliente quer falar com você.', to: '/hoje' };
+    return { text: 'Uma cliente quer falar com você.', to: '/conversas' };
   }
   if (notice.type !== 'agenda.changed' || !notice.alert) return null;
   const verb = { booked: 'marcou', rescheduled: 'remarcou', cancelled: 'cancelou' }[notice.alert];

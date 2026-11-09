@@ -61,6 +61,62 @@ afterEach(() => {
 });
 
 describe('painel', () => {
+  it('sino mostra o que aconteceu; bússola abre o tour da tela; Nex fica no canto', async () => {
+    window.location.hash = '/hoje';
+    mockApi((url) => {
+      if (url.endsWith('/auth/me')) return { status: 200, body: ME };
+      if (url.includes('/panel/today')) return { status: 200, body: TODAY };
+      return { status: 404, body: {} };
+    });
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('heading', { name: 'Seu dia de hoje' });
+
+    await user.click(screen.getByRole('button', { name: 'Avisos' }));
+    const panel = await screen.findByRole('region', { name: 'Avisos' });
+    expect(await within(panel).findByRole('button', { name: 'Cliente Teste' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Ver o tour desta tela' }));
+    expect(await screen.findByRole('dialog', { name: 'Boas-vindas' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Pular tour' }));
+    expect(screen.queryByRole('dialog', { name: 'Boas-vindas' })).toBeNull();
+
+    expect(screen.getByRole('button', { name: 'Nex, guia de uso' })).toBeInTheDocument();
+  });
+
+  it('Nex responde pergunta livre quando a IA está ligada', async () => {
+    window.location.hash = '/hoje';
+    const fetchMock = mockApi((url, init) => {
+      if (url.endsWith('/auth/me')) return { status: 200, body: ME };
+      if (url.includes('/panel/today')) return { status: 200, body: TODAY };
+      if (url.endsWith('/panel/assistant') && init?.method === 'POST')
+        return { status: 200, body: { answer: 'Vá em Agenda > Folgas.', left: 4 } };
+      if (url.endsWith('/panel/assistant'))
+        return { status: 200, body: { enabled: true, left: 5 } };
+      return { status: 404, body: {} };
+    });
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByRole('heading', { name: 'Seu dia de hoje' });
+    await user.click(screen.getByRole('button', { name: 'Nex, guia de uso' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Nex, guia de uso' });
+    expect(await within(dialog).findByText(/Não escreva nome, telefone/)).toBeInTheDocument();
+    await user.type(
+      within(dialog).getByLabelText('Sua dúvida sobre o painel'),
+      'como fecho um dia?',
+    );
+    await user.click(within(dialog).getByRole('button', { name: 'Perguntar ao Nex' }));
+    expect(await within(dialog).findByText('Vá em Agenda > Folgas.')).toBeInTheDocument();
+    expect(within(dialog).getByText(/Restam 4 hoje/)).toBeInTheDocument();
+    const post = fetchMock.mock.calls.find(
+      ([u, i]) => String(u).endsWith('/panel/assistant') && i?.method === 'POST',
+    )!;
+    expect(JSON.parse(String(post[1]!.body))).toEqual({
+      question: 'como fecho um dia?',
+      history: [],
+    });
+  });
+
   it('sem sessão, mostra o login e entra com e-mail e senha', async () => {
     window.location.hash = '/entrar';
     let logged = false;
@@ -184,6 +240,8 @@ describe('painel', () => {
 
     const { container } = render(<App />);
     expect(await screen.findByText('<img src=x onerror=alert(1)>')).toBeInTheDocument();
-    expect(container.querySelector('img')).toBeNull();
+    // Só a foto do Nex (arquivo nosso) pode ser imagem; o texto da cliente nunca vira tag.
+    expect(container.querySelector('main img')).toBeNull();
+    expect(container.querySelector('img[src="x"]')).toBeNull();
   });
 });

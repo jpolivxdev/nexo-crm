@@ -61,7 +61,7 @@ describe('avisos para a dona (E20)', () => {
     expect(alertText({ type: 'agenda.changed', alert: 'cancelled' })?.text).toBe(
       'Uma cliente cancelou um horário pelo WhatsApp.',
     );
-    expect(alertText({ type: 'handoff.requested' })?.to).toBe('/hoje');
+    expect(alertText({ type: 'handoff.requested' })?.to).toBe('/conversas');
   });
 
   it('aviso aparece no topo com uma conexão só e leva para a agenda', async () => {

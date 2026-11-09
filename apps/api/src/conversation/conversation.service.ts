@@ -167,7 +167,7 @@ export class ConversationService implements InboundHandler {
           tenantId_contactId_channel: { tenantId, contactId: contact.id, channel: message.channel },
         },
         create: { tenantId, contactId: contact.id, channel: message.channel, lastMessageAt: now },
-        update: { lastMessageAt: now },
+        update: { lastMessageAt: now, archivedAt: null },
       });
 
       const inbound = await this.saveInbound(tx, tenantId, conversation.id, message, now);

@@ -1,13 +1,25 @@
-import { ArrowRight, CalendarCheck, Hand, Menu, MessageCircle, Users, X } from 'lucide-react';
+import {
+  ArrowRight,
+  CalendarCheck,
+  Check,
+  Hand,
+  Menu,
+  MessageCircle,
+  PlayCircle,
+  Users,
+  X,
+} from 'lucide-react';
 import { useState } from 'react';
 import { MadeByNexo, NexoLogo } from '../components/Brand';
 import { NICHES } from '../lib/niches';
 import panelPreview from '../assets/painel-exemplo.webp';
 import { useAuthOptions } from './AuthPages';
+import { BASIC_PLAN, PREMIUM_PLAN } from '../lib/plans';
 
 /** Seções da página. Rolam até o lugar sem mexer no endereço (o painel usa o # para as rotas). */
 const SECTIONS = [
   { id: 'como-funciona', label: 'Como funciona' },
+  { id: 'planos', label: 'Planos' },
   { id: 'para-quem', label: 'Para quem é' },
 ];
 
@@ -51,6 +63,9 @@ export function Landing() {
 
   const actions = (
     <>
+      <a href="#/demo" className="lp-button lp-button--ghost">
+        Demo
+      </a>
       <a href="#/entrar" className="lp-button lp-button--ghost">
         Entrar
       </a>
@@ -116,16 +131,18 @@ export function Landing() {
             lugar só, direto do celular.
           </p>
           <div className="lp-hero__cta">
-            <a href="#/entrar" className="lp-button lp-button--gradient lp-button--lg">
+            <a href="#/demo" className="lp-button lp-button--gradient lp-button--lg">
+              <PlayCircle aria-hidden="true" size={18} />
+              Ver a demonstração
+            </a>
+            <a href="#/entrar" className="lp-button lp-button--secondary lp-button--lg">
               Entrar no painel
               <ArrowRight aria-hidden="true" size={18} />
             </a>
-            {signup && (
-              <a href="#/criar-conta" className="lp-button lp-button--secondary lp-button--lg">
-                Criar conta
-              </a>
-            )}
           </div>
+          <p className="lp-hero__note">
+            A demonstração abre o painel com um negócio e clientes fictícios, sem cadastro.
+          </p>
           <figure className="lp-preview">
             <div className="lp-preview__glow" aria-hidden="true" />
             <img
@@ -134,7 +151,7 @@ export function Landing() {
               width={1280}
               height={800}
             />
-            <figcaption>Painel com dados de exemplo.</figcaption>
+            <figcaption>Painel com dados de exemplo (fictícios).</figcaption>
           </figure>
         </section>
 
@@ -149,6 +166,53 @@ export function Landing() {
               </li>
             ))}
           </ol>
+        </section>
+
+        <section id="planos" className="lp-section">
+          <h2>Planos</h2>
+          <p className="lp-section__lead">Comece pelo Básico. O Premium está em construção.</p>
+          <div className="lp-plans">
+            <article className="lp-plan lp-plan--main" aria-labelledby="plano-basico">
+              <p className="lp-plan__tag">Disponível</p>
+              <h3 id="plano-basico">{BASIC_PLAN.name}</h3>
+              <p className="lp-plan__lead">{BASIC_PLAN.lead}</p>
+              <p className="lp-plan__price">Valor em breve</p>
+              <ul className="lp-plan__list">
+                {BASIC_PLAN.items.map((item) => (
+                  <li key={item}>
+                    <Check aria-hidden="true" size={18} />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <div className="lp-plan__cta">
+                <a href="#/demo" className="lp-button lp-button--gradient">
+                  <PlayCircle aria-hidden="true" size={18} />
+                  Demo
+                </a>
+                {signup && (
+                  <a href="#/criar-conta" className="lp-button lp-button--secondary">
+                    Criar conta
+                  </a>
+                )}
+              </div>
+            </article>
+            <article className="lp-plan" aria-labelledby="plano-premium">
+              <p className="lp-plan__tag lp-plan__tag--soon">Em construção</p>
+              <h3 id="plano-premium">{PREMIUM_PLAN.name}</h3>
+              <p className="lp-plan__lead">{PREMIUM_PLAN.lead}</p>
+              <p className="lp-plan__price">Valor em breve</p>
+              <ul className="lp-plan__list">
+                {PREMIUM_PLAN.items.map((item) => (
+                  <li key={item}>
+                    <Check aria-hidden="true" size={18} />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className="lp-plan__note">O que está planejado. Avisamos quando estiver pronto.</p>
+            </article>
+          </div>
         </section>
 
         <section id="para-quem" className="lp-section">

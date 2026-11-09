@@ -3,67 +3,30 @@ import { PageHeader } from '../components/PageHeader';
 import { useState } from 'react';
 import { Banner } from '../components/ui';
 import { useAuth } from '../lib/auth';
+import { isDemo } from '../lib/demo/mode';
+import { BASIC_PLAN, PREMIUM_PLAN, type PlanInfo } from '../lib/plans';
 
 /**
- * Planos e assinatura: só a tela, sem cobrança (pedido do JP em 27/10/2026).
- * Inspirada no bloco "Pricing" do 21st.dev, refeita em CSS do projeto.
- * Nomes, preços e o que entra em cada plano são [A DEFINIR com o Coca]: nada aqui é oferta.
+ * Plano e assinatura: só a tela, sem cobrança (pedido do JP em 27/10/2026).
+ * Mostra os mesmos dois planos da página inicial (Básico e Premium, decisão de 09/11/2026).
+ * Preços são [A DEFINIR com o Coca]: nada aqui é oferta. O servidor ainda trava recursos pelos
+ * códigos antigos (FREE, CRM, COMPLETE); o Básico corresponde ao COMPLETE, que libera tudo o que
+ * já existe.
  */
-
-interface PlanCard {
-  id: 'FREE' | 'CRM' | 'COMPLETE';
-  name: string;
-  summary: string;
-  features: { text: string; soon?: boolean }[];
-  highlight?: boolean;
-}
-
-/*
- * Divisão pedida pelo Jandoza em 27/10/2026: Grátis (CRM básico), CRM e Completo
- * (CRM + agenda + robô do WhatsApp). Limites e preços: [A DEFINIR com o Coca].
- * O servidor trava agenda, robô, lembretes e resultados pelo plano do negócio (@nexo/core).
- */
-const PLANS: PlanCard[] = [
-  {
-    id: 'FREE',
-    name: 'Grátis',
-    summary: 'Para organizar suas clientes num lugar só.',
-    features: [
-      { text: 'Ficha de cada cliente com o histórico' },
-      { text: 'Etapas de cada cliente' },
-      { text: 'Limite de clientes a definir' },
-    ],
-  },
-  {
-    id: 'CRM',
-    name: 'CRM',
-    summary: 'Para acompanhar cada cliente do primeiro contato ao retorno.',
-    features: [
-      { text: 'Tudo do Grátis, sem limite de clientes' },
-      { text: 'Resultados do mês' },
-      { text: 'Lista do que fazer em cada dia' },
-      { text: 'Retornos automáticos para quem sumiu', soon: true },
-      { text: 'Etiquetas e etapas do seu jeito', soon: true },
-    ],
-  },
-  {
-    id: 'COMPLETE',
-    name: 'Completo',
-    summary: 'CRM, agenda e robô no WhatsApp trabalhando juntos.',
-    highlight: true,
-    features: [
-      { text: 'Tudo do CRM' },
-      { text: 'Agenda com serviços, horários e pausas' },
-      { text: 'Robô que marca, remarca e cancela horários' },
-      { text: 'Lembretes 24 h e 1 h antes' },
-      { text: 'Conectar o número de WhatsApp do negócio', soon: true },
-    ],
-  },
-];
-
 export function Plans({ go }: { go: (to: string) => void }) {
   const [yearly, setYearly] = useState(false);
   const current = useAuth().me?.plan ?? null;
+  const demo = isDemo();
+  const basicLabel = demo
+    ? 'Plano desta demonstração'
+    : current === 'COMPLETE'
+      ? 'Seu plano atual'
+      : 'Em breve';
+
+  const cards: { plan: PlanInfo; tag: string; button: string; main: boolean }[] = [
+    { plan: BASIC_PLAN, tag: 'Disponível', button: basicLabel, main: true },
+    { plan: PREMIUM_PLAN, tag: 'Em construção', button: 'Em construção', main: false },
+  ];
 
   return (
     <>
@@ -76,7 +39,7 @@ export function Plans({ go }: { go: (to: string) => void }) {
         subtitle="Escolha como a nexo trabalha para o seu negócio."
       />
       <Banner kind="ok">
-        Prévia: os planos e preços ainda estão sendo definidos. Nada é cobrado por enquanto.
+        Prévia: os preços ainda estão sendo definidos. Nada é cobrado por enquanto.
       </Banner>
 
       <div className="segmented plans__period" role="group" aria-label="Forma de pagamento">
@@ -98,18 +61,16 @@ export function Plans({ go }: { go: (to: string) => void }) {
         </button>
       </div>
 
-      <ul className="plans">
-        {PLANS.map((plan) => (
+      <ul className="plans plans--two">
+        {cards.map(({ plan, tag, button, main }) => (
           <li
             key={plan.id}
-            className={plan.highlight ? 'plan plan--highlight' : 'plan'}
+            className={main ? 'plan plan--highlight' : 'plan'}
             aria-labelledby={`plano-${plan.id}`}
           >
-            {plan.highlight && (
-              <span className="plan__flag">
-                <Sparkles aria-hidden="true" size={14} /> Mais completo
-              </span>
-            )}
+            <span className={main ? 'plan__flag' : 'plan__flag plan__flag--soon'}>
+              {main && <Sparkles aria-hidden="true" size={14} />} {tag}
+            </span>
             <h2 id={`plano-${plan.id}`} className="plan__name">
               {plan.name}
             </h2>
@@ -120,24 +81,22 @@ export function Plans({ go }: { go: (to: string) => void }) {
             <p className="plan__note muted">
               Preço a definir{yearly ? ' · desconto no anual a definir' : ''}
             </p>
-            <p className="plan__summary">{plan.summary}</p>
+            <p className="plan__summary">{plan.lead}</p>
             <ul className="plan__features">
-              {plan.features.map((f) => (
-                <li key={f.text}>
+              {plan.items.map((item) => (
+                <li key={item}>
                   <Check aria-hidden="true" size={18} className="plan__check" />
-                  <span>
-                    {f.text}
-                    {f.soon && <span className="plan__soon">em breve</span>}
-                  </span>
+                  <span>{item}</span>
                 </li>
               ))}
             </ul>
-            <button
-              type="button"
-              className={plan.highlight ? 'button' : 'button button--ghost'}
-              disabled
-            >
-              {plan.id === current ? 'Seu plano atual' : 'Em breve'}
+            {!main && (
+              <p className="plan__note muted">
+                O que está planejado. Avisamos quando estiver pronto.
+              </p>
+            )}
+            <button type="button" className={main ? 'button' : 'button button--ghost'} disabled>
+              {button}
             </button>
           </li>
         ))}

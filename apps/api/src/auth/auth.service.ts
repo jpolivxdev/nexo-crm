@@ -131,6 +131,59 @@ export class AuthService {
     });
   }
 
+  /** Meu perfil: só o nome que aparece no painel. O e-mail é o login e não muda por aqui. */
+  async updateProfile(
+    auth: AuthContext,
+    name: string,
+    meta: { ip: string | null },
+  ): Promise<{ name: string; email: string }> {
+    const user = await this.db.client.user.update({
+      where: { id: auth.userId },
+      data: { name },
+      select: { name: true, email: true },
+    });
+    await this.audit.record({
+      tenantId: auth.tenantId,
+      actorUserId: auth.userId,
+      action: 'profile.updated',
+      ip: meta.ip,
+    });
+    return user;
+  }
+
+  /** Dados da tela Meu perfil e Segurança: e-mail e quantos outros aparelhos estão conectados. */
+  async profile(auth: AuthContext, now = new Date()) {
+    const [user, others] = await Promise.all([
+      this.db.client.user.findUniqueOrThrow({
+        where: { id: auth.userId },
+        select: { name: true, email: true, totpSecretEnc: true },
+      }),
+      this.db.client.session.count({
+        where: { userId: auth.userId, id: { not: auth.sessionId }, expiresAt: { gt: now } },
+      }),
+    ]);
+    return {
+      name: user.name,
+      email: user.email,
+      twoFactor: user.totpSecretEnc !== null,
+      otherSessions: others,
+    };
+  }
+
+  /** Sair dos outros aparelhos: apaga as outras sessões e mantém esta. */
+  async revokeOtherSessions(auth: AuthContext, meta: { ip: string | null }) {
+    const { count } = await this.db.client.session.deleteMany({
+      where: { userId: auth.userId, id: { not: auth.sessionId } },
+    });
+    await this.audit.record({
+      tenantId: auth.tenantId,
+      actorUserId: auth.userId,
+      action: 'sessions.revoked',
+      ip: meta.ip,
+    });
+    return { revoked: count };
+  }
+
   /** Troca a senha: derruba todas as sessões (em todos os aparelhos) e abre uma nova. */
   async changePassword(
     auth: AuthContext,
