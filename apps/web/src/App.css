@@ -3179,6 +3179,37 @@ input[type='time'] {
   gap: 8px;
 }
 
+/*
+ * Modo escuro: a sombra Tinta some no fundo Tinta. O resto da tela escurece com preto, o
+ * destaque ganha contorno Lavanda e o cartão fica mais claro que o fundo, com borda.
+ */
+:root[data-theme='escuro'] .tour__backdrop {
+  background: rgb(0 0 0 / 70%);
+}
+
+:root[data-theme='escuro'] .tour__spot {
+  box-shadow:
+    0 0 0 3px var(--lavanda),
+    0 0 24px 6px rgb(169 139 255 / 45%),
+    0 0 0 9999px rgb(0 0 0 / 70%);
+}
+
+:root[data-theme='escuro'] .tour__card {
+  background: color-mix(in srgb, var(--tinta) 72%, var(--lavanda));
+  border: 1px solid var(--lavanda);
+  box-shadow:
+    0 0 0 4px rgb(169 139 255 / 18%),
+    0 16px 40px rgb(0 0 0 / 60%);
+}
+
+:root[data-theme='escuro'] .tour__dots span {
+  background: color-mix(in srgb, var(--tinta) 45%, var(--lavanda));
+}
+
+:root[data-theme='escuro'] .tour__dots span.on {
+  background: var(--lavanda);
+}
+
 /* No celular o cartão fica preso embaixo, por cima da barra de navegação. */
 @media (max-width: 639px) {
   .tour__card,
