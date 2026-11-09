@@ -391,3 +391,14 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Modo TV:** tela cheia escura com os números grandes, metas e funil; atualiza sozinho a cada minuto; sai no botão ou no Esc.
 - **Painel geral no Hoje:** receita do mês, previsão de receita (todos os funis), chamados de suporte abertos, quantos estão em cada etapa do funil principal e a previsão dos próximos meses.
 - **Celular:** com mais de 6 seções (Premium), a barra de baixo rola para o lado em vez de espremer os nomes.
+
+## Premium, fase P5: Chat interno da equipe (10/11/2026)
+
+- **Recurso novo `team_chat`** no Premium: tela **Chat** (grupo Equipe). Toda a equipe usa, inclusive a profissional (STAFF). A nexo, numa entrada de suporte, **não entra**: é conversa interna do negócio (o servidor barra e o menu esconde).
+- **Canais:** de toda a equipe. O **Geral** nasce sozinho na primeira vez (chave fixa, então não duplica) e não pode ser arquivado. Qualquer pessoa cria canal (nome de 2 a 40 letras, sem repetir); arquivar é de quem criou, da dona ou do gestor. Arquivar só tira da lista: as mensagens ficam.
+- **Conversas diretas:** entre duas pessoas; só elas veem (quem participa fica em `chat_reads`; para a terceira pessoa a conversa "não existe", resposta 404). A mesma dupla sempre cai na mesma conversa.
+- **Mensagens:** texto de até 2.000 letras, de 50 em 50 ("Ver mensagens anteriores"). Enter envia, Shift+Enter quebra linha. Só quem escreveu apaga; o texto sai e fica "Mensagem apagada" (o banco não deixa apagar a linha: `REVOKE DELETE`).
+- **Não lidas:** contador por canal e conversa (mensagens de outras pessoas depois da última leitura). Abrir a conversa marca como lida.
+- **Tempo real:** aviso novo `chat.updated` (só o id da conversa, sem texto) pelo mesmo canal SSE do painel; lista e conversa aberta atualizam sozinhas.
+- **Isolamento:** tabelas `chat_channels`, `chat_messages` e `chat_reads` com `tenant_id`, RLS forçado e chaves compostas. Teste automatizado garante que um negócio não vê nem escreve no chat do outro.
+- **Fora desta fase:** anexos, reações, menções e busca no chat. Ficam para quando houver pedido real.

@@ -39,7 +39,8 @@ export interface Notice {
     | 'conversation.updated'
     | 'handoff.requested'
     | 'contact.updated'
-    | 'support.updated';
+    | 'support.updated'
+    | 'chat.updated';
   id?: string;
   /** Mudança feita pela cliente no WhatsApp que merece aviso para a dona. */
   alert?: 'booked' | 'rescheduled' | 'cancelled';

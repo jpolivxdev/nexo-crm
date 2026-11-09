@@ -33,7 +33,8 @@ export type Feature =
   | 'team_roles'
   | 'crm_plus'
   | 'contacts_plus'
-  | 'dashboards';
+  | 'dashboards'
+  | 'team_chat';
 
 export interface ContactRef {
   id: string;

@@ -5,6 +5,7 @@ import {
   House,
   LayoutDashboard,
   LogOut,
+  MessageCircle,
   MessagesSquare,
   Repeat2,
   SquareKanban,
@@ -59,6 +60,7 @@ import { TimeOff } from './screens/TimeOff';
 import { BotMessages } from './screens/BotMessages';
 import { StageRules } from './screens/StageRules';
 import { Team } from './screens/Team';
+import { TeamChat } from './screens/TeamChat';
 import { Today } from './screens/Today';
 
 const NAV: (SidebarItem & { feature?: Feature })[] = [
@@ -116,6 +118,14 @@ const NAV: (SidebarItem & { feature?: Feature })[] = [
     group: 'Gestão',
     hint: 'Números do mês: horários, faltas e retornos',
   },
+  {
+    to: '/chat',
+    label: 'Chat',
+    Icon: MessageCircle,
+    feature: 'team_chat',
+    group: 'Equipe',
+    hint: 'Converse com a equipe em canais ou só com uma pessoa',
+  },
 ];
 
 /** Seções que dependem do plano (o servidor também barra). */
@@ -123,6 +133,7 @@ const SECTION_FEATURE: Record<string, { feature: Feature; name: string }> = {
   '/acessos': { feature: 'team_roles', name: 'Acessos por papel' },
   '/agenda': { feature: 'agenda', name: 'A agenda' },
   '/carteira': { feature: 'contacts_plus', name: 'A Carteira de clientes' },
+  '/chat': { feature: 'team_chat', name: 'O chat da equipe' },
   '/paineis': { feature: 'dashboards', name: 'Os Painéis' },
   '/folgas': { feature: 'agenda', name: 'Folgas e bloqueios' },
   '/resultados': { feature: 'report', name: 'Resultados' },
@@ -276,15 +287,20 @@ function Panel({ me }: { me: Me }) {
     if (to === '/resultados' || to === '/paineis') return canArea('reports');
     return true;
   };
-  const nav = (staff ? NAV.filter((n) => n.to === '/hoje' || n.to === '/agenda') : NAV).filter(
-    (n) => (!n.feature || has(n.feature)) && allowedSection(n.to),
+  // O chat é da equipe: a nexo, numa entrada de suporte, não entra (o servidor também barra).
+  const nav = (
+    staff ? NAV.filter((n) => ['/hoje', '/agenda', '/chat'].includes(n.to)) : NAV
+  ).filter(
+    (n) =>
+      (!n.feature || has(n.feature)) && allowedSection(n.to) && (n.to !== '/chat' || !me.acting),
   );
   const rawSection = '/' + (route.split('/')[1] ?? 'hoje');
   const section =
-    staff && !['/hoje', '/agenda', '/conta'].includes(rawSection) ? '/hoje' : rawSection;
+    staff && !['/hoje', '/agenda', '/conta', '/chat'].includes(rawSection) ? '/hoje' : rawSection;
   const contactMatch = staff ? null : /^\/clientes\/([0-9a-f-]{36})$/.exec(route);
   const conversationMatch = /^\/conversas\/([0-9a-f-]{36})$/.exec(route);
   const supportMatch = /^\/suporte\/([0-9a-f-]{36})$/.exec(route);
+  const chatMatch = /^\/chat\/([0-9a-f-]{36})$/.exec(route);
 
   // Tour guiado: abre sozinho uma vez por aparelho (fora dos testes) e pela bússola do topo.
   const [touring, setTouring] = useState(
@@ -359,6 +375,12 @@ function Panel({ me }: { me: Me }) {
             }
           : undefined
       }
+    />
+  ) : section === '/chat' && !me.acting ? (
+    <TeamChat
+      id={chatMatch?.[1] ?? null}
+      go={go}
+      canManage={me.role === 'OWNER' || me.role === 'MANAGER'}
     />
   ) : section === '/paineis' ? (
     <Dashboards />

@@ -11,6 +11,7 @@ export type PlanId = 'FREE' | 'CRM' | 'COMPLETE' | 'PREMIUM';
  * crm_plus: CRM completo (vários funis, campanhas, campos próprios, previsão, tarefas da equipe).
  * contacts_plus: importar e exportar clientes e a Carteira (quem volta e quem está em risco).
  * dashboards: Painéis (comercial, metas por período, funil de conversão, Modo TV) e painel geral no Hoje.
+ * team_chat: chat interno da equipe (canais e conversas diretas).
  */
 export type Feature =
   | 'report'
@@ -20,10 +21,17 @@ export type Feature =
   | 'team_roles'
   | 'crm_plus'
   | 'contacts_plus'
-  | 'dashboards';
+  | 'dashboards'
+  | 'team_chat';
 
 const BASIC: readonly Feature[] = ['report', 'agenda', 'bot', 'reminders'];
-const PREMIUM: readonly Feature[] = ['team_roles', 'crm_plus', 'contacts_plus', 'dashboards'];
+const PREMIUM: readonly Feature[] = [
+  'team_roles',
+  'crm_plus',
+  'contacts_plus',
+  'dashboards',
+  'team_chat',
+];
 
 export const PLAN_FEATURES: Record<PlanId, readonly Feature[]> = {
   FREE: [],

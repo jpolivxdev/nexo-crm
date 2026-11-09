@@ -5120,3 +5120,77 @@ a.button {
     font-size: 1.125rem;
   }
 }
+
+/* Chat da equipe (Premium): usa o desenho das Conversas */
+.team-chat__group {
+  margin: 8px 0 4px;
+  align-items: center;
+}
+
+.team-chat__group h2 {
+  margin: 0;
+  font-size: 0.8125rem;
+  text-transform: none;
+  color: var(--cor-texto-suave, var(--grafite));
+  font-weight: 600;
+}
+
+.team-chat__group .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.team-chat__unread {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--roxo-nexo);
+  color: var(--branco);
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.team-chat__author {
+  font-size: 0.8125rem;
+  color: var(--roxo-nexo);
+}
+
+.team-chat__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.team-chat__delete {
+  width: 44px;
+  height: 44px;
+  margin: -12px -10px -12px 0;
+  color: inherit;
+}
+
+.bubble--deleted span {
+  font-style: italic;
+  opacity: 0.75;
+}
+
+.team-chat__older {
+  display: block;
+  margin: 0 auto 8px;
+  min-height: 44px;
+}
+
+.team-chat__person {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-height: 44px;
+}

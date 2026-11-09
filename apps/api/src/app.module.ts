@@ -5,6 +5,7 @@ import { SupportModule } from './support/support.module.js';
 import { AssistantModule } from './assistant/assistant.module.js';
 import { AdminModule } from './admin/admin.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { ChatModule } from './chat/chat.module.js';
 import { ChannelModule } from './channel/channel.module.js';
 import { ConversationModule } from './conversation/conversation.module.js';
 import { DatabaseModule } from './database/database.module.js';
@@ -35,6 +36,7 @@ export class AppModule {
         ConversationModule,
         PanelModule,
         CrmModule,
+        ChatModule,
         SetupModule,
         AdminModule,
         SupportModule,

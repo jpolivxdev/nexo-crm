@@ -77,6 +77,7 @@ model Tenant {
   customFields   CustomField[]
   channelRoutes  ChannelRoute[]
   supportTickets SupportTicket[]
+  chatChannels   ChatChannel[]
 
   @@map("tenants")
 }
@@ -710,4 +711,61 @@ model AiUsage {
 
   @@index([tenantId, createdAt])
   @@map("ai_usage")
+}
+
+// ---------- Chat interno da equipe (Premium) ----------
+
+/// Canal (toda a equipe) ou conversa direta (duas pessoas, `directKey` = os dois ids em ordem).
+model ChatChannel {
+  id            String    @id @default(uuid()) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  /// channel ou direct.
+  kind          String
+  name          String?
+  directKey     String?   @map("direct_key")
+  createdById   String    @map("created_by_id") @db.Uuid
+  archivedAt    DateTime? @map("archived_at") @db.Timestamptz
+  lastMessageAt DateTime? @map("last_message_at") @db.Timestamptz
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant   Tenant        @relation(fields: [tenantId], references: [id])
+  messages ChatMessage[]
+  reads    ChatRead[]
+
+  @@unique([tenantId, id])
+  @@unique([tenantId, directKey])
+  @@index([tenantId])
+  @@map("chat_channels")
+}
+
+model ChatMessage {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  channelId  String    @map("channel_id") @db.Uuid
+  authorId   String    @map("author_id") @db.Uuid
+  authorName String    @map("author_name")
+  /// Nulo quando a pessoa apagou a mensagem.
+  body       String?
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  channel ChatChannel @relation(fields: [tenantId, channelId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([channelId, createdAt])
+  @@index([tenantId])
+  @@map("chat_messages")
+}
+
+/// Participante (na conversa direta) e até onde leu.
+model ChatRead {
+  tenantId   String    @map("tenant_id") @db.Uuid
+  channelId  String    @map("channel_id") @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  lastReadAt DateTime? @map("last_read_at") @db.Timestamptz
+
+  channel ChatChannel @relation(fields: [tenantId, channelId], references: [tenantId, id], onDelete: Restrict)
+
+  @@id([channelId, userId])
+  @@index([tenantId, userId])
+  @@map("chat_reads")
 }
