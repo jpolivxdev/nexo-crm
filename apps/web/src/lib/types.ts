@@ -21,6 +21,8 @@ export interface Me {
   twoFactor?: boolean;
   /** O negócio exige 2FA e este login ainda não ligou: só a tela de ligar aparece. */
   mfaSetupRequired?: boolean;
+  /** Marca do negócio (Premium): cor, fonte e logo. Nulo: a da nexo. */
+  brand?: { color: string | null; font: string | null; logoVersion: number | null } | null;
 }
 
 export type PlanId = 'FREE' | 'CRM' | 'COMPLETE' | 'PREMIUM';
@@ -36,7 +38,9 @@ export type Feature =
   | 'dashboards'
   | 'team_chat'
   | 'wiki'
-  | 'whiteboard';
+  | 'whiteboard'
+  | 'branding'
+  | 'templates';
 
 export interface ContactRef {
   id: string;

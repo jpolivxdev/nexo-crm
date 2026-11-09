@@ -86,7 +86,7 @@ export function size(bytes: number): string {
  */
 export function Wiki({ route, go }: { route: string; go: (to: string) => void }) {
   const parts = route.split('?')[0]!.split('/').filter(Boolean); // ['wiki', id?, 'editar'?]
-  const id = parts[1] && /^[0-9a-f-]{36}$/.test(parts[1]) ? parts[1] : null;
+  const id = parts[1] && /^([0-9a-f-]{36}|demo-[a-z0-9-]+)$/.test(parts[1]) ? parts[1] : null;
   const creating = parts[1] === 'novo';
   const editing = Boolean(id) && parts[2] === 'editar';
 

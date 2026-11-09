@@ -18,6 +18,8 @@ describe('recursos por plano', () => {
       'team_chat',
       'wiki',
       'whiteboard',
+      'branding',
+      'templates',
     ]);
   });
 

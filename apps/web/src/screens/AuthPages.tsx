@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, Building2, Lock, Mail, User } from 'lucide-react';
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from 'react';
 import { api, ApiError } from '../lib/api';
+import { usePublicBrand } from '../lib/brand';
 import { MadeByNexo, NexoLogo } from '../components/Brand';
 import DataRain from '../components/DataRain';
 import { Banner } from '../components/ui';
@@ -36,13 +37,24 @@ export function AuthLayout({
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  // No domínio próprio do negócio (Premium), a entrada mostra a marca dele.
+  const brand = usePublicBrand();
   return (
     <main className="login">
       <DataRain className="login__rain" />
       <div className="login__hero">
-        <a href="#/" className="login__home" aria-label="Voltar para o início">
-          <NexoLogo fundo="escuro" height={36} />
-        </a>
+        {brand ? (
+          <div className="login__brand">
+            {brand.logoVersion !== null && (
+              <img src="/api/public/brand/logo" alt="" className="login__brand-logo" />
+            )}
+            <strong>{brand.name}</strong>
+          </div>
+        ) : (
+          <a href="#/" className="login__home" aria-label="Voltar para o início">
+            <NexoLogo fundo="escuro" height={36} />
+          </a>
+        )}
         <p>Agenda, clientes e conversas do seu negócio, num lugar só.</p>
       </div>
       <div className="glass-card">

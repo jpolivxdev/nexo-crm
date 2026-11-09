@@ -27,6 +27,7 @@ import { api } from './lib/api';
 import { AuthProvider, useAuth } from './lib/auth';
 import { time } from './lib/format';
 import { useRoute } from './lib/hooks';
+import { applyBrand, logoUrl } from './lib/brand';
 import { DEMO_TOUR, markTourSeen, tourFor, tourSeen } from './lib/tours';
 import { enterDemo, isDemo, leaveDemo, takeDemoTour } from './lib/demo/mode';
 import { DemoBanner } from './components/DemoBanner';
@@ -64,6 +65,8 @@ import { StageRules } from './screens/StageRules';
 import { Team } from './screens/Team';
 import { TeamChat } from './screens/TeamChat';
 import { Wiki } from './screens/Wiki';
+import { BrandSettings } from './screens/BrandSettings';
+import { Templates } from './screens/Templates';
 import { Boards } from './screens/Boards';
 import { Today } from './screens/Today';
 
@@ -148,6 +151,13 @@ const NAV: (SidebarItem & { feature?: Feature })[] = [
   },
 ];
 
+/** Id na rota: UUID do servidor ou o id da demonstração ("demo-..."). */
+const ROUTE_ID = /^[0-9a-f-]{36}$|^demo-[a-z0-9-]+$/;
+function routeId(section: string, route: string): [string, string] | null {
+  const [, s, id, extra] = route.split('/');
+  return s === section && id && extra === undefined && ROUTE_ID.test(id) ? [route, id] : null;
+}
+
 /** Telas internas da equipe: a nexo, numa entrada de suporte, não entra. */
 const TEAM_ONLY = ['/chat', '/wiki', '/quadros'];
 
@@ -161,6 +171,8 @@ const SECTION_FEATURE: Record<string, { feature: Feature; name: string }> = {
   '/quadros': { feature: 'whiteboard', name: 'O quadro branco' },
   '/paineis': { feature: 'dashboards', name: 'Os Painéis' },
   '/folgas': { feature: 'agenda', name: 'Folgas e bloqueios' },
+  '/marca': { feature: 'branding', name: 'Marca e domínio' },
+  '/modelos': { feature: 'templates', name: 'Os modelos de mensagem' },
   '/resultados': { feature: 'report', name: 'Resultados' },
 };
 
@@ -187,6 +199,7 @@ function publicScreen(route: string, loggedIn: boolean): ReactNode {
   const [path, query = ''] = route.split('?');
   const token = new URLSearchParams(query).get('token') ?? '';
   if (path === '/demo') return <DemoStart />;
+  if (path === '/demo-premium') return <DemoStart premium />;
   if (path === '/nova-senha') return <ResetPassword token={token} />;
   if (path === '/confirmar-email') return <ConfirmEmail token={token} />;
   if (loggedIn) return null;
@@ -283,6 +296,13 @@ function Panel({ me }: { me: Me }) {
   const { logout, refresh } = useAuth();
   const [route, go] = useRoute();
 
+  // Marca do negócio (Premium): cor e fonte valem no painel todo; ao sair, volta a da nexo.
+  const brandKey = JSON.stringify(me.brand ?? null);
+  useEffect(() => {
+    applyBrand(JSON.parse(brandKey) as Me['brand']);
+    return () => applyBrand(null);
+  }, [brandKey]);
+
   // A entrada do admin vence sozinha; ao vencer, volta para a área do admin.
   const actingUntil = me.acting?.until;
   useEffect(() => {
@@ -328,11 +348,11 @@ function Panel({ me }: { me: Me }) {
     staff && !['/hoje', '/agenda', '/conta', '/chat', '/wiki', '/quadros'].includes(rawSection)
       ? '/hoje'
       : rawSection;
-  const contactMatch = staff ? null : /^\/clientes\/([0-9a-f-]{36})$/.exec(route);
-  const conversationMatch = /^\/conversas\/([0-9a-f-]{36})$/.exec(route);
-  const supportMatch = /^\/suporte\/([0-9a-f-]{36})$/.exec(route);
-  const chatMatch = /^\/chat\/([0-9a-f-]{36})$/.exec(route);
-  const boardMatch = /^\/quadros\/([0-9a-f-]{36})$/.exec(route);
+  const contactMatch = staff ? null : routeId('clientes', route);
+  const conversationMatch = routeId('conversas', route);
+  const supportMatch = routeId('suporte', route);
+  const chatMatch = routeId('chat', route);
+  const boardMatch = routeId('quadros', route);
 
   // Tour guiado: abre sozinho uma vez por aparelho (fora dos testes) e pela bússola do topo.
   const [touring, setTouring] = useState(
@@ -378,6 +398,10 @@ function Panel({ me }: { me: Me }) {
     <BotMessages go={go} />
   ) : section === '/folgas' ? (
     <TimeOff go={go} />
+  ) : section === '/marca' ? (
+    <BrandSettings />
+  ) : section === '/modelos' ? (
+    <Templates canEdit={canArea('settings')} />
   ) : section === '/configurar' ? (
     <Setup go={go} />
   ) : section === '/assinatura' ? (
@@ -430,6 +454,7 @@ function Panel({ me }: { me: Me }) {
     <div className="app app--with-nav">
       <Sidebar
         businessName={me.businessName ?? 'nexo'}
+        logo={me.brand?.logoVersion ? logoUrl(me.brand.logoVersion) : null}
         items={nav}
         section={
           inSettings && section !== '/assinatura' && section !== '/suporte' ? '/conta' : section
@@ -545,13 +570,13 @@ function Panel({ me }: { me: Me }) {
 }
 
 /** Entra na demonstração: liga o modo demo, lê a "sessão" fictícia e abre o Hoje. */
-function DemoStart() {
+function DemoStart({ premium = false }: { premium?: boolean }) {
   const { refresh } = useAuth();
   useEffect(() => {
-    enterDemo();
+    enterDemo(premium);
     void refresh().then(() => {
       window.location.hash = '/hoje';
     });
-  }, [refresh]);
+  }, [refresh, premium]);
   return <Loading />;
 }

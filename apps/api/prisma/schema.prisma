@@ -62,6 +62,13 @@ model Tenant {
   requireMfa            Boolean   @default(false) @map("require_mfa")
   /// Premium: dias da Carteira (atenção, risco, perdida). Vazio: padrão de @nexo/core.
   portfolioRules        Json      @default("{}") @map("portfolio_rules")
+  /// Premium: cor dos botões (#RRGGBB, contraste conferido) e fonte do painel. Nulo = da nexo.
+  brandColor            String?   @map("brand_color")
+  brandFont             String?   @map("brand_font")
+  /// Premium: domínio próprio do painel. Só vale depois de verificado pelo registro DNS.
+  customDomain          String?   @unique @map("custom_domain")
+  domainToken           String?   @map("domain_token")
+  domainVerifiedAt      DateTime? @map("domain_verified_at") @db.Timestamptz
   /// Cronômetro do onboarding: quando o negócio foi criado pela nexo e quando a dona terminou de configurar.
   onboardingStartedAt   DateTime? @map("onboarding_started_at") @db.Timestamptz
   onboardingCompletedAt DateTime? @map("onboarding_completed_at") @db.Timestamptz
@@ -81,6 +88,8 @@ model Tenant {
   wikiCategories WikiCategory[]
   wikiArticles   WikiArticle[]
   boards         Board[]
+  brandLogo      BrandLogo?
+  templates      MessageTemplate[]
 
   @@map("tenants")
 }
@@ -870,4 +879,35 @@ model BoardFile {
   @@index([boardId])
   @@index([tenantId])
   @@map("board_files")
+}
+
+/// Logo do negócio (Premium).
+model BrandLogo {
+  tenantId  String   @id @map("tenant_id") @db.Uuid
+  mime      String
+  data      Bytes
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("brand_logos")
+}
+
+/// Modelo de mensagem (Premium): whatsapp ou email, com campos entre chaves.
+model MessageTemplate {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  channel    String
+  name       String
+  subject    String?
+  body       String
+  archivedAt DateTime? @map("archived_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@map("message_templates")
 }

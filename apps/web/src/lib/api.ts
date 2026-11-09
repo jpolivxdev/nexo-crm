@@ -81,7 +81,12 @@ export async function sendRaw<T>(
   body: Blob | string,
   fileName?: string,
 ): Promise<T> {
-  if (isDemo()) throw new ApiError(400, 'Na demonstração isto não fica salvo.');
+  if (isDemo()) {
+    // O quadro branco manda o desenho como texto JSON; arquivos não entram na demo.
+    if (typeof body !== 'string') throw new ApiError(400, 'Na demonstração isto não fica salvo.');
+    const { demoRequest } = await import('./demo/server');
+    return (await demoRequest(method, path, {}, JSON.parse(body))) as T;
+  }
   const headers: Record<string, string> = {
     accept: 'application/json',
     'content-type': 'application/octet-stream',

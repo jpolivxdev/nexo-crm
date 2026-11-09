@@ -49,11 +49,14 @@ const ACCOUNT: SidebarItem[] = [
 
 export function Sidebar({
   businessName,
+  logo,
   items,
   section,
   onLogout,
 }: {
   businessName: string;
+  /** Logo do negócio (Premium), no lugar da inicial. */
+  logo?: string | null;
   items: SidebarItem[];
   section: string;
   onLogout: () => void;
@@ -89,9 +92,13 @@ export function Sidebar({
   return (
     <aside className={collapsed ? 'sidebar sidebar--collapsed' : 'sidebar'} aria-label="Menu">
       <div className="sidebar__business">
-        <span className="sidebar__initial" aria-hidden="true">
-          {businessName.trim().charAt(0).toUpperCase() || 'n'}
-        </span>
+        {logo ? (
+          <img className="sidebar__logo" src={logo} alt="" />
+        ) : (
+          <span className="sidebar__initial" aria-hidden="true">
+            {businessName.trim().charAt(0).toUpperCase() || 'n'}
+          </span>
+        )}
         <span className="sidebar__label">
           <span className="sidebar__eyebrow">Seu painel</span>
           <strong>{businessName}</strong>

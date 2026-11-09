@@ -124,10 +124,15 @@ export class AuthController {
               features: true,
               accessRules: true,
               requireMfa: true,
+              brandColor: true,
+              brandFont: true,
+              brandLogo: { select: { updatedAt: true } },
             },
           }),
         )
       : null;
+    const features = tenant ? featuresOf(tenant.plan, tenant.features) : [];
+    const branded = features.includes('branding');
     return {
       // Para a tela saber o que é "meu" (Meus atendimentos, Minhas tarefas).
       userId: auth.acting ? null : auth.userId,
@@ -139,7 +144,16 @@ export class AuthController {
       onboardingPending: tenant ? tenant.onboardingCompletedAt === null : false,
       // Só para a tela esconder o que o plano não tem; quem trava de verdade é o PlanGuard.
       plan: tenant?.plan ?? null,
-      features: tenant ? featuresOf(tenant.plan, tenant.features) : [],
+      features,
+      // Marca do negócio (Premium): a tela aplica cor, fonte e logo.
+      brand:
+        tenant && branded
+          ? {
+              color: tenant.brandColor,
+              font: tenant.brandFont,
+              logoVersion: tenant.brandLogo ? tenant.brandLogo.updatedAt.getTime() : null,
+            }
+          : null,
       // Áreas que o papel acessa (Acessos por papel). Admin numa entrada controlada vê tudo.
       access: tenant
         ? areasFor(auth.acting ? 'OWNER' : auth.role, accessRulesOf(tenant.accessRules))

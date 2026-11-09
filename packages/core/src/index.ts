@@ -180,3 +180,19 @@ export {
   type BoardElementType,
   type Box,
 } from './board/elements.js';
+export {
+  BRAND_COLOR_SUGGESTIONS,
+  BRAND_FONTS,
+  checkBrandColor,
+  contrastRatio,
+  DOMAIN_TXT_PREFIX,
+  normalizeDomain,
+  type BrandFont,
+} from './brand/brand.js';
+export {
+  fillTemplate,
+  TEMPLATE_FIELDS,
+  templateFields,
+  unknownFields,
+  type TemplateField,
+} from './brand/templates.js';

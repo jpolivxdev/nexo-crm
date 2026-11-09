@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { ChatModule } from './chat/chat.module.js';
 import { WikiModule } from './wiki/wiki.module.js';
 import { BoardModule } from './board/board.module.js';
+import { BrandModule } from './brand/brand.module.js';
 import { ChannelModule } from './channel/channel.module.js';
 import { ConversationModule } from './conversation/conversation.module.js';
 import { DatabaseModule } from './database/database.module.js';
@@ -41,6 +42,7 @@ export class AppModule {
         ChatModule,
         WikiModule,
         BoardModule,
+        BrandModule,
         SetupModule,
         AdminModule,
         SupportModule,

@@ -425,3 +425,13 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Imagens:** PNG, JPG, WEBP ou GIF até 5 MB, conferidas pelo conteúdo (sem SVG). Ficam no Postgres (`board_files`) e só podem ser usadas no quadro onde foram enviadas.
 - **Isolamento:** `boards` e `board_files` com `tenant_id`, RLS forçado e chaves compostas; teste automatizado de vazamento entre negócios.
 - **Fora desta fase:** edição ao mesmo tempo com cursor das outras pessoas, modelos prontos de quadro, exportar como imagem e mapa mental automático.
+
+## Premium, fase P8: Marca, domínio próprio, modelos de mensagem e demo do Premium (10/11/2026)
+
+- **Marca:** logo (PNG, JPG ou WEBP, até 1 MB, conferida pelo conteúdo do arquivo), cor dos botões e destaques e fonte do painel (Padrão, Clássica ou Do aparelho). A cor só é aceita com contraste de pelo menos 4,5:1 com o texto branco (regra de acessibilidade da seção 11), conferido na tela e no servidor. O "feito pela nexo" continua no rodapé.
+- **Domínio próprio:** a dona cadastra o endereço e prova que é dela com um registro TXT (`_nexo-verificacao.<domínio>`). Só domínio verificado mostra a marca na tela de entrada, por uma função do banco que devolve apenas o negócio daquele domínio. **Fato:** ligar o endereço no ar depende da hospedagem (certificado e apontamento), que ainda é **[A DEFINIR]**; a tela diz isso sem prometer prazo.
+- **Modelos de mensagem:** WhatsApp e e-mail, com campos `{nome}`, `{primeiro_nome}`, `{negocio}`, `{servico}`, `{data}` e `{hora}`. Campo desconhecido trava o salvar. Os de WhatsApp aparecem em "Usar modelo" na resposta das Conversas e da ficha, já preenchidos com a cliente e o próximo horário; o que não se sabe vira `___`. O painel não manda e-mail para clientes, então o de e-mail é copiado com os espaços `___` para completar (sem dados de exemplo no texto copiado).
+- **Quem mexe:** dono e quem tem a área Configurações; o resto só lê os modelos.
+- **Demo do Premium:** botão "Demo do Premium" na página inicial (`#/demo-premium`). O mesmo negócio fictício da demo do Básico, com tudo do Premium ligado e dados marcados "(demo)": CRM, painéis, carteira, chat, Wiki, quadro, marca e modelos. Nada sai do navegador; enviar arquivo e ligar domínio avisam que não funcionam na demo.
+- **Correção:** na demo, tocar numa cliente ou conversa não abria a ficha (a rota só aceitava ids do servidor). Agora aceita também os ids da demo.
+- **Página inicial:** o Premium passou de "Em construção" para "Em teste", com a lista do que ele tem. Preço continua **[A DEFINIR com o Coca]**.

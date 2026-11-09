@@ -5680,3 +5680,257 @@ a.button {
     min-height: 320px;
   }
 }
+
+/* Marca do negócio (Premium) */
+.sidebar__logo {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--branco);
+}
+
+.login__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--branco);
+  font-family: var(--fonte-titulo);
+  font-size: 1.375rem;
+}
+
+.login__brand-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--branco);
+}
+
+.brand-look,
+.brand-domain,
+.templates {
+  margin-bottom: 16px;
+}
+
+.brand-look__logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand-look__logo img,
+.brand-look__initial {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  border-radius: 16px;
+  object-fit: contain;
+  background: var(--branco);
+  box-shadow: 0 0 0 1px var(--cor-borda);
+}
+
+.brand-look__initial {
+  display: grid;
+  place-items: center;
+  background: var(--roxo-nexo);
+  color: var(--branco);
+  font-family: var(--fonte-titulo);
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.brand-look__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.brand-look__swatches .board__color {
+  width: 36px;
+  height: 36px;
+  margin: 4px;
+}
+
+.brand-look__picker {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+}
+
+.brand-look__picker input[type='color'] {
+  width: 36px;
+  height: 36px;
+  min-height: 0;
+  padding: 0;
+  border: 1px solid var(--cor-borda-forte);
+  border-radius: 50%;
+  cursor: pointer;
+  background: none;
+}
+
+.brand-look__warn {
+  color: #b42318;
+  font-weight: 600;
+}
+
+.brand-look__preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--cor-fundo);
+}
+
+.brand-look__button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  color: var(--branco);
+  font-weight: 600;
+}
+
+.brand-look__tag {
+  font-weight: 600;
+}
+
+.brand-font--nexo {
+  font-family: 'Sora', system-ui, sans-serif;
+}
+
+.brand-font--classica {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.brand-font--sistema {
+  font-family: system-ui, sans-serif;
+}
+
+.brand-domain h2,
+.templates h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-domain__steps {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.brand-domain__line {
+  display: grid;
+  grid-template-columns: 48px 1fr 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--cor-fundo);
+}
+
+.brand-domain__line code {
+  overflow-wrap: anywhere;
+  font-size: 0.875rem;
+}
+
+.brand-domain__ok {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  color: var(--cor-texto);
+}
+
+.brand-domain__ok svg {
+  flex: none;
+  margin-top: 3px;
+  color: #16a34a;
+}
+
+.templates__head h2 {
+  margin: 0;
+}
+
+.templates__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.templates__item {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--cor-borda);
+}
+
+.templates__actions {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.templates__body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 4px 0 0;
+}
+
+.templates__fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.templates__preview {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--cor-fundo);
+}
+
+.templates__preview p {
+  margin: 0 0 4px;
+}
+
+.templates__pick {
+  width: 100%;
+  min-height: 44px;
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.templates__pick:hover,
+.templates__pick:focus-visible {
+  border-color: var(--roxo-nexo);
+}
+
+.brand-look fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.brand-look legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-weight: 600;
+}

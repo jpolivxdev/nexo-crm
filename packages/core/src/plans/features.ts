@@ -14,6 +14,8 @@ export type PlanId = 'FREE' | 'CRM' | 'COMPLETE' | 'PREMIUM';
  * team_chat: chat interno da equipe (canais e conversas diretas).
  * wiki: Wiki do negócio (artigos, categorias, busca e anexos).
  * whiteboard: Quadro branco (formas, setas, texto, lápis e imagem; quadros salvos por negócio).
+ * branding: marca do negócio no painel e no login (logo, cor, fonte) e domínio próprio.
+ * templates: modelos de mensagem de WhatsApp e e-mail.
  */
 export type Feature =
   | 'report'
@@ -26,7 +28,9 @@ export type Feature =
   | 'dashboards'
   | 'team_chat'
   | 'wiki'
-  | 'whiteboard';
+  | 'whiteboard'
+  | 'branding'
+  | 'templates';
 
 const BASIC: readonly Feature[] = ['report', 'agenda', 'bot', 'reminders'];
 const PREMIUM: readonly Feature[] = [
@@ -37,6 +41,8 @@ const PREMIUM: readonly Feature[] = [
   'team_chat',
   'wiki',
   'whiteboard',
+  'branding',
+  'templates',
 ];
 
 export const PLAN_FEATURES: Record<PlanId, readonly Feature[]> = {
