@@ -12,5 +12,5 @@ export function csvCell(value: string | number | null | undefined): string {
 }
 
 export function toCsv(rows: readonly (readonly (string | number | null | undefined)[])[]): string {
-  return '﻿' + rows.map((row) => row.map(csvCell).join(';')).join('\r\n') + '\r\n';
+  return '\uFEFF' + rows.map((row) => row.map(csvCell).join(';')).join('\r\n') + '\r\n';
 }

@@ -4732,3 +4732,97 @@ a.button {
     white-space: nowrap;
   }
 }
+
+/* Carteira e importar (Premium) */
+.portfolio-totals {
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  margin-bottom: 12px;
+}
+
+.portfolio__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  align-items: center;
+  text-align: left;
+}
+
+.portfolio__row > :not(strong):not(.portfolio__status) {
+  grid-column: 1 / -1;
+}
+
+.portfolio__status--ok {
+  background: #e3f6ea;
+  color: #1d6b3c;
+}
+
+.portfolio__status--attention {
+  background: #fff3d6;
+  color: #7a4d00;
+}
+
+.portfolio__status--risk {
+  background: #ffe4e0;
+  color: #9b1c1c;
+}
+
+.portfolio__status--lost {
+  background: var(--cor-suave);
+  color: var(--cor-texto-suave);
+}
+
+.file-pick {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--toque-minimo);
+  padding: 0 16px;
+  border: 1.5px dashed var(--cor-borda-forte);
+  border-radius: var(--raio-pequeno);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.file-pick input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  min-height: 0;
+}
+
+.file-pick:focus-within {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.import-check {
+  display: grid;
+  gap: 12px;
+}
+
+.import-check__table {
+  overflow-x: auto;
+}
+
+.import-check tr[data-status='invalid'] td,
+.import-check tr[data-status='duplicate'] td {
+  color: var(--cor-texto-suave);
+}
+
+:root[data-theme='escuro'] .portfolio__status--ok {
+  background: #173d27;
+  color: #9be3b5;
+}
+
+:root[data-theme='escuro'] .portfolio__status--attention {
+  background: #4a3410;
+  color: #ffd98a;
+}
+
+:root[data-theme='escuro'] .portfolio__status--risk {
+  background: #4d1d1a;
+  color: #ffb4ab;
+}

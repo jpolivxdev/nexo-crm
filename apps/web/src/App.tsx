@@ -5,6 +5,7 @@ import {
   House,
   LogOut,
   MessagesSquare,
+  Repeat2,
   SquareKanban,
   Settings as Settings2,
   Users,
@@ -48,6 +49,7 @@ import { ConfirmEmail, ForgotPassword, ResetPassword, Signup } from './screens/A
 import { Landing } from './screens/Landing';
 import { Login } from './screens/Login';
 import { Pipeline } from './screens/Pipeline';
+import { Portfolio } from './screens/Portfolio';
 import { NoAccess, NotInPlan, Plans } from './screens/Plans';
 import { Report } from './screens/Report';
 import { Setup } from './screens/Setup';
@@ -82,6 +84,14 @@ const NAV: (SidebarItem & { feature?: Feature })[] = [
     hint: 'Ficha de cada cliente, frequentes e sumidas',
   },
   {
+    to: '/carteira',
+    label: 'Carteira',
+    Icon: Repeat2,
+    feature: 'contacts_plus',
+    group: 'Atendimento',
+    hint: 'Quem volta sempre e quem está em risco de sumir',
+  },
+  {
     to: '/etapas',
     label: 'Etapas',
     Icon: SquareKanban,
@@ -102,6 +112,7 @@ const NAV: (SidebarItem & { feature?: Feature })[] = [
 const SECTION_FEATURE: Record<string, { feature: Feature; name: string }> = {
   '/acessos': { feature: 'team_roles', name: 'Acessos por papel' },
   '/agenda': { feature: 'agenda', name: 'A agenda' },
+  '/carteira': { feature: 'contacts_plus', name: 'A Carteira de clientes' },
   '/folgas': { feature: 'agenda', name: 'Folgas e bloqueios' },
   '/resultados': { feature: 'report', name: 'Resultados' },
 };
@@ -321,7 +332,9 @@ function Panel({ me }: { me: Me }) {
   ) : section === '/conversas' ? (
     <Conversations id={conversationMatch?.[1] ?? null} go={go} />
   ) : section === '/clientes' ? (
-    <Contacts go={go} />
+    <Contacts go={go} canTransfer={has('contacts_plus') && canArea('privacy')} />
+  ) : section === '/carteira' ? (
+    <Portfolio go={go} canSettings={canArea('settings')} />
   ) : section === '/etapas' ? (
     <Pipeline
       go={go}

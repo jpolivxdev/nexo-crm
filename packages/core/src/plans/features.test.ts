@@ -13,6 +13,7 @@ describe('recursos por plano', () => {
       'reminders',
       'team_roles',
       'crm_plus',
+      'contacts_plus',
     ]);
   });
 

@@ -60,6 +60,8 @@ model Tenant {
   accessRules           Json      @default("{}") @map("access_rules")
   /// Premium: dono e gestores só usam o painel com a verificação em duas etapas ligada.
   requireMfa            Boolean   @default(false) @map("require_mfa")
+  /// Premium: dias da Carteira (atenção, risco, perdida). Vazio: padrão de @nexo/core.
+  portfolioRules        Json      @default("{}") @map("portfolio_rules")
   /// Cronômetro do onboarding: quando o negócio foi criado pela nexo e quando a dona terminou de configurar.
   onboardingStartedAt   DateTime? @map("onboarding_started_at") @db.Timestamptz
   onboardingCompletedAt DateTime? @map("onboarding_completed_at") @db.Timestamptz

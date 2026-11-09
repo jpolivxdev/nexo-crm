@@ -114,3 +114,22 @@ export {
   type FieldValue,
 } from './crm/custom-fields.js';
 export { csvCell, toCsv } from './crm/csv.js';
+export {
+  checkImport,
+  detectColumns,
+  IMPORT_MAX_ROWS,
+  normalizePhone,
+  parseCsv,
+  type ImportColumns,
+  type ImportRow,
+  type ImportStatus,
+} from './crm/import.js';
+export {
+  averageInterval,
+  checkPortfolioRules,
+  DEFAULT_PORTFOLIO_RULES,
+  portfolioRulesOf,
+  portfolioStatus,
+  type PortfolioRules,
+  type PortfolioStatus,
+} from './crm/portfolio.js';

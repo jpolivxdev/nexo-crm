@@ -17,6 +17,6 @@ describe('planilha CSV', () => {
         ['a', 'b'],
         [1, null],
       ]),
-    ).toBe('﻿a;b\r\n1;\r\n');
+    ).toBe('\uFEFFa;b\r\n1;\r\n');
   });
 });

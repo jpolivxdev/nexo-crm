@@ -9,11 +9,13 @@ export type PlanId = 'FREE' | 'CRM' | 'COMPLETE' | 'PREMIUM';
 /**
  * team_roles: gestor e consultor na equipe, Acessos por papel e verificação obrigatória.
  * crm_plus: CRM completo (vários funis, campanhas, campos próprios, previsão, tarefas da equipe).
+ * contacts_plus: importar e exportar clientes e a Carteira (quem volta e quem está em risco).
  */
-export type Feature = 'report' | 'agenda' | 'bot' | 'reminders' | 'team_roles' | 'crm_plus';
+export type Feature =
+  'report' | 'agenda' | 'bot' | 'reminders' | 'team_roles' | 'crm_plus' | 'contacts_plus';
 
 const BASIC: readonly Feature[] = ['report', 'agenda', 'bot', 'reminders'];
-const PREMIUM: readonly Feature[] = ['team_roles', 'crm_plus'];
+const PREMIUM: readonly Feature[] = ['team_roles', 'crm_plus', 'contacts_plus'];
 
 export const PLAN_FEATURES: Record<PlanId, readonly Feature[]> = {
   FREE: [],

@@ -62,7 +62,7 @@ Ideia do JP: o básico é este sistema no layout do CRM de referência, com as n
 | LP | Página inicial com os 2 planos (Básico e Premium) e demonstração do Básico no navegador, com tour geral | Feito (PR #31) |
 | P1 | Premium: plano no banco, gestor e consultor, Acessos por papel, verificação em duas etapas para o painel (opcional ou exigida) | Em PR |
 | P2 | Premium: CRM completo (vários funis, campanhas, campos, valor, responsável, Minhas tarefas, previsão, exportar) | Em PR |
-| P3 | Premium: Contatos (importar e exportar) e Clientes (carteira recorrente, risco) | A fazer |
+| P3 | Premium: Contatos (importar e exportar) e Clientes (carteira recorrente, risco) | Em PR |
 | P4 | Premium: Painéis e Início | A fazer |
 | P5 | Premium: Chat interno | A fazer |
 | P6 | Premium: Wiki | A fazer |
