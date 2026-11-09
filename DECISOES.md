@@ -332,3 +332,8 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Meu perfil:** a dona troca o nome que aparece no painel (`POST /auth/profile`, 2 a 80 letras, vai para a auditoria). O e-mail é o login e não muda pela tela: troca de e-mail precisa de confirmação no endereço novo, e fica pelo Suporte até ter pedido real.
 - **Segurança:** trocar a senha (já existia; derruba os outros aparelhos), ver quantos outros aparelhos estão com o painel aberto e "Sair dos outros aparelhos" (`POST /auth/sessions/revoke-others`, mantém a sessão atual, vai para a auditoria). Durante a entrada controlada do admin nexo essas rotas dão 403: a nexo não mexe na conta da dona.
 - **Duas etapas (2FA):** já é obrigatória para o admin nexo desde a fase 1 (código do aplicativo autenticador no login). Para a dona fica para depois: precisa de tela de ativação com QR code e de um jeito de recuperar o acesso se ela perder o celular. A tela só mostra "ligada" para quem já tem.
+
+## Cores das etapas (09/11/2026)
+
+- **Pedido do JP:** o quadro de Etapas estava apagado, principalmente no modo escuro (todas as etapas em tons de roxo). O de referência usa uma cor bem diferente por etapa.
+- **Exceção ao guia de marca (só nas etapas):** além de Azul Elo e Roxo Nexo, entram âmbar, verde e ciano como cores de situação, no ponto, na linha do título, no contador e num fundo bem leve no topo da coluna. Cada cor tem versão mais clara no modo escuro. O nome da etapa vem sempre junto (nada só por cor). Botões, destaques e o resto do painel seguem a paleta. A confirmar com os sócios; voltar atrás é trocar cinco variáveis em `.board` (App.css).
