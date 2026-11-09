@@ -11,7 +11,8 @@ export interface RealtimeNotice {
     | 'handoff.requested'
     | 'contact.updated'
     | 'support.updated'
-    | 'chat.updated';
+    | 'chat.updated'
+    | 'board.updated';
   id?: string;
   /** Mudança feita pela cliente (WhatsApp) que merece um aviso na tela da dona. */
   alert?: OwnerAlert;
@@ -31,6 +32,7 @@ const wireSchema = z.object({
       'contact.updated',
       'support.updated',
       'chat.updated',
+      'board.updated',
     ]),
     id: z.uuid().optional(),
     alert: z.enum(OWNER_ALERTS).optional(),

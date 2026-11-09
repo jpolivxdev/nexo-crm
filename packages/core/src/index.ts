@@ -162,3 +162,21 @@ export {
   type FileCheck,
   type WikiFileType,
 } from './wiki/files.js';
+export {
+  BOARD_COLORS,
+  BOARD_MAX_ELEMENTS,
+  BOARD_WIDTHS,
+  boardBounds,
+  checkBoard,
+  elementBox,
+  hitTest,
+  moveElement,
+  normalBox,
+  penElement,
+  TEXT_SIZES,
+  topAt,
+  type BoardColor,
+  type BoardElement,
+  type BoardElementType,
+  type Box,
+} from './board/elements.js';

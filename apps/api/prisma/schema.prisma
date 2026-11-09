@@ -80,6 +80,7 @@ model Tenant {
   chatChannels   ChatChannel[]
   wikiCategories WikiCategory[]
   wikiArticles   WikiArticle[]
+  boards         Board[]
 
   @@map("tenants")
 }
@@ -829,4 +830,44 @@ model WikiAttachment {
   @@index([articleId])
   @@index([tenantId])
   @@map("wiki_attachments")
+}
+
+/// Quadro branco (Premium). `elements` é conferido por checkBoard (@nexo/core).
+model Board {
+  id            String    @id @default(uuid()) @db.Uuid
+  tenantId      String    @map("tenant_id") @db.Uuid
+  title         String
+  elements      Json      @default("[]")
+  /// Sobe a cada salvamento: quem salvar com versão velha recebe 409 (alguém mudou antes).
+  version       Int       @default(1)
+  createdById   String    @map("created_by_id") @db.Uuid
+  updatedByName String    @map("updated_by_name")
+  archivedAt    DateTime? @map("archived_at") @db.Timestamptz
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant Tenant      @relation(fields: [tenantId], references: [id])
+  files  BoardFile[]
+
+  @@unique([tenantId, id])
+  @@index([tenantId])
+  @@map("boards")
+}
+
+/// Imagem colada num quadro.
+model BoardFile {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  boardId     String   @map("board_id") @db.Uuid
+  mime        String
+  size        Int
+  data        Bytes
+  createdById String   @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  board Board @relation(fields: [tenantId, boardId], references: [tenantId, id], onDelete: Restrict)
+
+  @@index([boardId])
+  @@index([tenantId])
+  @@map("board_files")
 }

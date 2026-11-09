@@ -7,6 +7,7 @@ import { AdminModule } from './admin/admin.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { ChatModule } from './chat/chat.module.js';
 import { WikiModule } from './wiki/wiki.module.js';
+import { BoardModule } from './board/board.module.js';
 import { ChannelModule } from './channel/channel.module.js';
 import { ConversationModule } from './conversation/conversation.module.js';
 import { DatabaseModule } from './database/database.module.js';
@@ -39,6 +40,7 @@ export class AppModule {
         CrmModule,
         ChatModule,
         WikiModule,
+        BoardModule,
         SetupModule,
         AdminModule,
         SupportModule,

@@ -66,7 +66,7 @@ Ideia do JP: o básico é este sistema no layout do CRM de referência, com as n
 | P4 | Premium: Painéis e Início | Em PR |
 | P5 | Premium: Chat interno | Em PR |
 | P6 | Premium: Wiki | Em PR |
-| P7 | Premium: Quadro branco | A fazer |
+| P7 | Premium: Quadro branco | Em PR |
 | P8 | Premium: Marca, domínio próprio e modelos de mensagem; demo do Premium | A fazer |
 
 Em 09/11/2026 o JP decidiu ficar com dois planos: Básico e Premium (o do meio saiu).

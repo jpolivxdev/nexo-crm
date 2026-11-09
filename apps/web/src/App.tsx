@@ -8,6 +8,7 @@ import {
   LogOut,
   MessageCircle,
   MessagesSquare,
+  Presentation,
   Repeat2,
   SquareKanban,
   Settings as Settings2,
@@ -63,6 +64,7 @@ import { StageRules } from './screens/StageRules';
 import { Team } from './screens/Team';
 import { TeamChat } from './screens/TeamChat';
 import { Wiki } from './screens/Wiki';
+import { Boards } from './screens/Boards';
 import { Today } from './screens/Today';
 
 const NAV: (SidebarItem & { feature?: Feature })[] = [
@@ -136,7 +138,18 @@ const NAV: (SidebarItem & { feature?: Feature })[] = [
     group: 'Equipe',
     hint: 'Passo a passo, regras e combinados do negócio',
   },
+  {
+    to: '/quadros',
+    label: 'Quadro branco',
+    Icon: Presentation,
+    feature: 'whiteboard',
+    group: 'Equipe',
+    hint: 'Rascunhos, fluxos e ideias desenhados com a equipe',
+  },
 ];
+
+/** Telas internas da equipe: a nexo, numa entrada de suporte, não entra. */
+const TEAM_ONLY = ['/chat', '/wiki', '/quadros'];
 
 /** Seções que dependem do plano (o servidor também barra). */
 const SECTION_FEATURE: Record<string, { feature: Feature; name: string }> = {
@@ -145,6 +158,7 @@ const SECTION_FEATURE: Record<string, { feature: Feature; name: string }> = {
   '/carteira': { feature: 'contacts_plus', name: 'A Carteira de clientes' },
   '/chat': { feature: 'team_chat', name: 'O chat da equipe' },
   '/wiki': { feature: 'wiki', name: 'A Wiki' },
+  '/quadros': { feature: 'whiteboard', name: 'O quadro branco' },
   '/paineis': { feature: 'dashboards', name: 'Os Painéis' },
   '/folgas': { feature: 'agenda', name: 'Folgas e bloqueios' },
   '/resultados': { feature: 'report', name: 'Resultados' },
@@ -300,22 +314,25 @@ function Panel({ me }: { me: Me }) {
   };
   // Chat e Wiki são da equipe: a nexo, numa entrada de suporte, não entra (o servidor barra).
   const nav = (
-    staff ? NAV.filter((n) => ['/hoje', '/agenda', '/chat', '/wiki'].includes(n.to)) : NAV
+    staff
+      ? NAV.filter((n) => ['/hoje', '/agenda', '/chat', '/wiki', '/quadros'].includes(n.to))
+      : NAV
   ).filter(
     (n) =>
       (!n.feature || has(n.feature)) &&
       allowedSection(n.to) &&
-      ((n.to !== '/chat' && n.to !== '/wiki') || !me.acting),
+      (!TEAM_ONLY.includes(n.to) || !me.acting),
   );
   const rawSection = '/' + (route.split('/')[1] ?? 'hoje');
   const section =
-    staff && !['/hoje', '/agenda', '/conta', '/chat', '/wiki'].includes(rawSection)
+    staff && !['/hoje', '/agenda', '/conta', '/chat', '/wiki', '/quadros'].includes(rawSection)
       ? '/hoje'
       : rawSection;
   const contactMatch = staff ? null : /^\/clientes\/([0-9a-f-]{36})$/.exec(route);
   const conversationMatch = /^\/conversas\/([0-9a-f-]{36})$/.exec(route);
   const supportMatch = /^\/suporte\/([0-9a-f-]{36})$/.exec(route);
   const chatMatch = /^\/chat\/([0-9a-f-]{36})$/.exec(route);
+  const boardMatch = /^\/quadros\/([0-9a-f-]{36})$/.exec(route);
 
   // Tour guiado: abre sozinho uma vez por aparelho (fora dos testes) e pela bússola do topo.
   const [touring, setTouring] = useState(
@@ -397,6 +414,8 @@ function Panel({ me }: { me: Me }) {
       go={go}
       canManage={me.role === 'OWNER' || me.role === 'MANAGER'}
     />
+  ) : section === '/quadros' && !me.acting ? (
+    <Boards id={boardMatch?.[1] ?? null} go={go} />
   ) : section === '/wiki' && !me.acting ? (
     <Wiki route={route} go={go} />
   ) : section === '/paineis' ? (

@@ -40,7 +40,8 @@ export interface Notice {
     | 'handoff.requested'
     | 'contact.updated'
     | 'support.updated'
-    | 'chat.updated';
+    | 'chat.updated'
+    | 'board.updated';
   id?: string;
   /** Mudança feita pela cliente no WhatsApp que merece aviso para a dona. */
   alert?: 'booked' | 'rescheduled' | 'cancelled';

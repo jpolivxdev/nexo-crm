@@ -13,6 +13,7 @@ export type PlanId = 'FREE' | 'CRM' | 'COMPLETE' | 'PREMIUM';
  * dashboards: Painéis (comercial, metas por período, funil de conversão, Modo TV) e painel geral no Hoje.
  * team_chat: chat interno da equipe (canais e conversas diretas).
  * wiki: Wiki do negócio (artigos, categorias, busca e anexos).
+ * whiteboard: Quadro branco (formas, setas, texto, lápis e imagem; quadros salvos por negócio).
  */
 export type Feature =
   | 'report'
@@ -24,7 +25,8 @@ export type Feature =
   | 'contacts_plus'
   | 'dashboards'
   | 'team_chat'
-  | 'wiki';
+  | 'wiki'
+  | 'whiteboard';
 
 const BASIC: readonly Feature[] = ['report', 'agenda', 'bot', 'reminders'];
 const PREMIUM: readonly Feature[] = [
@@ -34,6 +36,7 @@ const PREMIUM: readonly Feature[] = [
   'dashboards',
   'team_chat',
   'wiki',
+  'whiteboard',
 ];
 
 export const PLAN_FEATURES: Record<PlanId, readonly Feature[]> = {

@@ -17,6 +17,7 @@ describe('recursos por plano', () => {
       'dashboards',
       'team_chat',
       'wiki',
+      'whiteboard',
     ]);
   });
 

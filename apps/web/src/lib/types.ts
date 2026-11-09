@@ -35,7 +35,8 @@ export type Feature =
   | 'contacts_plus'
   | 'dashboards'
   | 'team_chat'
-  | 'wiki';
+  | 'wiki'
+  | 'whiteboard';
 
 export interface ContactRef {
   id: string;
