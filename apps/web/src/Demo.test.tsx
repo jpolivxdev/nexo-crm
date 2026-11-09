@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
 import { ApiError } from './lib/api';
 import { leaveDemo } from './lib/demo/mode';
+import { localDate } from './lib/demo/data';
 import { demoRequest, resetDemo } from './lib/demo/server';
 
 beforeEach(() => {
@@ -69,10 +70,15 @@ describe('demonstração', () => {
     };
     expect(one.messages.at(-1)).toMatchObject({ body: 'Oi! Dá sim.', direction: 'OUTBOUND' });
 
-    const today = (await demoRequest('GET', '/panel/today')) as {
-      appointments: { id: string; status: string; contact: { id: string } }[];
-    };
-    const open = today.appointments.find((a) => a.status !== 'DONE')!;
+    // Horário ainda aberto nos próximos dias (à noite, os de hoje já estão todos realizados).
+    const week = (await demoRequest('GET', '/panel/agenda', {
+      from: localDate(new Date()),
+      days: '7',
+    })) as { appointments: { id: string; status: string; contact: { id: string } }[] };
+    const open = week.appointments.find(
+      (a) => a.status === 'SCHEDULED' || a.status === 'CONFIRMED',
+    )!;
+    expect(open).toBeDefined();
     await demoRequest('POST', `/panel/appointments/${open.id}/status`, {}, { status: 'DONE' });
     const pipe = (await demoRequest('GET', '/panel/pipeline')) as {
       stages: { key: string; deals: { contact: { id: string } }[] }[];
