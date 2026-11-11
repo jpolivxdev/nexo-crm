@@ -103,7 +103,7 @@
   aspect-ratio: 1;
   pointer-events: none;
   background: url('../assets/brand/nexo-simbolo-fundo-claro.svg') center / contain no-repeat;
-  opacity: 0.24;
+  opacity: 0.18;
 }
 
 :root[data-vidro='on'][data-theme='escuro'] .app:not(.app--auth)::after {
@@ -320,7 +320,10 @@
 :root[data-vidro='on']
   .app:not(.app--auth)
   :is(.card:not(.card--highlight), .kpi:not(.kpi--attention)),
-:root[data-vidro='on'] .app:not(.app--auth) > main :is(.list > li, .stat, .panel) {
+:root[data-vidro='on']
+  .app:not(.app--auth)
+  > main
+  :is(.list > li, .stat:not(.stat--attention), .panel) {
   background: var(--v-cartao);
   border-color: transparent;
   box-shadow:

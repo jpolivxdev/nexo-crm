@@ -17,6 +17,7 @@ import {
 import { type ReactNode, useEffect, useState } from 'react';
 import './App.css';
 import './styles/glass.css';
+import './styles/liquid.css';
 import { Bell } from './components/Bell';
 import { GlassAdjust } from './components/GlassAdjust';
 import { MadeByNexo, NexoLogo } from './components/Brand';
@@ -31,6 +32,7 @@ import { time } from './lib/format';
 import { useRoute } from './lib/hooks';
 import { applyBrand, logoUrl } from './lib/brand';
 import { applyGlass } from './lib/glass';
+import { installLiquid } from './lib/liquid';
 import { DEMO_TOUR, markTourSeen, tourFor, tourSeen } from './lib/tours';
 import { enterDemo, isDemo, leaveDemo, takeDemoTour } from './lib/demo/mode';
 import { DemoBanner } from './components/DemoBanner';
@@ -193,6 +195,8 @@ const NEX_TOPICS: NexTopic[] = [
 ];
 
 export function App() {
+  // Botões de gota em todo o painel (lib/liquid.ts): liga uma vez e segue as telas sozinho.
+  useEffect(() => installLiquid(), []);
   return (
     <AuthProvider>
       <Shell />

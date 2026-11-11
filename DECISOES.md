@@ -447,3 +447,12 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Símbolo da nexo no fundo (pedido do JP):** o SVG oficial do símbolo, grande e parado atrás do vidro, mais claro (24% no claro, 32% no escuro, com a versão para fundo escuro). Nada no desenho muda; o desfoque é o do vidro que passa por cima.
 - **Tela larga:** o conteúdo ocupa até 1600 px e fica centralizado ao lado do menu (antes ficava em 1200 px colado à esquerda, sobrando uma faixa vazia).
 - **Técnica:** a janela de ajuste vai direto no `<body>`, porque dentro da barra (que tem desfoque) ficaria presa atrás do conteúdo. A chave do aparelho mudou para `nexo-vidro-v2`.
+
+## Botões de gota e animação ao trocar de página (11/11/2026)
+
+- **O quê:** pedido do JP a partir do "liquid glass navbar" (Waterline). Em todo grupo de opções do painel (barra de baixo do celular, menu lateral e abas como Mês/Dia/Semana/Lista, 7/30/90 dias, Quadro/Lista), o destaque da opção ativa virou uma gota que escorre até a opção nova: a ponta da frente vai na hora, a de trás vem atrasada, a gota se estica, afina e volta. Ao tocar em botões, abas e itens do menu sai uma onda do ponto do toque. O ícone da opção nova faz uma animação curta (salto, giro, aceno ou pulo, em rodízio). As telas continuam as mesmas: a gota se prende sozinha aos grupos.
+- **Origem e licença (fato):** o componente (guglielmogiannattasio.it) não declara licença. **Nenhum código foi copiado.** Implementação própria em `lib/liquid.ts` (mola em JS) e `styles/liquid.css`, **sem WebGL e sem som**. O passo "imagens do Unsplash" do prompt não entrou (regra da marca: sem banco de imagem).
+- **Cores:** água azul do original trocada pela paleta: gota Branco com brilho Lavanda nas abas e na barra de baixo; gota Roxo Nexo no menu lateral (a seção ativa já era roxa); no escuro, gota roxa com texto Papel. Onda em Lavanda (Branco sobre botões roxos).
+- **Acessibilidade:** a gota e a onda são só enfeite (`aria-hidden`); a opção ativa continua marcada com `aria-current` / `aria-pressed`. Com "reduzir movimento", a gota só muda de lugar, sem esticar, sem onda e sem animar ícone. Os botões só de ícone ficaram sem onda, para não cortar o número do sino.
+- **Correção junto:** os números roxos de Resultados ("Pelo robô") estavam perdendo o fundo roxo com o vidro; voltaram.
+
