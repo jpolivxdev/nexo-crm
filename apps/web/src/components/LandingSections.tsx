@@ -146,36 +146,36 @@ export function AgendaScreen() {
   );
 }
 
-// ---------------- mosaico ----------------
+// ---------------- como funciona: passo a passo em faixas alternadas ----------------
 
-function MosaicCard({
+/** Um passo: texto grande de um lado, a tela de exemplo grande do outro. Entra ao rolar. */
+function Step({
+  n,
   title,
   text,
-  className = '',
   children,
 }: {
+  n: number;
   title: string;
   text: string;
-  className?: string;
   children: ReactNode;
 }) {
+  const [ref, visible] = useInView<HTMLLIElement>();
   return (
-    <li className={`lp-mosaic__card ${className}`}>
-      <div className="lp-mosaic__demo" aria-hidden="true">
-        {children}
+    <li ref={ref} className={`lp-passo${visible ? ' is-visivel' : ''}`}>
+      <div className="lp-passo__texto">
+        <span className="lp-passo__n">{String(n).padStart(2, '0')}</span>
+        <h3>{title}</h3>
+        <p>{text}</p>
       </div>
-      <h3>{title}</h3>
-      <p>{text}</p>
+      <div className="lp-passo__tela">{children}</div>
     </li>
   );
 }
 
-const BARS = [38, 52, 44, 70, 58, 86, 64];
-
-export function Mosaic({ preview }: { preview: string }) {
-  const [ref, visible] = useInView<HTMLUListElement>();
+export function Steps({ preview }: { preview: string }) {
   return (
-    <section id="como-funciona" className="lp-band lp-mosaic-section">
+    <section id="como-funciona" className="lp-band lp-passos-section">
       <div className="lp-band__head">
         <p className="lp-eyebrow">
           <Sparkles aria-hidden="true" size={16} />
@@ -183,100 +183,34 @@ export function Mosaic({ preview }: { preview: string }) {
         </p>
         <h2>Tudo o que acontece no WhatsApp vira agenda, ficha e lembrete.</h2>
       </div>
-      <ul ref={ref} className={`lp-mosaic${visible ? ' is-visivel' : ''}`}>
-        <MosaicCard
-          className="lp-mosaic__card--largo"
+      <ol className="lp-passos">
+        <Step
+          n={1}
           title="O cliente marca pelo WhatsApp"
           text="O robô responde na hora, até de madrugada, e só oferece os horários livres."
         >
-          <div className="lp-mini-chat">
-            <span className="lp-mini-chat__in">Tem horário amanhã?</span>
-            <span className="lp-mini-chat__out">
-              Tenho 9h, 14h30 e 17h.
+          <div className="lp-tela lp-tela--chat" aria-hidden="true">
+            <span className="lp-tela__in">Oi! Tem horário amanhã para corte?</span>
+            <span className="lp-tela__out">
+              Tenho estes horários livres amanhã:
               <span className="lp-chat__chips">
                 <span>9h</span>
                 <span>14h30</span>
                 <span>17h</span>
               </span>
             </span>
+            <span className="lp-tela__in">14h30</span>
+            <span className="lp-tela__out">Pronto! Corte amanhã às 14h30.</span>
           </div>
-        </MosaicCard>
-        <MosaicCard
+        </Step>
+        <Step
+          n={2}
           title="O horário cai na sua agenda"
-          text={'Você vê o dia no celular e marca "realizado" ou "faltou" com um toque.'}
+          text={
+            'Você vê o dia no celular ou no computador e marca "realizado" ou "faltou" com um toque.'
+          }
         >
-          <ul className="lp-mini-agenda">
-            <li>
-              <b>9h</b> Corte <i>Realizado</i>
-            </li>
-            <li>
-              <b>10h30</b> Escova <i className="is-falta">Faltou</i>
-            </li>
-            <li>
-              <b>14h30</b> Corte <i className="is-novo">Novo</i>
-            </li>
-          </ul>
-        </MosaicCard>
-        <MosaicCard
-          className="lp-mosaic__card--alto"
-          title="A ficha do cliente se monta sozinha"
-          text="Conversas, horários e faltas de cada cliente num lugar só, sem digitar nada."
-        >
-          <div className="lp-mini-ficha">
-            <span className="lp-mini-ficha__avatar">C</span>
-            <strong>Carla (demo)</strong>
-            <small>Cliente desde março</small>
-            <ul>
-              <li>
-                <CalendarClock size={14} /> 8 horários
-              </li>
-              <li>
-                <MessageCircle size={14} /> 14 conversas
-              </li>
-              <li>
-                <Check size={14} /> Nenhuma falta
-              </li>
-            </ul>
-          </div>
-        </MosaicCard>
-        <MosaicCard
-          title="Lembrete antes do horário"
-          text="Um dia antes e uma hora antes. O cliente confirma ou cancela ali mesmo."
-        >
-          <div className="lp-mini-lembrete">
-            <span>Amanhã, 14h30: Corte. Você confirma?</span>
-            <span className="lp-mini-lembrete__btns">
-              <b>Confirmar</b>
-              <b>Cancelar</b>
-            </span>
-          </div>
-        </MosaicCard>
-        <MosaicCard
-          title="Você no controle"
-          text="Quando o cliente pede para falar com você, o robô pausa e te avisa."
-        >
-          <div className="lp-mini-switch">
-            <span className="lp-mini-switch__track">
-              <span />
-            </span>
-            <span>
-              <strong>Você na conversa</strong>
-              <small>robô pausado</small>
-            </span>
-          </div>
-        </MosaicCard>
-        <MosaicCard
-          title="Resultados do mês"
-          text="Quantos horários o robô marcou, quantos foram realizados e quem faltou."
-        >
-          <div className="lp-mini-barras">
-            {BARS.map((h, i) => (
-              <span key={i} style={{ height: `${h}%`, transitionDelay: `${0.5 + i * 0.07}s` }} />
-            ))}
-          </div>
-        </MosaicCard>
-        <li className="lp-mosaic__card lp-mosaic__card--painel">
-          <figure className="lp-preview">
+          <figure className="lp-preview lp-tela lp-tela--painel">
             <img
               src={preview}
               alt="Tela do painel com a agenda do dia de um negócio de exemplo"
@@ -286,8 +220,83 @@ export function Mosaic({ preview }: { preview: string }) {
             />
             <figcaption>Painel com dados de exemplo (fictícios).</figcaption>
           </figure>
-        </li>
-      </ul>
+        </Step>
+        <Step
+          n={3}
+          title="Lembrete antes do horário"
+          text="Um dia antes e uma hora antes. O cliente confirma ou cancela ali mesmo, e a agenda se ajusta."
+        >
+          <div className="lp-tela lp-tela--lembrete" aria-hidden="true">
+            <span className="lp-tela__rotulo">
+              <BellRing size={16} /> Lembrete · amanhã
+            </span>
+            <span className="lp-tela__out">
+              Oi! Passando para lembrar do seu horário: corte, amanhã às 14h30. Você confirma?
+              <span className="lp-tela__btns">
+                <b>Confirmar</b>
+                <b>Cancelar</b>
+              </span>
+            </span>
+            <span className="lp-tela__in">Confirmar</span>
+          </div>
+        </Step>
+        <Step
+          n={4}
+          title="A ficha do cliente se monta sozinha"
+          text="Conversas, horários e faltas de cada cliente num lugar só, sem você digitar nada."
+        >
+          <div className="lp-tela lp-tela--ficha" aria-hidden="true">
+            <div className="lp-tela__pessoa">
+              <span className="lp-mini-ficha__avatar">C</span>
+              <span>
+                <strong>Carla (demo)</strong>
+                <small>Cliente desde março · exemplo</small>
+              </span>
+            </div>
+            <ul>
+              <li>
+                <CalendarClock size={18} />
+                <span>
+                  <strong>8</strong> horários
+                </span>
+              </li>
+              <li>
+                <MessageCircle size={18} />
+                <span>
+                  <strong>14</strong> conversas
+                </span>
+              </li>
+              <li>
+                <Check size={18} />
+                <span>
+                  <strong>0</strong> faltas
+                </span>
+              </li>
+            </ul>
+            <p className="lp-tela__nota">Último horário: corte, 28/10 · Realizado</p>
+          </div>
+        </Step>
+        <Step
+          n={5}
+          title="Você no controle"
+          text="Quando o cliente pede para falar com você, o robô pausa e te avisa. Um toque e ele volta."
+        >
+          <div className="lp-tela lp-tela--controle" aria-hidden="true">
+            <span className="lp-tela__aviso">
+              <Hand size={18} /> Bia (demo) pediu para falar com você
+            </span>
+            <div className="lp-mini-switch">
+              <span className="lp-mini-switch__track">
+                <span />
+              </span>
+              <span>
+                <strong>Você na conversa</strong>
+                <small>robô pausado</small>
+              </span>
+            </div>
+          </div>
+        </Step>
+      </ol>
     </section>
   );
 }

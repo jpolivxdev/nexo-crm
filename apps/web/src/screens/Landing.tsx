@@ -11,9 +11,9 @@ import {
   Facts,
   Faq,
   FinalCta,
-  Mosaic,
   Orbit,
   PlansSection,
+  Steps,
 } from '../components/LandingSections';
 import '../styles/landing.css';
 
@@ -207,7 +207,7 @@ export function Landing() {
           </div>
         </section>
 
-        <Mosaic preview={panelPreview} />
+        <Steps preview={panelPreview} />
         <Orbit />
         <Facts />
 
