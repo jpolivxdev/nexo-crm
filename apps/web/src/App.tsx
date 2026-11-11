@@ -18,6 +18,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 import './App.css';
 import './styles/glass.css';
 import { Bell } from './components/Bell';
+import { GlassAdjust } from './components/GlassAdjust';
 import { MadeByNexo, NexoLogo } from './components/Brand';
 import { Nex, type NexTopic } from './components/Nex';
 import { OwnerToasts } from './components/OwnerToasts';
@@ -493,6 +494,7 @@ function Panel({ me }: { me: Me }) {
             <span className="appbar__eyebrow">Seu painel</span>
             <strong>{me.businessName ?? 'nexo'}</strong>
           </div>
+          <GlassAdjust />
           <button
             type="button"
             className="icon-button"

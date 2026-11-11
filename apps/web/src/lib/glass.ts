@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from 'react';
 
 /**
- * Efeito de vidro do painel: cartões, menu e barras ficam translúcidos sobre um fundo suave com
- * as cores da marca. Fica só neste aparelho (preferência visual, como o tema).
+ * Visual de vidro do painel: fundo com as cores da marca, barra de cima, menu e área principal
+ * em vidro, cartões translúcidos por dentro. Fica só neste aparelho (preferência visual, como o tema).
  *
  * Ideia: "adjustable glass dashboard" do 21st.dev (desfoque, opacidade, saturação e brilho da
  * borda ajustáveis). Nada do código de lá foi copiado: aqui é CSS próprio (`styles/glass.css`)
@@ -13,7 +13,10 @@ export interface GlassSettings {
   on: boolean;
   /** Desfoque do que fica atrás, em px. */
   blur: number;
-  /** Quanto a superfície cobre o fundo (0,55 a 0,95). Abaixo disso o texto perde contraste. */
+  /**
+   * Quanto a moldura de vidro cobre o fundo (0,25 a 0,9). Os cartões de dentro somam mais
+   * cobertura por cima; abaixo de 0,25 o texto cinza perderia contraste.
+   */
   opacity: number;
   /** Cor do fundo atrás do vidro (1 = normal, 2 = bem viva). */
   saturation: number;
@@ -21,24 +24,25 @@ export interface GlassSettings {
   edge: number;
 }
 
-export type GlassPreset = 'suave' | 'equilibrado' | 'forte';
+export type GlassPreset = 'transparente' | 'fosco' | 'solido';
 
 export const GLASS_LIMITS = {
   blur: { min: 0, max: 32, step: 1 },
-  opacity: { min: 0.55, max: 0.95, step: 0.01 },
+  opacity: { min: 0.25, max: 0.9, step: 0.01 },
   saturation: { min: 1, max: 2, step: 0.05 },
   edge: { min: 0, max: 1, step: 0.05 },
 } as const;
 
 export const GLASS_PRESETS: Record<GlassPreset, Omit<GlassSettings, 'on'>> = {
-  suave: { blur: 12, opacity: 0.86, saturation: 1.2, edge: 0.5 },
-  equilibrado: { blur: 18, opacity: 0.74, saturation: 1.4, edge: 0.65 },
-  forte: { blur: 26, opacity: 0.62, saturation: 1.7, edge: 0.85 },
+  transparente: { blur: 12, opacity: 0.25, saturation: 1.4, edge: 0.8 },
+  fosco: { blur: 22, opacity: 0.4, saturation: 1.2, edge: 0.6 },
+  solido: { blur: 32, opacity: 0.85, saturation: 1, edge: 0.35 },
 };
 
-export const GLASS_DEFAULT: GlassSettings = { on: true, ...GLASS_PRESETS.suave };
+export const GLASS_DEFAULT: GlassSettings = { on: true, ...GLASS_PRESETS.fosco };
 
-const KEY = 'nexo-vidro';
+// v2: o visual mudou (moldura de vidro em todo o painel); a escolha antiga não vale mais.
+const KEY = 'nexo-vidro-v2';
 const listeners = new Set<() => void>();
 let cache: GlassSettings | null = null;
 
@@ -94,9 +98,9 @@ export function applyGlass(s: GlassSettings = readGlass()): void {
   if (s.on) root.dataset.vidro = 'on';
   else delete root.dataset.vidro;
   root.style.setProperty('--vidro-desfoque', `${s.blur}px`);
-  root.style.setProperty('--vidro-opacidade', `${Math.round(s.opacity * 100)}%`);
+  root.style.setProperty('--vidro-opacidade', String(s.opacity));
   root.style.setProperty('--vidro-saturacao', String(s.saturation));
-  root.style.setProperty('--vidro-borda', `${Math.round(s.edge * 100)}%`);
+  root.style.setProperty('--vidro-borda', String(s.edge));
   listeners.forEach((fn) => fn());
 }
 

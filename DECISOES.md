@@ -436,10 +436,12 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Correção:** na demo, tocar numa cliente ou conversa não abria a ficha (a rota só aceitava ids do servidor). Agora aceita também os ids da demo.
 - **Página inicial:** o Premium passou de "Em construção" para "Em teste", com a lista do que ele tem. Preço continua **[A DEFINIR com o Coca]**.
 
-## Efeito de vidro no painel (11/11/2026)
+## Visual de vidro em todo o painel (11/11/2026)
 
-- **O quê:** cartões, títulos de página, números do dia, menu lateral e barra de baixo ficam translúcidos sobre um fundo suave com manchas de Lavanda, Roxo e Azul Elo (no escuro, sobre Tinta). Pedido do JP a partir do "adjustable glass dashboard" do 21st.dev.
-- **Origem e licença (fato):** o componente enviado é um painel financeiro com Tailwind, shadcn e GSAP, e o texto enviado não declara licença. **Nenhum código foi copiado**: só a ideia (vidro com desfoque, opacidade, saturação e brilho da borda ajustáveis). Implementação própria em `lib/glass.ts` e `styles/glass.css`, sem dependência nova.
-- **Ajuste:** em Conta → Aparência, "Efeito de vidro" liga e desliga, com três modelos (Suave, Equilibrado, Forte) e "Ajustar à mão" (Desfoque, Cobertura, Cor do fundo, Brilho da borda). Fica só no aparelho, como o tema. **Padrão: ligado, Suave.**
-- **Legibilidade:** a cobertura não desce de 55%, para o texto manter contraste; o cabeçalho escuro do celular fica sempre com 88% ou mais. Sem suporte a desfoque no navegador, a superfície fica quase sólida. Com "reduzir transparência" no aparelho, tudo volta a sólido. Cartões de destaque (roxos) continuam sólidos.
-- **Técnica:** o desfoque fica num `::before` atrás do conteúdo, não no cartão, porque `backdrop-filter` no cartão prenderia painéis "fixed" abertos de dentro dele.
+- **O quê:** o painel inteiro ganhou o visual do "adjustable glass dashboard" do 21st.dev, pedido do JP: fundo colorido com a paleta, barra de cima e menu lateral flutuantes em vidro, uma moldura de vidro grande em volta do conteúdo, cartões translúcidos sem borda dura, abas e campos em vidro, barra de baixo do celular como doca flutuante, janelas (avisos, Nex, tour, painel lateral) em vidro e entrada suave das telas. **Nenhuma função mudou**, só o visual.
+- **Primeira versão, no mesmo dia:** começou só com cartões translúcidos e cobertura de 86%. O JP viu no localhost e achou igual ao de antes, então virou o redesenho completo.
+- **Origem e licença (fato):** o componente enviado é um painel financeiro com Tailwind, shadcn e GSAP, e o texto não declara licença. **Nenhum código foi copiado.** É CSS e TS próprios (`styles/glass.css`, `lib/glass.ts`, `components/GlassAdjust.tsx`, `components/GlassControls.tsx`), sem dependência nova. A animação de entrada é CSS, sem GSAP.
+- **Marca:** fontes Sora e Inter (o modelo usa Segoe UI); só cores da paleta; roxo continua só em destaque (menu ativo, botões, cartão "Esperando você"). Fundo é degradê da paleta, sem foto de banco de imagem.
+- **Ajuste:** botão "Ajustar vidro" na barra de cima (a partir de 640 px), como no modelo, e o mesmo ajuste em Conta → Aparência (no celular fica só lá). Liga e desliga, modelos Transparente, Fosco e Sólido, e ajuste à mão (Desfoque, Cobertura, Cor do fundo, Brilho da borda). Fica só no aparelho. **Padrão: ligado, Fosco.**
+- **Legibilidade:** a cobertura da moldura não desce de 25% e os cartões somam cobertura por cima, para o texto manter contraste. Sem suporte a desfoque, quase sólido. Com "reduzir transparência" ou "reduzir movimento" no aparelho, volta a sólido ou sem animação.
+- **Técnica:** a janela de ajuste vai direto no `<body>`, porque dentro da barra (que tem desfoque) ficaria presa atrás do conteúdo. A chave do aparelho mudou para `nexo-vidro-v2`.

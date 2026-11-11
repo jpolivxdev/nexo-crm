@@ -1,158 +1,532 @@
 /*
- * Efeito de vidro do painel (lib/glass.ts). Liga com data-vidro="on" no <html>.
- * Só cores da marca: fundo Papel (ou Tinta, no escuro) com manchas suaves de Lavanda, Roxo e
- * Azul Elo; superfícies Branco (ou a superfície escura) translúcidas, com borda clara.
+ * Visual de vidro do painel (lib/glass.ts), ligado com data-vidro="on" no <html>.
  *
- * O desfoque fica num ::before atrás do conteúdo, e não no cartão: backdrop-filter no próprio
- * cartão prenderia painéis "fixed" que abrem de dentro dele (como o Sheet) ao tamanho do cartão.
+ * Ideia do "adjustable glass dashboard" do 21st.dev, refeita no CSS do projeto (sem código de
+ * lá): fundo colorido atrás de tudo, barra de cima e menu flutuantes em vidro, uma moldura de
+ * vidro grande em volta do conteúdo e, dentro dela, cartões translúcidos sem borda dura.
  *
- * Variáveis (postas pelo lib/glass.ts): --vidro-desfoque, --vidro-opacidade, --vidro-saturacao,
- * --vidro-borda.
+ * Só cores e fontes da marca. O fundo é um degradê da paleta (sem foto de banco de imagem).
+ * Variáveis postas pelo lib/glass.ts (números): --vidro-desfoque (px), --vidro-opacidade,
+ * --vidro-saturacao, --vidro-borda.
  */
 :root {
-  --vidro-desfoque: 12px;
-  --vidro-opacidade: 86%;
+  --vidro-desfoque: 22px;
+  --vidro-opacidade: 0.4;
   --vidro-saturacao: 1.2;
-  --vidro-borda: 50%;
-  --vidro-base: var(--branco);
-  --vidro-brilho: var(--branco);
-  --vidro-mancha-1: rgb(169 139 255 / 42%); /* Lavanda */
-  --vidro-mancha-2: rgb(106 31 232 / 16%); /* Roxo Nexo */
-  --vidro-mancha-3: rgb(47 91 255 / 14%); /* Azul Elo */
-  --vidro-mancha-4: rgb(239 234 255 / 90%); /* Lilás */
+  --vidro-borda: 0.6;
+
+  /* Material */
+  --v-sup: var(--branco);
+  --v-luz: var(--branco);
+  --v-linha: rgb(16 12 36 / 9%);
+  --v-sombra: rgb(16 12 36 / 18%);
+  --v-sombra-leve: rgb(16 12 36 / 8%);
+  --v-filtro: blur(var(--vidro-desfoque)) saturate(var(--vidro-saturacao));
+
+  /* Coberturas: moldura, cartão (por cima da moldura), flutuantes e janelas */
+  --v-moldura: color-mix(in srgb, var(--v-sup) calc(var(--vidro-opacidade) * 100%), transparent);
+  --v-cartao: color-mix(
+    in srgb,
+    var(--v-sup) calc((0.3 + var(--vidro-opacidade) * 0.5) * 100%),
+    transparent
+  );
+  --v-barra: color-mix(
+    in srgb,
+    var(--v-sup) calc((0.35 + var(--vidro-opacidade) * 0.6) * 100%),
+    transparent
+  );
+  --v-janela: color-mix(in srgb, var(--v-sup) 90%, transparent);
+  --v-controle: color-mix(in srgb, var(--v-sup) 55%, transparent);
+  --v-controle-ativo: color-mix(in srgb, var(--v-sup) 92%, transparent);
+
+  /* Brilho da borda */
+  --v-brilho: color-mix(in srgb, var(--v-luz) calc(var(--vidro-borda) * 100%), transparent);
+  --v-brilho-leve: color-mix(in srgb, var(--v-luz) calc(var(--vidro-borda) * 40%), transparent);
+
+  /* Fundo (a "sala" atrás do vidro) */
+  --v-fundo: var(--lilas);
+  --v-mancha-1: rgb(169 139 255 / 70%); /* Lavanda */
+  --v-mancha-2: rgb(106 31 232 / 30%); /* Roxo Nexo */
+  --v-mancha-3: rgb(47 91 255 / 26%); /* Azul Elo */
+  --v-mancha-4: rgb(250 249 253 / 95%); /* Papel */
 }
 
 :root[data-theme='escuro'] {
-  --vidro-base: color-mix(in srgb, var(--tinta) 90%, var(--lavanda));
-  --vidro-brilho: var(--lavanda);
-  --vidro-mancha-1: rgb(106 31 232 / 42%);
-  --vidro-mancha-2: rgb(169 139 255 / 18%);
-  --vidro-mancha-3: rgb(47 91 255 / 22%);
-  --vidro-mancha-4: rgb(106 31 232 / 18%);
+  --v-sup: color-mix(in srgb, var(--tinta) 86%, var(--lavanda));
+  --v-luz: var(--lavanda);
+  --v-linha: rgb(169 139 255 / 16%);
+  --v-sombra: rgb(0 0 0 / 50%);
+  --v-sombra-leve: rgb(0 0 0 / 28%);
+  --v-brilho: color-mix(in srgb, var(--v-luz) calc(var(--vidro-borda) * 45%), transparent);
+  --v-brilho-leve: color-mix(in srgb, var(--v-luz) calc(var(--vidro-borda) * 22%), transparent);
+  --v-fundo: var(--tinta);
+  --v-mancha-1: rgb(106 31 232 / 55%);
+  --v-mancha-2: rgb(169 139 255 / 22%);
+  --v-mancha-3: rgb(47 91 255 / 30%);
+  --v-mancha-4: rgb(106 31 232 / 25%);
 }
 
-/* ---------- fundo atrás do vidro (só no painel logado) ---------- */
-:root[data-vidro='on'] .app--with-nav,
-:root[data-vidro='on'] body:has(> #root > .app--with-nav) {
-  /* O body também pinta fundo e ficaria por cima do ::before (z-index -1). */
+/* ================= fundo ================= */
+:root[data-vidro='on'] body:has(> #root > .app:not(.app--auth)),
+:root[data-vidro='on'] .app:not(.app--auth) {
+  /* O body pinta fundo próprio, que ficaria por cima do ::before (z-index -1). */
   background: transparent;
 }
 
-:root[data-vidro='on'] .app--with-nav::before {
+:root[data-vidro='on'] .app:not(.app--auth)::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(42% 36% at 88% 6%, var(--vidro-mancha-1), transparent 72%),
-    radial-gradient(40% 34% at 6% 38%, var(--vidro-mancha-2), transparent 70%),
-    radial-gradient(46% 40% at 70% 88%, var(--vidro-mancha-3), transparent 72%),
-    radial-gradient(60% 50% at 30% 0%, var(--vidro-mancha-4), transparent 70%), var(--cor-fundo);
+    radial-gradient(38% 42% at 92% 4%, var(--v-mancha-1), transparent 70%),
+    radial-gradient(36% 40% at 4% 30%, var(--v-mancha-2), transparent 70%),
+    radial-gradient(44% 46% at 72% 92%, var(--v-mancha-3), transparent 72%),
+    radial-gradient(30% 30% at 30% 78%, var(--v-mancha-1), transparent 70%),
+    radial-gradient(70% 55% at 40% 0%, var(--v-mancha-4), transparent 70%), var(--v-fundo);
 }
 
-/* ---------- cartões, títulos de página e números ---------- */
-:root[data-vidro='on']
-  .app--with-nav
-  :is(.card:not(.card--highlight), .page-header, .kpi:not(.kpi--attention)) {
-  position: relative;
-  isolation: isolate;
-  background: transparent;
-  border-color: color-mix(in srgb, var(--vidro-brilho) var(--vidro-borda), var(--cor-borda));
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--vidro-brilho) var(--vidro-borda), transparent),
-    var(--sombra-1);
-}
-
-:root[data-vidro='on']
-  .app--with-nav
-  :is(.card:not(.card--highlight), .page-header, .kpi:not(.kpi--attention))::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  pointer-events: none;
-  background: color-mix(in srgb, var(--vidro-base) var(--vidro-opacidade), transparent);
-  -webkit-backdrop-filter: blur(var(--vidro-desfoque)) saturate(var(--vidro-saturacao));
-  backdrop-filter: blur(var(--vidro-desfoque)) saturate(var(--vidro-saturacao));
-}
-
-/* Cartão dentro de cartão: só o de fora desfoca (o de dentro fica na cor, mais leve). */
-:root[data-vidro='on']
-  .app--with-nav
-  :is(.card, .page-header, .kpi:not(.kpi--attention))
-  :is(.card, .kpi:not(.kpi--attention))::before {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-
-/* ---------- barra de baixo (celular) e menu lateral (computador) ---------- */
+/* ================= peças de vidro (moldura, barra, menu) ================= */
+:root[data-vidro='on'] .app:not(.app--auth) > :is(.appbar, main),
 :root[data-vidro='on'] .app--with-nav > :is(.tabbar, .sidebar) {
-  background: color-mix(in srgb, var(--vidro-base) var(--vidro-opacidade), transparent);
-  -webkit-backdrop-filter: blur(var(--vidro-desfoque)) saturate(var(--vidro-saturacao));
-  backdrop-filter: blur(var(--vidro-desfoque)) saturate(var(--vidro-saturacao));
+  background: var(--v-moldura);
+  -webkit-backdrop-filter: var(--v-filtro);
+  backdrop-filter: var(--v-filtro);
+  border: 0;
+  box-shadow:
+    inset 0 1px 0 var(--v-brilho),
+    inset 0 0 0 1px var(--v-brilho-leve),
+    0 20px 52px -25px var(--v-sombra);
 }
 
+/* Barra de cima: vidro claro, texto escuro (no celular também; antes era a faixa Tinta). */
+:root[data-vidro='on'] .app:not(.app--auth) > .appbar {
+  margin: 12px 0 14px;
+  padding: 8px 8px 8px 18px;
+  border-radius: 20px;
+  background: var(--v-barra);
+  color: var(--cor-texto);
+}
+
+:root[data-vidro='on'] .app:not(.app--auth) > .appbar .icon-button {
+  color: var(--cor-texto);
+}
+
+:root[data-vidro='on'] .app:not(.app--auth) > .appbar .icon-button:hover,
+:root[data-vidro='on'] .app:not(.app--auth) > .appbar .icon-button.on {
+  background: var(--v-controle);
+}
+
+:root[data-vidro='on'] .app:not(.app--auth) > .appbar .appbar__eyebrow {
+  color: var(--cor-texto-suave);
+}
+
+:root[data-vidro='on'] .app:not(.app--auth) > .appbar :focus-visible {
+  outline-color: var(--cor-foco);
+}
+
+:root[data-vidro='on'] .app:not(.app--auth) > .acting + .appbar {
+  margin-top: 12px;
+}
+
+/* Moldura grande em volta do conteúdo */
+:root[data-vidro='on'] .app:not(.app--auth) > main {
+  border-radius: 22px;
+  padding: 16px 12px 20px;
+  margin-inline: -4px;
+}
+
+/* Barra de baixo do celular: doca flutuante */
 :root[data-vidro='on'] .app--with-nav > .tabbar {
-  border-top-color: color-mix(in srgb, var(--vidro-brilho) var(--vidro-borda), var(--cor-borda));
+  left: 10px;
+  right: 10px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  padding: 4px;
+  border-radius: 22px;
+  background: var(--v-barra);
 }
 
-:root[data-vidro='on'] .app--with-nav > .sidebar {
-  border-right-color: color-mix(in srgb, var(--vidro-brilho) var(--vidro-borda), var(--cor-borda));
+:root[data-vidro='on'] .app--with-nav > .tabbar a {
+  border-radius: 18px;
 }
 
-/* Cabeçalho escuro do celular: vidro escuro, sempre bem coberto para o texto branco ler bem. */
-@media (max-width: 1023.98px) {
-  :root[data-vidro='on'] .app--with-nav > .appbar {
-    background: color-mix(
-      in srgb,
-      var(--cor-escuro) clamp(88%, calc(var(--vidro-opacidade) + 12%), 100%),
-      transparent
-    );
-    box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--lavanda) var(--vidro-borda), transparent);
+:root[data-vidro='on'] .app--with-nav > .tabbar a.on {
+  background: var(--v-controle-ativo);
+  box-shadow: 0 3px 8px var(--v-sombra-leve);
+}
+
+:root[data-vidro='on'] .app--with-nav > .tabbar a.on .tabbar__icon {
+  background: transparent;
+}
+
+:root[data-vidro='on'] .app--with-nav > .made-by {
+  padding-bottom: 8px;
+}
+
+@media (min-width: 640px) {
+  :root[data-vidro='on'] .app:not(.app--auth) > main {
+    padding: 24px;
+    border-radius: 27px;
+    margin-inline: 0;
   }
 }
 
-/* No computador, os botões redondos do topo também viram vidro. */
 @media (min-width: 1024px) {
-  :root[data-vidro='on'] .app--with-nav > .appbar .icon-button:not(:hover, .on) {
-    background: color-mix(in srgb, var(--vidro-base) var(--vidro-opacidade), transparent);
-    -webkit-backdrop-filter: blur(var(--vidro-desfoque)) saturate(var(--vidro-saturacao));
-    backdrop-filter: blur(var(--vidro-desfoque)) saturate(var(--vidro-saturacao));
+  :root[data-vidro='on'] .app--with-nav {
+    padding: 0 24px 40px calc(var(--sidebar-largura) + 16px + 24px);
+  }
+
+  /* Menu lateral: trilho flutuante com cantos redondos */
+  :root[data-vidro='on'] .app--with-nav > .sidebar {
+    inset: 16px auto 16px 16px;
+    border-radius: 24px;
+    background: var(--v-barra);
+  }
+
+  :root[data-vidro='on'] .app--with-nav > .sidebar .sidebar__business,
+  :root[data-vidro='on'] .app--with-nav > .sidebar .sidebar__footer {
+    border-color: var(--v-linha);
+  }
+
+  :root[data-vidro='on'] .app--with-nav > .sidebar .sidebar__link:not(.on):hover {
+    background: var(--v-controle);
+  }
+
+  /* Barra de cima: aparece de novo como faixa de vidro, com o nome do negócio */
+  :root[data-vidro='on'] .app--with-nav > .appbar {
+    margin: 16px auto 18px;
+    min-height: 62px;
+    padding: 8px 10px 8px 20px;
+    border-radius: 20px;
+    background: var(--v-barra);
+    color: var(--cor-texto);
+  }
+
+  :root[data-vidro='on'] .app--with-nav > .appbar .appbar__title {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+  }
+
+  :root[data-vidro='on'] .app--with-nav > .appbar .appbar__title > * {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  :root[data-vidro='on'] .app--with-nav > .appbar .appbar__title strong {
+    font-size: 0.9375rem;
+    letter-spacing: -0.02em;
+  }
+
+  :root[data-vidro='on'] .app--with-nav > .appbar .appbar__eyebrow {
+    padding-left: 12px;
+    border-left: 1px solid var(--v-linha);
+    font-size: 0.75rem;
+  }
+
+  :root[data-vidro='on'] .app--with-nav > .appbar .icon-button {
+    background: transparent;
+    border: 0;
+  }
+
+  :root[data-vidro='on'] .app--with-nav > main {
+    padding: 30px;
+  }
+
+  :root[data-vidro='on'] .app--with-nav > .acting {
+    margin-top: 16px;
+    border-radius: var(--raio-pequeno);
   }
 }
 
-/* ---------- quando o vidro não deve aparecer ---------- */
+/* ================= dentro da moldura ================= */
 
-/* Navegador sem desfoque: superfície quase sólida, para o texto não perder contraste. */
+/* Título da página: sem caixa, como o cabeçalho do modelo */
+:root[data-vidro='on'] .app:not(.app--auth) > main .page-header {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0 4px 4px;
+  margin: 0 0 22px;
+}
+
+:root[data-vidro='on'] .app:not(.app--auth) > main .page-header h1 {
+  letter-spacing: -0.03em;
+}
+
+@media (min-width: 1024px) {
+  :root[data-vidro='on'] .app:not(.app--auth) > main .page-header h1 {
+    font-size: clamp(1.5rem, 2.3vw, 1.95rem);
+  }
+}
+
+:root[data-vidro='on'] .app:not(.app--auth) > main .page-header__icon {
+  background: var(--v-cartao);
+  box-shadow:
+    inset 0 1px 0 var(--v-brilho),
+    0 8px 22px -18px var(--v-sombra);
+}
+
+/* Cartões e números: painéis translúcidos sem borda dura */
+:root[data-vidro='on']
+  .app:not(.app--auth)
+  :is(.card:not(.card--highlight), .kpi:not(.kpi--attention)),
+:root[data-vidro='on'] .app:not(.app--auth) > main :is(.list > li, .stat, .panel) {
+  background: var(--v-cartao);
+  border-color: transparent;
+  box-shadow:
+    inset 0 1px 0 var(--v-brilho),
+    0 8px 22px -20px var(--v-sombra);
+}
+
+:root[data-vidro='on'] .app:not(.app--auth) .card {
+  border-radius: 17px;
+}
+
+/* Cartão dentro de cartão: mais leve */
+:root[data-vidro='on']
+  .app:not(.app--auth)
+  :is(.card, .kpi)
+  :is(.card:not(.card--highlight), .kpi:not(.kpi--attention)) {
+  background: var(--v-controle);
+  box-shadow: inset 0 1px 0 var(--v-brilho-leve);
+}
+
+/* Destaques roxos continuam sólidos, com o mesmo canto e sombra */
+:root[data-vidro='on'] .app:not(.app--auth) :is(.card--highlight, .kpi--attention) {
+  border-color: transparent;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 22%),
+    0 10px 26px -16px rgb(106 31 232 / 55%);
+}
+
+/* Abas (segmented): trilho de vidro, opção ativa clara */
+:root[data-vidro='on'] .app:not(.app--auth) .segmented {
+  background: var(--v-controle);
+  box-shadow: inset 0 0 0 1px var(--v-linha);
+}
+
+:root[data-vidro='on'] .app:not(.app--auth) .segmented button.on {
+  background: var(--v-controle-ativo);
+  box-shadow: 0 2px 6px var(--v-sombra-leve);
+}
+
+/* Botões claros, etiquetas e campos */
+:root[data-vidro='on'] .app:not(.app--auth) :is(.button--ghost, .chip:not(.chip--on)) {
+  background: var(--v-controle);
+  border-color: var(--v-linha);
+}
+
+:root[data-vidro='on'] .app:not(.app--auth) .button--ghost:hover {
+  background: var(--v-controle-ativo);
+}
+
+:root[data-vidro='on']
+  .app:not(.app--auth)
+  :is(
+    input:not([type='range'], [type='checkbox'], [type='radio'], [type='color']),
+    select,
+    textarea
+  ) {
+  background: var(--v-controle);
+  border-color: var(--v-linha);
+}
+
+:root[data-vidro='on'] .app:not(.app--auth) :is(input, select, textarea):focus {
+  background: var(--v-controle-ativo);
+}
+
+:root[data-vidro='on'] .app:not(.app--auth) :is(table, .table) :is(th, td) {
+  border-color: var(--v-linha);
+}
+
+/* ================= o que abre por cima ================= */
+:root[data-vidro='on']
+  :is(.bell__panel, .nex__panel, .tour__card, .toast, .sheet__panel, .glass-pop) {
+  background: var(--v-janela);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  backdrop-filter: blur(24px) saturate(1.3);
+  border-color: var(--v-brilho-leve);
+  box-shadow:
+    inset 0 1px 0 var(--v-brilho),
+    0 24px 80px var(--v-sombra);
+}
+
+:root[data-vidro='on'] .sheet__panel {
+  border-radius: 22px 0 0 22px;
+}
+
+:root[data-vidro='on'] .sheet {
+  background: rgb(16 12 36 / 28%);
+}
+
+/* ================= entrada das telas ================= */
+@keyframes vidro-entra {
+  from {
+    opacity: 0.45;
+    transform: translateY(12px);
+    filter: blur(3px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-vidro='on'] .app:not(.app--auth) > main > *,
+  :root[data-vidro='on'] .app:not(.app--auth) > main .kpis > *,
+  :root[data-vidro='on'] .app:not(.app--auth) > main > * > .card {
+    animation: vidro-entra 0.48s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+
+  :root[data-vidro='on'] .app:not(.app--auth) > main > :nth-child(2),
+  :root[data-vidro='on'] .app:not(.app--auth) > main :is(.kpis, *) > :nth-child(2) {
+    animation-delay: 45ms;
+  }
+
+  :root[data-vidro='on'] .app:not(.app--auth) > main > :nth-child(3),
+  :root[data-vidro='on'] .app:not(.app--auth) > main :is(.kpis, *) > :nth-child(3) {
+    animation-delay: 90ms;
+  }
+
+  :root[data-vidro='on'] .app:not(.app--auth) > main > :nth-child(n + 4),
+  :root[data-vidro='on'] .app:not(.app--auth) > main :is(.kpis, *) > :nth-child(n + 4) {
+    animation-delay: 135ms;
+  }
+}
+
+/* ================= quando o vidro não deve aparecer ================= */
+
+/* Navegador sem desfoque: tudo quase sólido, para o texto não perder contraste. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   :root[data-vidro='on'] {
-    --vidro-opacidade: 96%;
+    --vidro-opacidade: 0.92;
   }
 }
 
-/* Quem pediu menos transparência no aparelho fica com as superfícies sólidas. */
+/* Quem pediu menos transparência no aparelho fica com superfícies sólidas. */
 @media (prefers-reduced-transparency: reduce) {
   :root[data-vidro='on'] {
-    --vidro-opacidade: 100%;
+    --vidro-opacidade: 1;
     --vidro-desfoque: 0px;
+    --v-janela: var(--v-sup);
   }
 }
 
 @media (forced-colors: active) {
-  :root[data-vidro='on'] .app--with-nav::before,
-  :root[data-vidro='on']
-    .app--with-nav
-    :is(.card, .page-header, .kpi:not(.kpi--attention))::before {
+  :root[data-vidro='on'] .app:not(.app--auth)::before {
     display: none;
   }
 }
 
-/* ---------- controles em Conta → Aparência ---------- */
+/* ================= botão "Ajustar vidro" e janela de ajuste ================= */
+.glass-adjust {
+  display: none;
+}
+
+:root[data-vidro='on'] .glass-adjust {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .glass-adjust,
+  :root[data-vidro='on'] .glass-adjust {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--toque-minimo);
+    padding: 0 12px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .glass-adjust:hover,
+  .glass-adjust[aria-expanded='true'] {
+    background: var(--v-controle);
+  }
+}
+
+.glass-pop {
+  position: fixed;
+  z-index: 50;
+  top: 84px;
+  right: 16px;
+  width: min(320px, calc(100vw - 32px));
+  max-height: calc(100dvh - 110px);
+  overflow: auto;
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  box-shadow: var(--sombra-2);
+}
+
+@media (min-width: 1024px) {
+  .glass-pop {
+    right: max(24px, calc((100vw - var(--sidebar-largura, 256px) - 1200px) / 2 + 24px));
+    top: 92px;
+  }
+}
+
+.glass-pop__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.glass-pop__head h2 {
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+.glass-pop__head .icon-button {
+  color: var(--cor-texto);
+}
+
+.glass-pop__head .icon-button:hover {
+  background: var(--cor-suave);
+}
+
+.glass-pop > p {
+  margin: 4px 0 14px;
+}
+
+.glass-pop__sample {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 80px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  background: var(--v-moldura);
+  -webkit-backdrop-filter: var(--v-filtro);
+  backdrop-filter: var(--v-filtro);
+  box-shadow:
+    inset 0 1px 0 var(--v-brilho),
+    0 12px 20px -18px var(--v-sombra);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* ================= controles (Conta → Aparência e janela de ajuste) ================= */
 .glass-controls {
   display: grid;
   gap: 14px;
+}
+
+.card .glass-controls {
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid var(--cor-borda);
@@ -170,13 +544,17 @@
   gap: 12px;
 }
 
+.glass-controls__head p {
+  margin: 2px 0 0;
+}
+
 .glass-controls__sliders {
   display: grid;
   gap: 12px;
 }
 
 @media (min-width: 640px) {
-  .glass-controls__sliders {
+  .card .glass-controls__sliders {
     grid-template-columns: 1fr 1fr;
     gap: 12px 24px;
   }
@@ -215,11 +593,6 @@
   accent-color: var(--lavanda);
 }
 
-.glass-slider input[type='range']:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
 .glass-controls summary {
   min-height: var(--toque-minimo);
   display: flex;
@@ -227,8 +600,4 @@
   cursor: pointer;
   font-weight: 600;
   color: var(--cor-destaque-texto);
-}
-
-.glass-controls__head p {
-  margin: 2px 0 0;
 }
