@@ -87,6 +87,36 @@
     radial-gradient(70% 55% at 40% 0%, var(--v-mancha-4), transparent 70%), var(--v-fundo);
 }
 
+/*
+ * Símbolo da nexo grande no fundo, parado, visto através do vidro. É o SVG oficial sem
+ * alteração (sem esticar, girar, degradê ou sombra); só fica mais claro, e o desfoque vem do
+ * vidro que passa por cima.
+ */
+:root[data-vidro='on'] .app:not(.app--auth)::after {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  top: 50%;
+  left: calc(50% + var(--sidebar-largura, 0px) / 2);
+  translate: -50% -42%;
+  width: min(86vh, 70vw);
+  aspect-ratio: 1;
+  pointer-events: none;
+  background: url('../assets/brand/nexo-simbolo-fundo-claro.svg') center / contain no-repeat;
+  opacity: 0.24;
+}
+
+:root[data-vidro='on'][data-theme='escuro'] .app:not(.app--auth)::after {
+  background-image: url('../assets/brand/nexo-simbolo-fundo-escuro.svg');
+  opacity: 0.32;
+}
+
+@media (max-width: 1023.98px) {
+  :root[data-vidro='on'] .app:not(.app--auth)::after {
+    width: min(110vw, 70vh);
+  }
+}
+
 /* ================= peças de vidro (moldura, barra, menu) ================= */
 :root[data-vidro='on'] .app:not(.app--auth) > :is(.appbar, main),
 :root[data-vidro='on'] .app--with-nav > :is(.tabbar, .sidebar) {
@@ -102,7 +132,9 @@
 
 /* Barra de cima: vidro claro, texto escuro (no celular também; antes era a faixa Tinta). */
 :root[data-vidro='on'] .app:not(.app--auth) > .appbar {
-  margin: 12px 0 14px;
+  margin-top: 12px;
+  margin-bottom: 14px;
+  margin-inline: 0;
   padding: 8px 8px 8px 18px;
   border-radius: 20px;
   background: var(--v-barra);
@@ -168,13 +200,24 @@
   :root[data-vidro='on'] .app:not(.app--auth) > main {
     padding: 24px;
     border-radius: 27px;
-    margin-inline: 0;
+    margin-inline: auto;
   }
 }
 
 @media (min-width: 1024px) {
   :root[data-vidro='on'] .app--with-nav {
     padding: 0 24px 40px calc(var(--sidebar-largura) + 16px + 24px);
+  }
+
+  /*
+   * Em tela larga o conteúdo ocupa a largura toda até 1600 px e fica centralizado no espaço
+   * ao lado do menu (antes ficava preso em 1200 px, colado à esquerda).
+   */
+  :root[data-vidro='on'] .app--with-nav > :not(.sidebar, .nex__button, .nex__panel, .tour) {
+    width: 100%;
+    max-width: 1600px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   /* Menu lateral: trilho flutuante com cantos redondos */
@@ -194,7 +237,7 @@
   }
 
   /* Barra de cima: aparece de novo como faixa de vidro, com o nome do negócio */
-  :root[data-vidro='on'] .app--with-nav > .appbar {
+  :root[data-vidro='on'] .app:not(.app--auth).app--with-nav > .appbar {
     margin: 16px auto 18px;
     min-height: 62px;
     padding: 8px 10px 8px 20px;
@@ -417,7 +460,8 @@
 }
 
 @media (forced-colors: active) {
-  :root[data-vidro='on'] .app:not(.app--auth)::before {
+  :root[data-vidro='on'] .app:not(.app--auth)::before,
+  :root[data-vidro='on'] .app:not(.app--auth)::after {
     display: none;
   }
 }
