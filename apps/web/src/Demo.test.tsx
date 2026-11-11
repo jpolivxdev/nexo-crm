@@ -114,17 +114,19 @@ describe('demonstração', () => {
     );
   });
 
-  it('a página inicial mostra os dois planos e leva para a demo', async () => {
+  it('a página inicial mostra os três planos e leva para a demo', async () => {
     window.location.hash = '';
     render(<App />);
     const plans = await screen.findByRole('heading', { name: 'Planos' });
     const section = plans.closest('section')!;
     expect(within(section).getByRole('heading', { name: 'Básico' })).toBeInTheDocument();
     expect(within(section).getByRole('heading', { name: 'Premium' })).toBeInTheDocument();
+    expect(within(section).getByRole('heading', { name: 'Personalizado' })).toBeInTheDocument();
+    // preço só quando o Coca definir; o Personalizado tem "Fale conosco" no lugar
     expect(within(section).getAllByText('Valor em breve')).toHaveLength(2);
-    expect(screen.getByRole('link', { name: 'Ver a demonstração' })).toHaveAttribute(
-      'href',
-      '#/demo',
-    );
+    expect(within(section).getByText('Fale conosco')).toBeInTheDocument();
+    for (const link of screen.getAllByRole('link', { name: 'Ver a demonstração' })) {
+      expect(link).toHaveAttribute('href', '#/demo');
+    }
   });
 });

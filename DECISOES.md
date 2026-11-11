@@ -176,7 +176,6 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Página de entrada** (escolha do JP no cartão): o modelo "SaaS template" do 21st.dev refeito no CSS do projeto, sem Tailwind, shadcn nem a fonte Poppins (fica Sora/Inter da marca) e sem imagens externas (a CSP só aceita a própria origem). Mantém a estrutura do modelo: barra fixa translúcida com menu no celular, selo no topo, título em degradê, botão claro em degradê e prévia do painel com brilho atrás. O brilho virou degradê CSS e a prévia é uma captura do painel com dados fictícios, legendada "Painel com dados de exemplo". O selo diz "Em fase de testes" e o texto só fala do que já existe (princípio 7). Os links do menu rolam a página sem mexer no endereço, porque o `#` é a rota do painel.
 - **Rotas sem login:** `#/` página de entrada, `#/entrar`, `#/criar-conta`, `#/esqueci-senha`, `#/nova-senha?token=`, `#/confirmar-email?token=`. Os dois links de e-mail abrem mesmo com alguém logado no aparelho. Uma rota do painel sem sessão (ex.: sessão vencida em `#/agenda`) mostra o login, como antes.
 
-
 ## Painel no computador e planos Grátis / CRM / Completo (27/10/2026)
 
 - **Pedido do Jandoza:** trazer o visual de dois modelos do 21st.dev ("app-1" e "dashboard with collapsible sidebar") mantendo a identidade da nexo. Entraram **refeitos no CSS do projeto**, como os anteriores: os originais pedem Tailwind, shadcn e recharts, usam fotos do Unsplash e números inventados ("+12% from last month"). Fotos externas e a tag `<style>` que o gráfico do shadcn injeta seriam barradas pela CSP; afrouxar a CSP por causa de visual não vale. Números inventados ferem o princípio 7.
@@ -256,7 +255,6 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Aviso pelo WhatsApp da dona:** entra com a Cloud API (mensagem de modelo aprovada), como já estava previsto.
 - **Prazo do "oferecer o próximo horário":** configurável em Conta → Avisos (padrão: no mesmo dia; desligável). A piloto pediu 10 dias (29/10/2026). O "a fazer" só aparece em Hoje no dia do prazo e fecha sozinho se a cliente marcar antes.
 - **Uma conexão de tempo real só:** as telas dividem a mesma conexão com o servidor em vez de abrir uma cada.
-
 
 ## Etapas em quadro (29/10/2026)
 
@@ -457,7 +455,6 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Troca de tela (ajustes de 11/11/2026):** a entrada em cascata com desfoque ficou pesada ("não tá clean", JP), e o fade que começava apagado parecia carregamento. Agora só a troca de aba anima: a tela nova já nasce a 75% e assenta em 0,16 s, no tempo da gota. A gota ficou mais firme (chega em cerca de 0,25 s) e o "Carregando…" só aparece se a espera passar de 0,35 s.
 - **Correção junto:** os números roxos de Resultados ("Pelo robô") estavam perdendo o fundo roxo com o vidro; voltaram.
 
-
 ## Página de entrada em camadas (11/11/2026)
 
 - **O quê:** pedido do JP a partir do "parallax scrolling" da Osmo (21st.dev). O topo da página de entrada virou camadas que rolam em velocidades diferentes: manchas da paleta ao fundo, o símbolo oficial da nexo, o texto (que sobe mais devagar e some) e, na frente, o print do painel de exemplo num cartão de vidro. As seções (Como funciona, Planos, Para quem é) ganharam cartões de vidro e aparecem subindo ao entrar na tela. No menu de cima, a gota do painel marca a seção que está na tela, e os botões soltam a mesma onda do painel.
@@ -465,3 +462,10 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Fora:** as 3 imagens das camadas (do CDN da Osmo), as fotos do Unsplash pedidas no prompt (regra da marca: sem banco de imagem), o ícone e os créditos da Osmo, a estrutura shadcn/Tailwind.
 - **Acessibilidade:** camadas são enfeite (`aria-hidden`). Com "reduzir movimento", nada se mexe e os links rolam sem animação. A seção ativa do menu leva `aria-current`. Onde o navegador não liga animação à rolagem, as seções só aparecem paradas.
 - **Pendente:** PENDENCIAS.md já pergunta se a regra de não fazer peça nova de marca antes de 3 conversas reais vale para esta página. O JP pediu esta mudança em 11/11/2026.
+
+## Página de entrada mais completa e três planos (11/11/2026)
+
+- **O quê:** pedido do JP ("ainda tá muito simples") com o modelo de preços do 21st.dev. Entraram: uma conversa de exemplo no celular (o mesmo fluxo do robô, com dados fictícios e rótulo "exemplo fictício"), destaques em blocos, perguntas frequentes e uma chamada final. Planos viraram três cartões: Básico, Premium (destaque "Mais completo", que sobe) e **Personalizado**, sem preço e com "Fale conosco". No computador, os cartões dos lados entram girados para o do meio, com uma mola em CSS.
+- **Fora do modelo (fato):** sem shadcn, Tailwind, framer-motion, canvas-confetti e NumberFlow (zero dependência nova). Sem a chave mensal/anual e sem "economize 20%", porque não há preço nem desconto definidos; o confete era o efeito dessa chave. Preços continuam "Valor em breve" ([A DEFINIR] com o Coca). Nenhum número, depoimento ou métrica inventada.
+- **"Fale conosco":** vai para o link em `VITE_NEXO_CONTATO` (WhatsApp ou e-mail da nexo). Vazio, o botão fica apagado com "Contato em breve" (PENDENCIAS.md).
+- **Personalizado:** só promete o que é conversa e ajuste combinado ("Tudo do Premium", ajustes com a nexo, ajuda para configurar e ensinar a equipe), nada que o sistema não faça.

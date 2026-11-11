@@ -1,7 +1,6 @@
 import {
   ArrowRight,
   CalendarCheck,
-  Check,
   Hand,
   Menu,
   MessageCircle,
@@ -15,14 +14,21 @@ import { NICHES } from '../lib/niches';
 import panelPreview from '../assets/painel-exemplo.webp';
 import nexoSymbol from '../assets/brand/nexo-simbolo-fundo-escuro.svg';
 import { useAuthOptions } from './AuthPages';
-import { BASIC_PLAN, PREMIUM_PLAN } from '../lib/plans';
+import {
+  ChatPreview,
+  Faq,
+  FinalCta,
+  Highlights,
+  PlansSection,
+} from '../components/LandingSections';
 import '../styles/landing.css';
 
 /** Seções da página. Rolam até o lugar sem mexer no endereço (o painel usa o # para as rotas). */
 const SECTIONS = [
   { id: 'como-funciona', label: 'Como funciona' },
+  { id: 'no-whatsapp', label: 'No WhatsApp' },
   { id: 'planos', label: 'Planos' },
-  { id: 'para-quem', label: 'Para quem é' },
+  { id: 'perguntas', label: 'Perguntas' },
 ];
 
 const STEPS = [
@@ -249,60 +255,9 @@ export function Landing() {
           </ol>
         </section>
 
-        <section id="planos" className="lp-section lp-reveal">
-          <h2>Planos</h2>
-          <p className="lp-section__lead">Comece pelo Básico. O Premium está em teste.</p>
-          <div className="lp-plans">
-            <article className="lp-plan lp-plan--main" aria-labelledby="plano-basico">
-              <p className="lp-plan__tag">Disponível</p>
-              <h3 id="plano-basico">{BASIC_PLAN.name}</h3>
-              <p className="lp-plan__lead">{BASIC_PLAN.lead}</p>
-              <p className="lp-plan__price">Valor em breve</p>
-              <ul className="lp-plan__list">
-                {BASIC_PLAN.items.map((item) => (
-                  <li key={item}>
-                    <Check aria-hidden="true" size={18} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <div className="lp-plan__cta">
-                <a href="#/demo" className="lp-button lp-button--gradient">
-                  <PlayCircle aria-hidden="true" size={18} />
-                  Demo
-                </a>
-                {signup && (
-                  <a href="#/criar-conta" className="lp-button lp-button--secondary">
-                    Criar conta
-                  </a>
-                )}
-              </div>
-            </article>
-            <article className="lp-plan" aria-labelledby="plano-premium">
-              <p className="lp-plan__tag lp-plan__tag--soon">Em teste</p>
-              <h3 id="plano-premium">{PREMIUM_PLAN.name}</h3>
-              <p className="lp-plan__lead">{PREMIUM_PLAN.lead}</p>
-              <p className="lp-plan__price">Valor em breve</p>
-              <ul className="lp-plan__list">
-                {PREMIUM_PLAN.items.map((item) => (
-                  <li key={item}>
-                    <Check aria-hidden="true" size={18} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <div className="lp-plan__cta">
-                <a href="#/demo-premium" className="lp-button lp-button--secondary">
-                  <PlayCircle aria-hidden="true" size={18} />
-                  Demo do Premium
-                </a>
-              </div>
-              <p className="lp-plan__note">
-                Ainda em teste com o primeiro negócio. Valor em breve.
-              </p>
-            </article>
-          </div>
-        </section>
+        <ChatPreview />
+        <Highlights />
+        <PlansSection signup={signup} />
 
         <section id="para-quem" className="lp-section lp-reveal">
           <h2>Para quem é</h2>
@@ -315,6 +270,9 @@ export function Landing() {
             ))}
           </ul>
         </section>
+
+        <Faq />
+        <FinalCta />
       </main>
 
       <footer className="lp-footer">

@@ -39,3 +39,25 @@ export const PREMIUM_PLAN: PlanInfo = {
     'Acessos por função na equipe',
   ],
 };
+
+/**
+ * Terceiro cartão da página inicial (pedido do JP em 11/11/2026): sob medida, sem preço, com
+ * "Fale conosco". Só promete conversa e ajuste combinado, nada que o sistema ainda não faça.
+ */
+export const CUSTOM_PLAN = {
+  id: 'personalizado' as const,
+  name: 'Personalizado',
+  lead: 'Para quem precisa de algo sob medida para o próprio jeito de trabalhar.',
+  items: [
+    'Tudo do Premium',
+    'Ajustes combinados com a nexo para o seu negócio',
+    'Ajuda para configurar e para ensinar a equipe',
+    'Conversa direta com a nexo, sem robô no meio',
+  ],
+};
+
+/**
+ * Para onde vai o "Fale conosco" (link de WhatsApp ou e-mail), definido em VITE_NEXO_CONTATO.
+ * Vazio enquanto o canal da nexo não está definido: o botão avisa "contato em breve".
+ */
+export const NEXO_CONTACT_URL: string = (import.meta.env.VITE_NEXO_CONTATO ?? '').trim();

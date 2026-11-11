@@ -193,3 +193,483 @@
     background: rgb(36 30 66 / 92%);
   }
 }
+
+/* ================= rótulo pequeno acima do título ================= */
+.lp-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 4px 12px;
+  border: 1px solid rgb(169 139 255 / 35%);
+  border-radius: 999px;
+  background: rgb(169 139 255 / 10%);
+  color: var(--lavanda);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* ================= conversa de exemplo no celular ================= */
+.lp-chat-section {
+  display: grid;
+  gap: 32px;
+  align-items: center;
+}
+
+.lp-chat-section__text h2,
+.lp-chat-section__text .lp-section__lead {
+  text-align: left;
+}
+
+.lp-chat-section__text .lp-section__lead {
+  max-width: 34rem;
+}
+
+.lp-phone {
+  justify-self: center;
+  width: min(100%, 340px);
+  padding: 14px;
+  border-radius: 34px;
+  border: 1px solid rgb(169 139 255 / 35%);
+  background: rgb(255 255 255 / 6%);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  backdrop-filter: blur(18px) saturate(1.3);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 22%),
+    0 40px 80px -24px rgb(106 31 232 / 55%);
+}
+
+.lp-phone__top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 12px;
+  border-bottom: 1px solid rgb(169 139 255 / 20%);
+}
+
+.lp-phone__top strong {
+  display: block;
+  font-size: 0.9375rem;
+}
+
+.lp-phone__top small {
+  color: rgb(239 234 255 / 60%);
+  font-size: 0.75rem;
+}
+
+.lp-phone__avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--roxo-nexo);
+  font-weight: 700;
+}
+
+.lp-chat {
+  list-style: none;
+  margin: 0;
+  padding: 14px 4px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 360px;
+}
+
+.lp-chat__msg {
+  max-width: 85%;
+  padding: 9px 12px;
+  border-radius: 16px;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.lp-chat__msg--cliente {
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+  background: var(--roxo-nexo);
+  color: var(--branco);
+}
+
+.lp-chat__msg--robo {
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+  background: rgb(239 234 255 / 92%);
+  color: var(--tinta);
+}
+
+.lp-chat__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.lp-chat__chips span {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgb(106 31 232 / 35%);
+  background: var(--branco);
+  color: var(--roxo-nexo);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+@keyframes lp-bolha {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lp-phone .lp-chat__msg {
+    opacity: 0;
+  }
+
+  .lp-phone.is-visivel .lp-chat__msg {
+    opacity: 1;
+    animation: lp-bolha 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+  }
+}
+
+/* ================= destaques em blocos ================= */
+.lp-bento {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.lp-bento__item {
+  padding: 22px;
+  border: 1px solid rgb(169 139 255 / 22%);
+  border-radius: 20px;
+  background:
+    radial-gradient(90% 120% at 0% 0%, rgb(106 31 232 / 22%), transparent 60%),
+    rgb(255 255 255 / 5%);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 14%);
+  transition:
+    transform 0.25s,
+    border-color 0.25s;
+}
+
+.lp-bento__item:hover {
+  transform: translateY(-3px);
+  border-color: rgb(169 139 255 / 50%);
+}
+
+.lp-bento__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgb(169 139 255 / 16%);
+  color: var(--lavanda);
+}
+
+.lp-bento h3 {
+  margin: 14px 0 6px;
+  font-size: 1.125rem;
+  color: var(--branco);
+}
+
+.lp-bento p {
+  margin: 0;
+  color: rgb(239 234 255 / 75%);
+  line-height: 1.55;
+}
+
+/* ================= planos: três cartões, o do meio em destaque ================= */
+.lp-pricing__grid {
+  display: grid;
+  gap: 18px;
+  margin-top: 8px;
+  perspective: 1400px;
+}
+
+.lp-price {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 24px;
+  border: 1px solid rgb(169 139 255 / 25%);
+  border-radius: 22px;
+  background: rgb(255 255 255 / 5%);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 14%);
+  text-align: center;
+}
+
+.lp-price--destaque {
+  border: 2px solid var(--lavanda);
+  background:
+    radial-gradient(90% 60% at 50% 0%, rgb(106 31 232 / 45%), transparent 70%),
+    rgb(255 255 255 / 7%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 25%),
+    0 0 0 6px rgb(169 139 255 / 10%),
+    0 30px 70px -20px rgb(106 31 232 / 60%);
+}
+
+.lp-price__badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 0 20px 0 14px;
+  background: var(--lavanda);
+  color: var(--tinta);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.lp-price__badge svg {
+  fill: currentColor;
+}
+
+.lp-price__name {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--lilas);
+}
+
+.lp-price__value {
+  margin: 14px 0 6px;
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
+  color: var(--branco);
+}
+
+.lp-price__lead {
+  margin: 0 0 18px;
+  color: rgb(239 234 255 / 75%);
+  line-height: 1.5;
+}
+
+.lp-price__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  flex: 1;
+  text-align: left;
+}
+
+.lp-price__list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--branco);
+  line-height: 1.45;
+}
+
+.lp-price__list svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--lavanda);
+}
+
+.lp-price hr {
+  width: 100%;
+  margin: 20px 0 16px;
+  border: 0;
+  border-top: 1px solid rgb(169 139 255 / 22%);
+}
+
+.lp-price__cta {
+  display: grid;
+  gap: 8px;
+}
+
+.lp-price__cta .lp-button {
+  width: 100%;
+}
+
+.lp-price__note {
+  margin: 14px 0 0;
+  font-size: 0.8125rem;
+  color: rgb(239 234 255 / 60%);
+}
+
+.lp-button--off {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/*
+ * No computador, os cartões dos lados entram girados para o do meio e o do meio sobe, com uma
+ * mola em CSS (no lugar do framer-motion do modelo).
+ */
+@media (min-width: 900px) {
+  .lp-pricing__grid {
+    grid-template-columns: 1fr 1.08fr 1fr;
+    align-items: center;
+  }
+
+  .lp-price {
+    transition:
+      transform 1.1s cubic-bezier(0.22, 1.35, 0.4, 1) 0.2s,
+      opacity 0.5s ease 0.2s;
+  }
+
+  .lp-pricing__grid:not(.is-visivel) .lp-price {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+
+  .lp-pricing__grid.is-visivel .lp-price--esq {
+    transform-origin: right center;
+    transform: translateX(24px) scale(0.95) rotateY(10deg);
+  }
+
+  .lp-pricing__grid.is-visivel .lp-price--dir {
+    transform-origin: left center;
+    transform: translateX(-24px) scale(0.95) rotateY(-10deg);
+  }
+
+  .lp-pricing__grid.is-visivel .lp-price--destaque {
+    z-index: 1;
+    transform: translateY(-18px);
+  }
+}
+
+@media (min-width: 900px) and (prefers-reduced-motion: reduce) {
+  .lp-price {
+    transition: none;
+  }
+
+  .lp-pricing__grid:not(.is-visivel) .lp-price {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ================= perguntas frequentes ================= */
+.lp-faq {
+  display: grid;
+  gap: 10px;
+  max-width: 760px;
+  margin: 24px auto 0;
+}
+
+.lp-faq__item {
+  border: 1px solid rgb(169 139 255 / 22%);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 5%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.lp-faq__item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--toque-minimo);
+  padding: 14px 18px;
+  font-weight: 600;
+  color: var(--branco);
+  cursor: pointer;
+  list-style: none;
+}
+
+.lp-faq__item summary::-webkit-details-marker {
+  display: none;
+}
+
+.lp-faq__item summary::after {
+  content: '+';
+  flex: none;
+  font-size: 1.375rem;
+  line-height: 1;
+  color: var(--lavanda);
+  transition: transform 0.25s;
+}
+
+.lp-faq__item[open] summary::after {
+  transform: rotate(45deg);
+}
+
+.lp-faq__item p {
+  margin: 0;
+  padding: 0 18px 16px;
+  color: rgb(239 234 255 / 78%);
+  line-height: 1.6;
+}
+
+.lp-faq__item summary:focus-visible {
+  outline: 3px solid var(--lavanda);
+  outline-offset: 2px;
+  border-radius: 16px;
+}
+
+/* ================= chamada final ================= */
+.lp-final {
+  position: relative;
+  overflow: hidden;
+  padding: 44px 20px;
+  border: 1px solid rgb(169 139 255 / 35%);
+  border-radius: 28px;
+  background:
+    radial-gradient(60% 90% at 15% 0%, rgb(106 31 232 / 55%), transparent 70%),
+    radial-gradient(50% 80% at 90% 100%, rgb(47 91 255 / 35%), transparent 70%),
+    rgb(255 255 255 / 5%);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%);
+  text-align: center;
+}
+
+.lp-final__icon {
+  color: var(--lavanda);
+}
+
+.lp-final h2 {
+  margin: 10px 0 8px;
+}
+
+.lp-final p {
+  margin: 0 0 24px;
+  color: rgb(239 234 255 / 80%);
+}
+
+.lp-final .lp-hero__cta {
+  margin-bottom: 0;
+}
+
+@media (min-width: 768px) {
+  .lp-chat-section {
+    grid-template-columns: 1.1fr 1fr;
+    gap: 48px;
+  }
+
+  .lp-bento {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .lp-bento__item--wide {
+    grid-column: span 2;
+  }
+
+  .lp-final {
+    padding: 56px 32px;
+  }
+}

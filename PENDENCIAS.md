@@ -5,6 +5,7 @@ Lista do que depende dos sócios. Atualizada em 06/11/2026. Quando um item for r
 ## Da cliente-piloto
 
 Respostas recebidas em 29/10/2026 (pelo Jandoza e pelo JP) estão em `CLAUDE.md`, seção 2. Ainda falta:
+
 - O robô pode marcar uma cliente logo depois da outra, sem intervalo entre os atendimentos? (hoje marca seguido)
 - OK dela no rascunho do recado antes do horário (em `CLAUDE.md`, seção 2).
 - Botão do robô: ela quer "Falar com Instituto Star", mas o WhatsApp só aceita 20 letras no botão (esse tem 24). Proposta: botão "Falar com a equipe" e, nas mensagens, "a equipe do Instituto Star" (ex.: "Avisei a equipe do Instituto Star"). Confirmar com ela.
@@ -17,6 +18,7 @@ Respostas recebidas em 29/10/2026 (pelo Jandoza e pelo JP) estão em `CLAUDE.md`
 - Se ela tem MEI ou CNPJ (vai pesar quando a Meta entrar). Não respondeu.
 
 ## Dos sócios
+
 - Lembrete por e-mail para a cliente final (item da seção M4): as clientes não têm e-mail no cadastro, só WhatsApp, e pedir e-mail vai contra coletar o mínimo. Proposta: lembrete só pelo WhatsApp e tirar o e-mail da cliente do escopo da Fase 1. Confirmar com o JP.
 - Teto de gasto mensal com hospedagem (Coca).
 - Modelo de planos: grátis + IA paga x implantação + mensalidade (Coca).
@@ -24,20 +26,24 @@ Respostas recebidas em 29/10/2026 (pelo Jandoza e pelo JP) estão em `CLAUDE.md`
 - Destravar a conta da Meta: forma de pagamento, perfil da empresa, verificação, e de quem fica a conta (usar o MEI do Jandoza ou o da piloto).
 - Regras dos dados das clientes dela (onde ficam, quem acessa, o que acontece no fim do contrato), escritas antes do piloto e confirmadas com advogado.
 - Dois planos (09/11/2026): nome definitivo do Premium e preço dos dois (Coca). A página mostra "Valor em breve" até lá. Confirmar se a regra de não fazer peça nova de marca antes de 3 conversas reais vale para a página com a demo.
+- Plano Personalizado na página inicial (11/11/2026): para onde vai o "Fale conosco" (WhatsApp da nexo, que depende do chip novo, e-mail ou formulário). Pôr o link em `VITE_NEXO_CONTATO`; até lá o botão mostra "Contato em breve". Mensal/anual com desconto só entra se os sócios definirem o desconto.
 - Nex com pergunta livre (06/11/2026): criar a chave do Gemini no AI Studio (em qual conta Google da nexo?) e pôr em `GEMINI_API_KEY`. Com clientes pagantes, decidir se passa para a camada paga (o Google deixa de usar as perguntas para melhorar o produto). Plano do meio dos três CRMs: **[A DEFINIR]**.
 
 ## Assinaturas (tela pronta, sem funcionar; pedido do JP em 27/10/2026)
+
 - A tela "Plano e assinatura" (Conta → Plano e assinatura) é só visual. Nomes (Básico, Com IA, Equipe), preços e o que entra em cada plano são provisórios: definir com o Coca.
 - Desconto do plano anual: existe? Quanto?
 - Fazer funcionar depois: forma de cobrança (cartão, Pix, boleto) e provedor de pagamento, troca de plano, liberação de recursos por plano (o banco já tem `Tenant.plan` e feature flags), nota fiscal (depende do CNPJ) e o que acontece quando o pagamento atrasa.
 
 ## Criar conta e e-mails (feito em 27/10/2026, falta decidir para produção)
+
 - Provedor de e-mail para produção (confirmar e-mail, esqueci a senha): escolher entre opções como Resend, Brevo ou Amazon SES, com preço conferido na página oficial de cada um. Precisa de um domínio da nexo para enviar (SPF/DKIM). Sem isso, em produção "Esqueci a senha" e "Criar conta" ficam escondidos.
 - Abrir o cadastro para qualquer pessoa (`SIGNUP_ENABLED=true`) ou deixar só a nexo criando contas na piloto? (sócios)
 - Texto dos termos de uso e da política de privacidade que a pessoa aceita no cadastro [CONFIRMAR COM ADVOGADO/CONTADOR] (item 4 abaixo).
 - O que fazer com contas criadas e nunca confirmadas (apagar depois de X dias?).
 
 ## Para levar a advogado ou contador
+
 1. A nexo é operadora e o negócio cliente é controlador dos dados das clientes finais? Como isso entra no contrato?
 2. Qual base legal usar para guardar nome, telefone e conversas das clientes finais (execução de contrato, legítimo interesse, consentimento)?
 3. O que o aviso da primeira mensagem do robô precisa dizer, no mínimo? Precisa de link para política de privacidade?
@@ -54,6 +60,7 @@ Respostas recebidas em 29/10/2026 (pelo Jandoza e pelo JP) estão em `CLAUDE.md`
 14. Quando a cliente pede para excluir os dados, perdemos também o pedido de "parar" dela. Podemos guardar só o telefone (ou um hash dele) numa lista de bloqueio, para o robô não mandar mensagem automática de novo? Por quanto tempo?
 
 ## Planos (27/10/2026)
+
 - Divisão escolhida pelo Jandoza: Grátis / CRM / Completo (CRM + agenda + robô). Falta o Coca definir preço, desconto anual e o limite de clientes do Grátis.
 - Trava por plano no servidor: feita em 06/11/2026 (Grátis = clientes e etapas; CRM = + resultados; Completo = + agenda, robô e lembretes). Confirmar com o Coca se a divisão fica assim e qual o limite de clientes do Grátis.
 - Premium P1 (09/11/2026): QR code na tela de ligar o 2FA e ferramenta do admin para desligar o 2FA de quem perdeu o celular (com auditoria). Hoje é pelo Suporte.
