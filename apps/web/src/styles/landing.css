@@ -1600,3 +1600,22 @@
 .lp-claro .lp-escuro h2 {
   color: var(--branco);
 }
+
+/* Tablet e notebook estreito: os links não cabem na pílula; vão para o menu */
+@media (min-width: 768px) and (max-width: 1099.98px) {
+  .lp-nav__links {
+    display: none;
+  }
+
+  .lp-nav__toggle {
+    display: inline-flex;
+  }
+
+  .lp-nav__menu {
+    display: grid;
+  }
+
+  .lp-nav__menu .lp-nav__menu-actions {
+    display: none;
+  }
+}
