@@ -102,12 +102,16 @@
   width: min(86vh, 70vw);
   aspect-ratio: 1;
   pointer-events: none;
+  /*
+   * No claro, a versão oficial para fundo claro (traço Tinta, nó Roxo) com opacidade cheia:
+   * mais fraca, o desfoque do vidro branco a transformava numa mancha cinza.
+   */
   background: url('../assets/brand/nexo-simbolo-fundo-claro.svg') center / contain no-repeat;
-  opacity: 0.18;
+  opacity: 0.75;
 }
 
 :root[data-vidro='on'][data-theme='escuro'] .app:not(.app--auth)::after {
-  background-image: url('../assets/brand/nexo-simbolo-fundo-escuro.svg');
+  background: url('../assets/brand/nexo-simbolo-fundo-escuro.svg') center / contain no-repeat;
   opacity: 0.32;
 }
 
@@ -412,35 +416,21 @@
   background: rgb(16 12 36 / 28%);
 }
 
-/* ================= entrada das telas ================= */
-@keyframes vidro-entra {
+/* ================= troca de tela =================
+ * Só quando a seção muda (lib/liquid.ts põe .tela-entra no <main> por um instante): o conteúdo
+ * novo aparece de uma vez, subindo 6 px. Sem desfoque e sem escada, para ficar limpo; dados que
+ * chegam depois não animam de novo.
+ */
+@keyframes tela-entra {
   from {
-    opacity: 0.45;
-    transform: translateY(12px);
-    filter: blur(3px);
+    opacity: 0;
+    transform: translateY(6px);
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  :root[data-vidro='on'] .app:not(.app--auth) > main > *,
-  :root[data-vidro='on'] .app:not(.app--auth) > main .kpis > *,
-  :root[data-vidro='on'] .app:not(.app--auth) > main > * > .card {
-    animation: vidro-entra 0.48s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-  }
-
-  :root[data-vidro='on'] .app:not(.app--auth) > main > :nth-child(2),
-  :root[data-vidro='on'] .app:not(.app--auth) > main :is(.kpis, *) > :nth-child(2) {
-    animation-delay: 45ms;
-  }
-
-  :root[data-vidro='on'] .app:not(.app--auth) > main > :nth-child(3),
-  :root[data-vidro='on'] .app:not(.app--auth) > main :is(.kpis, *) > :nth-child(3) {
-    animation-delay: 90ms;
-  }
-
-  :root[data-vidro='on'] .app:not(.app--auth) > main > :nth-child(n + 4),
-  :root[data-vidro='on'] .app:not(.app--auth) > main :is(.kpis, *) > :nth-child(n + 4) {
-    animation-delay: 135ms;
+  .app > main.tela-entra > * {
+    animation: tela-entra 0.28s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   }
 }
 

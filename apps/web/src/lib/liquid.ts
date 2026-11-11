@@ -278,6 +278,20 @@ export function installLiquid(doc: Document = document): () => void {
     attributeFilter: ['class', 'aria-current', 'aria-pressed'],
   });
   const onResize = () => drops.forEach((d) => aim(d, true));
+
+  // ---------- troca de tela ----------
+  let swapTimer = 0;
+  const onRoute = () => {
+    if (reduced()) return;
+    const main = doc.querySelector<HTMLElement>('.app > main');
+    if (!main) return;
+    main.classList.remove('tela-entra');
+    void main.offsetWidth; // recomeça a animação
+    main.classList.add('tela-entra');
+    win.clearTimeout(swapTimer);
+    swapTimer = win.setTimeout(() => main.classList.remove('tela-entra'), 450);
+  };
+  win.addEventListener('hashchange', onRoute);
   win.addEventListener('resize', onResize);
   doc.addEventListener('pointerdown', onDown, true);
   queueScan();
@@ -286,6 +300,8 @@ export function installLiquid(doc: Document = document): () => void {
     stopped = true;
     mo.disconnect();
     win.removeEventListener('resize', onResize);
+    win.removeEventListener('hashchange', onRoute);
+    win.clearTimeout(swapTimer);
     doc.removeEventListener('pointerdown', onDown, true);
     if (raf) win.cancelAnimationFrame(raf);
     drops.forEach((d) => {

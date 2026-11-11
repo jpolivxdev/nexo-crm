@@ -444,7 +444,7 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Marca:** fontes Sora e Inter (o modelo usa Segoe UI); só cores da paleta; roxo continua só em destaque (menu ativo, botões, cartão "Esperando você"). Fundo é degradê da paleta, sem foto de banco de imagem.
 - **Ajuste:** botão "Ajustar vidro" na barra de cima (a partir de 640 px), como no modelo, e o mesmo ajuste em Conta → Aparência (no celular fica só lá). Liga e desliga, modelos Transparente, Fosco e Sólido, e ajuste à mão (Desfoque, Cobertura, Cor do fundo, Brilho da borda). Fica só no aparelho. **Padrão: ligado, Fosco.**
 - **Legibilidade:** a cobertura da moldura não desce de 25% e os cartões somam cobertura por cima, para o texto manter contraste. Sem suporte a desfoque, quase sólido. Com "reduzir transparência" ou "reduzir movimento" no aparelho, volta a sólido ou sem animação.
-- **Símbolo da nexo no fundo (pedido do JP):** o SVG oficial do símbolo, grande e parado atrás do vidro, mais claro (24% no claro, 32% no escuro, com a versão para fundo escuro). Nada no desenho muda; o desfoque é o do vidro que passa por cima.
+- **Símbolo da nexo no fundo (pedido do JP):** o SVG oficial do símbolo, grande e parado atrás do vidro. No claro, a versão para fundo claro (traço Tinta, nó Roxo) a 75%; no escuro, a versão para fundo escuro a 32%. Mais fraco que isso, o vidro branco o reduzia a uma mancha (JP, 11/11/2026). Nada no desenho muda; o desfoque é o do vidro que passa por cima.
 - **Tela larga:** o conteúdo ocupa até 1600 px e fica centralizado ao lado do menu (antes ficava em 1200 px colado à esquerda, sobrando uma faixa vazia).
 - **Técnica:** a janela de ajuste vai direto no `<body>`, porque dentro da barra (que tem desfoque) ficaria presa atrás do conteúdo. A chave do aparelho mudou para `nexo-vidro-v2`.
 
@@ -454,5 +454,6 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Origem e licença (fato):** o componente (guglielmogiannattasio.it) não declara licença. **Nenhum código foi copiado.** Implementação própria em `lib/liquid.ts` (mola em JS) e `styles/liquid.css`, **sem WebGL e sem som**. O passo "imagens do Unsplash" do prompt não entrou (regra da marca: sem banco de imagem).
 - **Cores:** água azul do original trocada pela paleta: gota Branco com brilho Lavanda nas abas e na barra de baixo; gota Roxo Nexo no menu lateral (a seção ativa já era roxa); no escuro, gota roxa com texto Papel. Onda em Lavanda (Branco sobre botões roxos).
 - **Acessibilidade:** a gota e a onda são só enfeite (`aria-hidden`); a opção ativa continua marcada com `aria-current` / `aria-pressed`. Com "reduzir movimento", a gota só muda de lugar, sem esticar, sem onda e sem animar ícone. Os botões só de ícone ficaram sem onda, para não cortar o número do sino.
+- **Troca de tela (ajuste de 11/11/2026):** a entrada em cascata com desfoque ficou pesada ("não tá clean", JP). Agora só a troca de aba anima: o conteúdo novo aparece num fade curto (0,28 s) subindo 6 px, tudo junto. Abrir um filtro ou atualizar a tela não anima.
 - **Correção junto:** os números roxos de Resultados ("Pelo robô") estavam perdendo o fundo roxo com o vidro; voltaram.
 

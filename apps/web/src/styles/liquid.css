@@ -77,6 +77,12 @@
   box-shadow: none;
 }
 
+/* Enquanto a gota do menu ainda vem, o nome da seção nova fica na cor normal (senão seria
+   texto branco sobre o menu claro). */
+.sidebar__nav.liquid-moving .sidebar__link.on {
+  color: var(--cor-destaque-texto);
+}
+
 /* ---------- onda no toque ---------- */
 .has-ripple {
   position: relative;
