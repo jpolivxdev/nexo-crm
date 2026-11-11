@@ -2,15 +2,18 @@ import {
   ArrowRight,
   BellRing,
   CalendarClock,
+  ChartColumn,
   Check,
-  Clock3,
   Hand,
   MessageCircle,
   PlayCircle,
   Sparkles,
+  SquareKanban,
   Star,
+  Users,
 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Phone } from './Phone';
 import { BASIC_PLAN, CUSTOM_PLAN, NEXO_CONTACT_URL, PREMIUM_PLAN } from '../lib/plans';
 
 /** Liga `.is-visivel` quando o bloco entra na tela (uma vez), para as animações de entrada. */
@@ -36,7 +39,7 @@ function useInView<T extends HTMLElement>() {
   return [ref, visible] as const;
 }
 
-// ---------------- conversa de exemplo ----------------
+// ---------------- telas de exemplo dentro do celular ----------------
 
 type Bubble = { from: 'cliente' | 'robo'; text: ReactNode };
 
@@ -74,96 +77,341 @@ const CHAT: Bubble[] = [
   { from: 'robo', text: 'Pronto! Corte amanhã às 14h30. Te mando um lembrete antes.' },
 ];
 
-export function ChatPreview() {
-  const [ref, visible] = useInView<HTMLDivElement>();
+export const CHAT_LABEL =
+  'Exemplo fictício de conversa no WhatsApp: a cliente pede um horário, escolhe o serviço e o horário, e o robô confirma.';
+
+/** Conversa no WhatsApp (as mensagens entram uma a uma quando `play` liga). */
+export function ChatScreen({ play }: { play: boolean }) {
   return (
-    <section id="no-whatsapp" className="lp-section lp-chat-section">
-      <div className="lp-chat-section__text">
+    <div className={`lp-wa${play ? ' is-visivel' : ''}`}>
+      <div className="lp-wa__top">
+        <span className="lp-wa__avatar">E</span>
+        <span>
+          <strong>Estúdio Exemplo</strong>
+          <small>exemplo fictício</small>
+        </span>
+      </div>
+      <ol className="lp-chat">
+        {CHAT.map((b, i) => (
+          <li
+            key={i}
+            className={`lp-chat__msg lp-chat__msg--${b.from}`}
+            style={{ animationDelay: `${0.2 + i * 0.45}s` }}
+          >
+            {b.text}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+const DAY = [
+  { hora: '9h', nome: 'Ana (demo)', servico: 'Corte', tag: 'Pelo robô' },
+  { hora: '10h30', nome: 'Bia (demo)', servico: 'Escova', tag: 'Confirmou' },
+  { hora: '14h30', nome: 'Carla (demo)', servico: 'Corte', tag: 'Pelo robô' },
+  { hora: '16h', nome: 'Duda (demo)', servico: 'Unhas', tag: 'Confirmou' },
+];
+
+export const AGENDA_LABEL =
+  'Exemplo fictício do painel no celular: o dia de hoje com quatro horários marcados.';
+
+/** O dia de hoje no painel, versão celular. */
+export function AgendaScreen() {
+  return (
+    <div className="lp-dia">
+      <p className="lp-dia__eyebrow">Seu painel · exemplo</p>
+      <p className="lp-dia__title">Seu dia de hoje</p>
+      <div className="lp-dia__kpis">
+        <span>
+          <strong>4</strong>horários
+        </span>
+        <span className="is-roxo">
+          <strong>2</strong>pelo robô
+        </span>
+      </div>
+      <ul className="lp-dia__list">
+        {DAY.map((d) => (
+          <li key={d.hora}>
+            <span className="lp-dia__hora">{d.hora}</span>
+            <span className="lp-dia__quem">
+              <strong>{d.nome}</strong>
+              {d.servico}
+            </span>
+            <span className="lp-dia__tag">{d.tag}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// ---------------- mosaico ----------------
+
+function MosaicCard({
+  title,
+  text,
+  className = '',
+  children,
+}: {
+  title: string;
+  text: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <li className={`lp-mosaic__card ${className}`}>
+      <div className="lp-mosaic__demo" aria-hidden="true">
+        {children}
+      </div>
+      <h3>{title}</h3>
+      <p>{text}</p>
+    </li>
+  );
+}
+
+const BARS = [38, 52, 44, 70, 58, 86, 64];
+
+export function Mosaic({ preview }: { preview: string }) {
+  const [ref, visible] = useInView<HTMLUListElement>();
+  return (
+    <section id="como-funciona" className="lp-band lp-mosaic-section">
+      <div className="lp-band__head">
         <p className="lp-eyebrow">
-          <MessageCircle aria-hidden="true" size={16} />
-          No WhatsApp
+          <Sparkles aria-hidden="true" size={16} />
+          Como funciona
         </p>
-        <h2>O cliente marca sozinho, em poucas mensagens</h2>
-        <p className="lp-section__lead">
-          O robô conversa com botões simples, só oferece horário livre e coloca tudo na sua agenda.
-          Se o cliente pedir, ele passa a conversa para você.
-        </p>
-        <a href="#/demo" className="lp-button lp-button--gradient">
-          <PlayCircle aria-hidden="true" size={18} />
-          Testar na demonstração
-        </a>
+        <h2>Tudo o que acontece no WhatsApp vira agenda, ficha e lembrete.</h2>
       </div>
-      <div
-        ref={ref}
-        className={`lp-phone${visible ? ' is-visivel' : ''}`}
-        role="img"
-        aria-label="Exemplo de conversa: a cliente pede um horário, escolhe o serviço e o horário, e o robô confirma."
-      >
-        <div className="lp-phone__top" aria-hidden="true">
-          <span className="lp-phone__avatar">E</span>
-          <span>
-            <strong>Estúdio Exemplo</strong>
-            <small>exemplo fictício</small>
-          </span>
-        </div>
-        <ol className="lp-chat" aria-hidden="true">
-          {CHAT.map((b, i) => (
-            <li
-              key={i}
-              className={`lp-chat__msg lp-chat__msg--${b.from}`}
-              style={{ animationDelay: `${0.15 + i * 0.45}s` }}
-            >
-              {b.text}
+      <ul ref={ref} className={`lp-mosaic${visible ? ' is-visivel' : ''}`}>
+        <MosaicCard
+          className="lp-mosaic__card--largo"
+          title="O cliente marca pelo WhatsApp"
+          text="O robô responde na hora, até de madrugada, e só oferece os horários livres."
+        >
+          <div className="lp-mini-chat">
+            <span className="lp-mini-chat__in">Tem horário amanhã?</span>
+            <span className="lp-mini-chat__out">
+              Tenho 9h, 14h30 e 17h.
+              <span className="lp-chat__chips">
+                <span>9h</span>
+                <span>14h30</span>
+                <span>17h</span>
+              </span>
+            </span>
+          </div>
+        </MosaicCard>
+        <MosaicCard
+          title="O horário cai na sua agenda"
+          text={'Você vê o dia no celular e marca "realizado" ou "faltou" com um toque.'}
+        >
+          <ul className="lp-mini-agenda">
+            <li>
+              <b>9h</b> Corte <i>Realizado</i>
             </li>
-          ))}
-        </ol>
-      </div>
+            <li>
+              <b>10h30</b> Escova <i className="is-falta">Faltou</i>
+            </li>
+            <li>
+              <b>14h30</b> Corte <i className="is-novo">Novo</i>
+            </li>
+          </ul>
+        </MosaicCard>
+        <MosaicCard
+          className="lp-mosaic__card--alto"
+          title="A ficha do cliente se monta sozinha"
+          text="Conversas, horários e faltas de cada cliente num lugar só, sem digitar nada."
+        >
+          <div className="lp-mini-ficha">
+            <span className="lp-mini-ficha__avatar">C</span>
+            <strong>Carla (demo)</strong>
+            <small>Cliente desde março</small>
+            <ul>
+              <li>
+                <CalendarClock size={14} /> 8 horários
+              </li>
+              <li>
+                <MessageCircle size={14} /> 14 conversas
+              </li>
+              <li>
+                <Check size={14} /> Nenhuma falta
+              </li>
+            </ul>
+          </div>
+        </MosaicCard>
+        <MosaicCard
+          title="Lembrete antes do horário"
+          text="Um dia antes e uma hora antes. O cliente confirma ou cancela ali mesmo."
+        >
+          <div className="lp-mini-lembrete">
+            <span>Amanhã, 14h30: Corte. Você confirma?</span>
+            <span className="lp-mini-lembrete__btns">
+              <b>Confirmar</b>
+              <b>Cancelar</b>
+            </span>
+          </div>
+        </MosaicCard>
+        <MosaicCard
+          title="Você no controle"
+          text="Quando o cliente pede para falar com você, o robô pausa e te avisa."
+        >
+          <div className="lp-mini-switch">
+            <span className="lp-mini-switch__track">
+              <span />
+            </span>
+            <span>
+              <strong>Você na conversa</strong>
+              <small>robô pausado</small>
+            </span>
+          </div>
+        </MosaicCard>
+        <MosaicCard
+          title="Resultados do mês"
+          text="Quantos horários o robô marcou, quantos foram realizados e quem faltou."
+        >
+          <div className="lp-mini-barras">
+            {BARS.map((h, i) => (
+              <span key={i} style={{ height: `${h}%`, transitionDelay: `${0.5 + i * 0.07}s` }} />
+            ))}
+          </div>
+        </MosaicCard>
+        <li className="lp-mosaic__card lp-mosaic__card--painel">
+          <figure className="lp-preview">
+            <img
+              src={preview}
+              alt="Tela do painel com a agenda do dia de um negócio de exemplo"
+              width={1280}
+              height={800}
+              loading="lazy"
+            />
+            <figcaption>Painel com dados de exemplo (fictícios).</figcaption>
+          </figure>
+        </li>
+      </ul>
     </section>
   );
 }
 
-// ---------------- destaques ----------------
+// ---------------- celular no centro, funções chegando dos lados ----------------
 
-const HIGHLIGHTS = [
+const ORBIT = [
+  { Icon: CalendarClock, label: 'Agenda', side: 'esq' },
+  { Icon: BellRing, label: 'Lembretes', side: 'esq' },
+  { Icon: Users, label: 'Clientes', side: 'esq' },
+  { Icon: SquareKanban, label: 'Etapas', side: 'dir' },
+  { Icon: Hand, label: 'Passar para você', side: 'dir' },
+  { Icon: ChartColumn, label: 'Resultados', side: 'dir' },
+] as const;
+
+export function Orbit() {
+  const [ref, visible] = useInView<HTMLDivElement>();
+  return (
+    <section id="no-whatsapp" className="lp-band lp-orbit-section">
+      <div className="lp-band__head lp-band__head--centro">
+        <p className="lp-eyebrow">
+          <MessageCircle aria-hidden="true" size={16} />
+          No WhatsApp
+        </p>
+        <h2>Seu cliente conversa. O resto se organiza sozinho.</h2>
+        <p className="lp-band__lead">
+          O robô conversa com botões simples, só oferece horário livre e coloca tudo na sua agenda.
+          Se o cliente pedir, ele passa a conversa para você.
+        </p>
+      </div>
+      <div ref={ref} className={`lp-orbit${visible ? ' is-visivel' : ''}`}>
+        <ul className="lp-orbit__lado lp-orbit__lado--esq" aria-label="O que a conversa alimenta">
+          {ORBIT.filter((o) => o.side === 'esq').map(({ Icon, label }, i) => (
+            <li key={label} style={{ transitionDelay: `${0.15 + i * 0.15}s` }}>
+              <Icon aria-hidden="true" size={22} />
+              {label}
+            </li>
+          ))}
+        </ul>
+        <Phone className="phone--orbit" label={CHAT_LABEL}>
+          <ChatScreen play={visible} />
+        </Phone>
+        <ul
+          className="lp-orbit__lado lp-orbit__lado--dir"
+          aria-label="Mais do que a conversa alimenta"
+        >
+          {ORBIT.filter((o) => o.side === 'dir').map(({ Icon, label }, i) => (
+            <li key={label} style={{ transitionDelay: `${0.15 + i * 0.15}s` }}>
+              <Icon aria-hidden="true" size={22} />
+              {label}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <p className="lp-orbit__cta">
+        <a href="#/demo" className="lp-button lp-button--gradient lp-button--lg">
+          <PlayCircle aria-hidden="true" size={18} />
+          Testar na demonstração
+        </a>
+      </p>
+    </section>
+  );
+}
+
+// ---------------- título fixo, fatos do produto rolando ao lado ----------------
+
+/** Só o que o sistema faz hoje (robô, lembretes e trava de horário estão no código). */
+const FACTS = [
   {
-    Icon: Clock3,
-    title: 'Atende 24 horas',
-    text: 'Responde na hora, até de madrugada e no domingo.',
-    wide: true,
+    big: '24 h',
+    title: 'atendendo',
+    text: 'O robô responde de madrugada, no domingo e no feriado.',
   },
   {
-    Icon: CalendarClock,
-    title: 'Só horário livre',
-    text: 'Respeita folgas, bloqueios e a duração de cada serviço.',
+    big: '2',
+    title: 'lembretes por horário',
+    text: 'Um dia antes e uma hora antes, com confirmar e cancelar no próprio WhatsApp.',
   },
   {
-    Icon: BellRing,
-    title: 'Lembrete antes',
-    text: 'O cliente confirma ou cancela pelo próprio lembrete.',
+    big: '0',
+    title: 'horário marcado duas vezes',
+    text: 'Se dois clientes tentam o mesmo horário ao mesmo tempo, só um fica com ele.',
   },
   {
-    Icon: Hand,
-    title: 'Um toque para assumir',
-    text: 'O robô pausa quando você entra na conversa e volta quando você quiser.',
-    wide: true,
+    big: '1',
+    title: 'toque para assumir',
+    text: 'Você entra na conversa e o robô pausa. Outro toque e ele volta.',
   },
 ];
 
-export function Highlights() {
+export function Facts() {
+  const [active, setActive] = useState(0);
+  const listRef = useRef<HTMLOListElement>(null);
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list || typeof IntersectionObserver === 'undefined') return;
+    const items = [...list.children];
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) setActive(items.indexOf(e.target));
+        }
+      },
+      { rootMargin: '-45% 0px -45% 0px' },
+    );
+    items.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
   return (
-    <section className="lp-section lp-reveal" aria-labelledby="lp-destaques">
-      <h2 id="lp-destaques">Feito para quem atende e não tem tempo</h2>
-      <ul className="lp-bento">
-        {HIGHLIGHTS.map(({ Icon, title, text, wide }) => (
-          <li key={title} className={`lp-bento__item${wide ? ' lp-bento__item--wide' : ''}`}>
-            <span className="lp-bento__icon">
-              <Icon aria-hidden="true" size={22} />
-            </span>
-            <h3>{title}</h3>
-            <p>{text}</p>
+    <section id="por-que" className="lp-band lp-facts">
+      <div className="lp-facts__fixo">
+        <p className="lp-eyebrow">Por que a nexo</p>
+        <h2>Feito para quem atende sozinho e não tem tempo de responder.</h2>
+        <p className="lp-band__lead">O robô cuida do que se repete. Você cuida do atendimento.</p>
+      </div>
+      <ol ref={listRef} className="lp-facts__lista">
+        {FACTS.map((f, i) => (
+          <li key={f.title} className={i === active ? 'is-ativo' : undefined}>
+            <span className="lp-facts__big">{f.big}</span>
+            <h3>{f.title}</h3>
+            <p>{f.text}</p>
           </li>
         ))}
-      </ul>
+      </ol>
     </section>
   );
 }
@@ -173,7 +421,7 @@ export function Highlights() {
 export function PlansSection({ signup }: { signup: boolean }) {
   const [ref, visible] = useInView<HTMLDivElement>();
   return (
-    <section id="planos" className="lp-section lp-pricing">
+    <section id="planos" className="lp-band lp-pricing">
       <h2>Planos</h2>
       <p className="lp-section__lead">
         Comece pelo Básico. O Premium está em teste, e o Personalizado a gente monta com você.
@@ -201,7 +449,7 @@ export function PlansSection({ signup }: { signup: boolean }) {
           <p className="lp-price__note">Disponível</p>
         </article>
 
-        <article className="lp-price lp-price--destaque" aria-labelledby="plano-premium">
+        <article className="lp-price lp-price--destaque lp-escuro" aria-labelledby="plano-premium">
           <p className="lp-price__badge">
             <Star aria-hidden="true" size={14} />
             Mais completo
@@ -304,7 +552,7 @@ const FAQ = [
 
 export function Faq() {
   return (
-    <section id="perguntas" className="lp-section lp-reveal">
+    <section id="perguntas" className="lp-band lp-reveal">
       <h2>Perguntas frequentes</h2>
       <div className="lp-faq">
         {FAQ.map(({ q, a }) => (
@@ -322,8 +570,8 @@ export function Faq() {
 
 export function FinalCta() {
   return (
-    <section className="lp-section lp-reveal">
-      <div className="lp-final">
+    <section className="lp-band lp-reveal">
+      <div className="lp-final lp-escuro">
         <Sparkles aria-hidden="true" size={28} className="lp-final__icon" />
         <h2>Veja como fica o seu dia com a nexo</h2>
         <p>Abra a demonstração e mexa à vontade. Leva um minuto.</p>
