@@ -26,15 +26,18 @@ const RIPPLE_SELECTOR = [
   '.glass-adjust',
 ].join(', ');
 
+/** Classes que a própria gota põe e tira: não pedem nova leitura das telas. */
+const OWN_CLASS = /^(has-liquid|liquid-moving|has-ripple|liquid-fx.*|tela-entra)$/;
+
 /** Animações dos ícones, em rodízio pela posição da opção. */
 export const ICON_FX = ['salto', 'giro', 'aceno', 'pulo'] as const;
 
 /** Ajuste da mola (números afinados olhando o painel). */
 export const LIQUID_TUNING = {
-  lead: { k: 260, c: 26 },
-  tail: { k: 90, c: 15 },
+  lead: { k: 700, c: 50 },
+  tail: { k: 320, c: 34 },
   /** Atraso (ms) para a ponta de trás começar a andar: é isso que estica a gota. */
-  lag: 70,
+  lag: 35,
 };
 
 interface Edge {
@@ -259,6 +262,13 @@ export function installLiquid(doc: Document = document): () => void {
     for (const r of records) {
       const t = r.target;
       if (t instanceof Element && t.classList.contains('liquid-drop')) continue;
+      // classes que nós mesmos pomos e tiramos (gota andando, onda, ícone, troca de tela)
+      if (r.type === 'attributes' && r.attributeName === 'class' && t instanceof Element) {
+        const was = new Set((r.oldValue ?? '').split(/\s+/).filter(Boolean));
+        const now = new Set([...t.classList]);
+        const changed = [...was, ...now].filter((c) => was.has(c) !== now.has(c));
+        if (changed.length > 0 && changed.every((c) => OWN_CLASS.test(c))) continue;
+      }
       if (r.type === 'childList') {
         const onlyOurs = [...r.addedNodes, ...r.removedNodes].every(
           (n) =>
@@ -276,6 +286,7 @@ export function installLiquid(doc: Document = document): () => void {
     childList: true,
     attributes: true,
     attributeFilter: ['class', 'aria-current', 'aria-pressed'],
+    attributeOldValue: true,
   });
   const onResize = () => drops.forEach((d) => aim(d, true));
 

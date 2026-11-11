@@ -417,20 +417,20 @@
 }
 
 /* ================= troca de tela =================
- * Só quando a seção muda (lib/liquid.ts põe .tela-entra no <main> por um instante): o conteúdo
- * novo aparece de uma vez, subindo 6 px. Sem desfoque e sem escada, para ficar limpo; dados que
- * chegam depois não animam de novo.
+ * Só quando a seção muda (lib/liquid.ts põe .tela-entra no <main> por um instante). A tela nova
+ * já nasce visível (a partir de 75%) e assenta em 0,16 s, no mesmo tempo da gota do menu: começar
+ * apagada parecia carregamento.
  */
 @keyframes tela-entra {
   from {
-    opacity: 0;
-    transform: translateY(6px);
+    opacity: 0.75;
+    transform: translateY(3px);
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .app > main.tela-entra > * {
-    animation: tela-entra 0.28s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation: tela-entra 0.16s ease-out backwards;
   }
 }
 
