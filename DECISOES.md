@@ -435,3 +435,11 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Demo do Premium:** botão "Demo do Premium" na página inicial (`#/demo-premium`). O mesmo negócio fictício da demo do Básico, com tudo do Premium ligado e dados marcados "(demo)": CRM, painéis, carteira, chat, Wiki, quadro, marca e modelos. Nada sai do navegador; enviar arquivo e ligar domínio avisam que não funcionam na demo.
 - **Correção:** na demo, tocar numa cliente ou conversa não abria a ficha (a rota só aceitava ids do servidor). Agora aceita também os ids da demo.
 - **Página inicial:** o Premium passou de "Em construção" para "Em teste", com a lista do que ele tem. Preço continua **[A DEFINIR com o Coca]**.
+
+## Dica fluida nos botões (11/11/2026)
+
+- **O quê:** um balão de dica só para o painel inteiro. Ao passar de um botão para o outro, ele desliza numa mola, ajusta a largura ao texto novo e troca o texto rolando na direção do movimento (com um leve desfoque). Pedido do JP a partir do "fluid tooltip playground".
+- **Origem e licença (fato):** o playground (`ppoinot/fluid-tooltip-playground`) não declara licença e credita a ideia a um post do Anthony Lorenzo no X. Por isso **nenhum código foi copiado**: `lib/fluidTooltip.ts` é implementação própria do mesmo efeito.
+- **Onde aparece:** sozinho em todo botão só de ícone com `aria-label` (`icon-button`, ferramentas e cores do quadro, fechar do tour, botão do Nex, concluir tarefa); no menu lateral (recolhido: nome e explicação da seção; aberto: só a explicação); nos campos dos modelos de mensagem. Qualquer elemento novo entra com `data-tip`, `data-tip-sub` (atalho ou detalhe) e `data-tip-side`. Os `title` nativos que davam dica dupla saíram.
+- **Cores:** claro = pílula Tinta, texto Papel, detalhe Lavanda; escuro = pílula Papel, texto Tinta, detalhe Grafite. Fonte Inter.
+- **Acessibilidade:** abre com o mouse (350 ms na primeira vez, na hora depois) e com o foco do teclado; Esc fecha; quando o texto é diferente do nome do botão, vira `aria-describedby`. Não abre no toque. Com "reduzir movimento", aparece e some sem deslizar.

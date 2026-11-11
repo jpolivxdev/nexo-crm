@@ -4,7 +4,8 @@ import { useState } from 'react';
 /**
  * Menu lateral do painel no computador (a partir de 1024 px). No celular, quem navega é a barra
  * de baixo. Inspirado no "dashboard with collapsible sidebar" do 21st.dev, refeito no CSS do
- * projeto, sem Tailwind. Recolhido, mostra só os ícones; o nome continua lido pelo leitor de tela.
+ * projeto, sem Tailwind. Recolhido, mostra só os ícones; o nome continua lido pelo leitor de tela
+ * e aparece na dica fluida ao lado (lib/fluidTooltip.ts).
  */
 
 export interface SidebarItem {
@@ -13,7 +14,7 @@ export interface SidebarItem {
   Icon: LucideIcon;
   /** Grupo do menu (Atendimento, Gestão). Sem grupo, fica no topo. */
   group?: string;
-  /** Uma linha sobre a seção, mostrada ao passar o mouse. */
+  /** Uma linha sobre a seção, mostrada na dica ao passar o mouse ou focar pelo teclado. */
   hint?: string;
 }
 
@@ -80,7 +81,9 @@ export function Sidebar({
           href={`#${to}`}
           className={on ? 'sidebar__link on' : 'sidebar__link'}
           aria-current={on ? 'page' : undefined}
-          title={collapsed ? (hint ? `${label}: ${hint}` : label) : hint}
+          data-tip={collapsed ? label : hint}
+          data-tip-sub={collapsed ? hint : undefined}
+          data-tip-side="right"
         >
           <Icon aria-hidden="true" size={20} strokeWidth={on ? 2.4 : 2} />
           <span className="sidebar__label">{label}</span>
@@ -124,7 +127,8 @@ export function Sidebar({
           type="button"
           className="sidebar__link"
           onClick={onLogout}
-          title={collapsed ? 'Sair' : undefined}
+          data-tip={collapsed ? 'Sair' : undefined}
+          data-tip-side="right"
         >
           <LogOut aria-hidden="true" size={20} />
           <span className="sidebar__label">Sair</span>
@@ -134,6 +138,8 @@ export function Sidebar({
           className="sidebar__link sidebar__toggle"
           aria-expanded={!collapsed}
           aria-label={collapsed ? 'Abrir o menu' : 'Recolher o menu'}
+          data-tip={collapsed ? 'Abrir o menu' : undefined}
+          data-tip-side="right"
           onClick={toggle}
         >
           <ChevronsLeft aria-hidden="true" size={20} className="sidebar__chevron" />

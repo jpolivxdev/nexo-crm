@@ -285,7 +285,7 @@ function TemplateEditor({
               key={key}
               type="button"
               className="button button--ghost button--small"
-              title={label}
+              data-tip={label}
               onClick={() => insert(key)}
             >
               {`{${key}}`}
