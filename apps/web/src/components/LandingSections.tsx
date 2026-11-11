@@ -1,18 +1,24 @@
 import {
   ArrowRight,
   BellRing,
+  Brush,
   CalendarClock,
   ChartColumn,
   Check,
+  Eye,
   Hand,
   MessageCircle,
+  PawPrint,
   PlayCircle,
+  Scissors,
   Sparkles,
   SquareKanban,
   Star,
+  Stethoscope,
   Users,
 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { NICHES } from '../lib/niches';
 import { Phone } from './Phone';
 import { BASIC_PLAN, CUSTOM_PLAN, NEXO_CONTACT_URL, PREMIUM_PLAN } from '../lib/plans';
 
@@ -431,12 +437,15 @@ export function PlansSection({ signup }: { signup: boolean }) {
   const [ref, visible] = useInView<HTMLDivElement>();
   return (
     <section id="planos" className="lp-band lp-pricing">
-      <h2>Planos</h2>
-      <p className="lp-section__lead">
-        Comece pelo Básico. O Premium está em teste, e o Personalizado a gente monta com você.
-      </p>
+      <div className="lp-band__head">
+        <p className="lp-eyebrow">Planos</p>
+        <h2>Escolha o plano que cabe no seu negócio.</h2>
+        <p className="lp-band__lead">
+          Comece pelo Básico. O Premium está em teste, e o Personalizado a gente monta com você.
+        </p>
+      </div>
       <div ref={ref} className={`lp-pricing__grid${visible ? ' is-visivel' : ''}`}>
-        <article className="lp-price lp-price--lado lp-price--esq" aria-labelledby="plano-basico">
+        <article className="lp-price" aria-labelledby="plano-basico">
           <h3 className="lp-price__name" id="plano-basico">
             {BASIC_PLAN.name}
           </h3>
@@ -479,10 +488,7 @@ export function PlansSection({ signup }: { signup: boolean }) {
           <p className="lp-price__note">Em teste com o primeiro negócio.</p>
         </article>
 
-        <article
-          className="lp-price lp-price--lado lp-price--dir"
-          aria-labelledby="plano-personalizado"
-        >
+        <article className="lp-price" aria-labelledby="plano-personalizado">
           <h3 className="lp-price__name" id="plano-personalizado">
             {CUSTOM_PLAN.name}
           </h3>
@@ -562,7 +568,18 @@ const FAQ = [
 export function Faq() {
   return (
     <section id="perguntas" className="lp-band lp-reveal">
-      <h2>Perguntas frequentes</h2>
+      <div className="lp-band__head">
+        <p className="lp-eyebrow">Perguntas</p>
+        <h2>Perguntas frequentes</h2>
+        <p className="lp-band__lead">
+          O que mais perguntam antes de testar. Se a sua não estiver aqui, a demonstração mostra o
+          resto.
+        </p>
+        <a href="#/demo" className="lp-button lp-button--secondary">
+          <PlayCircle aria-hidden="true" size={18} />
+          Ver a demonstração
+        </a>
+      </div>
       <div className="lp-faq">
         {FAQ.map(({ q, a }) => (
           <details key={q} className="lp-faq__item">
@@ -570,6 +587,43 @@ export function Faq() {
             <p>{a}</p>
           </details>
         ))}
+      </div>
+    </section>
+  );
+}
+
+// ---------------- para quem é ----------------
+
+const NICHE_ICON: Record<string, typeof Eye> = {
+  cilios: Eye,
+  salao: Brush,
+  barbearia: Scissors,
+  estudio: Sparkles,
+  clinica: Stethoscope,
+  pet: PawPrint,
+};
+
+export function ForWhom() {
+  return (
+    <section id="para-quem" className="lp-band lp-quem lp-reveal">
+      <div className="lp-quem__caixa">
+        <div className="lp-band__head">
+          <p className="lp-eyebrow">Para quem é</p>
+          <h2>Pequenos negócios que marcam horário e atendem pelo WhatsApp.</h2>
+        </div>
+        <ul className="lp-quem__lista">
+          {NICHES.filter((n) => n.value !== 'outro').map((n) => {
+            const Icon = NICHE_ICON[n.value] ?? Sparkles;
+            return (
+              <li key={n.value}>
+                <span className="lp-quem__icone" aria-hidden="true">
+                  <Icon size={22} />
+                </span>
+                {n.label}
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </section>
   );

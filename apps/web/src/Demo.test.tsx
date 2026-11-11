@@ -117,7 +117,9 @@ describe('demonstração', () => {
   it('a página inicial mostra os três planos e leva para a demo', async () => {
     window.location.hash = '';
     render(<App />);
-    const plans = await screen.findByRole('heading', { name: 'Planos' });
+    const plans = await screen.findByRole('heading', {
+      name: 'Escolha o plano que cabe no seu negócio.',
+    });
     const section = plans.closest('section')!;
     expect(within(section).getByRole('heading', { name: 'Básico' })).toBeInTheDocument();
     expect(within(section).getByRole('heading', { name: 'Premium' })).toBeInTheDocument();

@@ -1,7 +1,6 @@
 import { ArrowRight, Menu, PlayCircle, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { MadeByNexo, NexoLogo } from '../components/Brand';
-import { NICHES } from '../lib/niches';
 import panelPreview from '../assets/painel-exemplo.webp';
 import { useAuthOptions } from './AuthPages';
 import { Phone } from '../components/Phone';
@@ -11,6 +10,7 @@ import {
   Facts,
   Faq,
   FinalCta,
+  ForWhom,
   Orbit,
   PlansSection,
   Steps,
@@ -212,19 +212,10 @@ export function Landing() {
         <Facts />
 
         <div className="lp-claro">
+          <div className="lp-claro__fundo" aria-hidden="true" />
           <PlansSection signup={signup} />
 
-          <section id="para-quem" className="lp-band lp-reveal">
-            <div className="lp-band__head">
-              <p className="lp-eyebrow">Para quem é</p>
-              <h2>Pequenos negócios que marcam horário e atendem pelo WhatsApp.</h2>
-            </div>
-            <ul className="lp-niches">
-              {NICHES.filter((n) => n.value !== 'outro').map((n) => (
-                <li key={n.value}>{n.label}</li>
-              ))}
-            </ul>
-          </section>
+          <ForWhom />
 
           <Faq />
           <FinalCta />

@@ -476,3 +476,13 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Do modelo, só a estrutura (fato):** nenhum código, texto, imagem ou nome dele. A foto da mão segurando o celular e a faixa de logos de "empresas que confiam" ficaram de fora. Celular e telas são desenho próprio, com dados fictícios marcados.
 - **Fatos no lugar de números de resultado:** 24 h atendendo, 2 lembretes por horário (24 h e 1 h antes, em `packages/core/src/bot/reminders.ts`), 0 horário marcado duas vezes (trava no banco) e 1 toque para assumir. Nenhum número de cliente, nota ou depoimento.
 - **Técnica:** sem dependência nova. A abertura usa `position: sticky` e `--lp-p` (quanto rolou); por isso `.lp` usa `overflow-x: clip` (com `hidden`, o sticky não funciona). Com "reduzir movimento", tudo aparece parado. No celular (até 767 px), a abertura vira coluna simples.
+
+## Acabamento da parte clara da página de entrada (11/11/2026)
+
+Pedido do JP: a parte clara estava "sem sal", títulos com pouco espaço e planos para repensar.
+
+- **Parte clara:** a virada do escuro para o claro passa por Roxo, Lavanda e Lilás; o fundo ganhou manchas suaves e anéis finos da paleta. "Para quem é" virou uma caixa Lilás com os tipos de negócio em cartões com ícone. Perguntas frequentes ficaram com o título fixo de um lado e as respostas do outro.
+- **Títulos:** todo título de seção tem rótulo, respiro embaixo e entrelinha maior.
+- **Planos:** três cartões retos, da mesma altura, ocupando a largura toda. O nome do plano é o destaque; "Valor em breve" virou etiqueta pequena (preço continua [A DEFINIR] com o Coca). Premium segue escuro e um pouco mais alto.
+- **Fale conosco:** continua sem destino (ver PENDENCIAS). Não foi apontado para a demo, para o botão não prometer um contato que não acontece.
+- **Passo a passo:** as cenas pequenas ocupam o quadro inteiro.
