@@ -457,3 +457,11 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Troca de tela (ajustes de 11/11/2026):** a entrada em cascata com desfoque ficou pesada ("não tá clean", JP), e o fade que começava apagado parecia carregamento. Agora só a troca de aba anima: a tela nova já nasce a 75% e assenta em 0,16 s, no tempo da gota. A gota ficou mais firme (chega em cerca de 0,25 s) e o "Carregando…" só aparece se a espera passar de 0,35 s.
 - **Correção junto:** os números roxos de Resultados ("Pelo robô") estavam perdendo o fundo roxo com o vidro; voltaram.
 
+
+## Página de entrada em camadas (11/11/2026)
+
+- **O quê:** pedido do JP a partir do "parallax scrolling" da Osmo (21st.dev). O topo da página de entrada virou camadas que rolam em velocidades diferentes: manchas da paleta ao fundo, o símbolo oficial da nexo, o texto (que sobe mais devagar e some) e, na frente, o print do painel de exemplo num cartão de vidro. As seções (Como funciona, Planos, Para quem é) ganharam cartões de vidro e aparecem subindo ao entrar na tela. No menu de cima, a gota do painel marca a seção que está na tela, e os botões soltam a mesma onda do painel.
+- **Origem e licença (fato):** o recurso é da Osmo e não traz licença de uso no prompt. **Nenhum código foi copiado.** Feito em `screens/Landing.tsx` e `styles/landing.css`, **sem GSAP e sem Lenis** (zero dependência nova). A rolagem continua a do navegador: o Lenis troca a rolagem por uma própria, o que atrapalha teclado, leitor de tela e os links das seções.
+- **Fora:** as 3 imagens das camadas (do CDN da Osmo), as fotos do Unsplash pedidas no prompt (regra da marca: sem banco de imagem), o ícone e os créditos da Osmo, a estrutura shadcn/Tailwind.
+- **Acessibilidade:** camadas são enfeite (`aria-hidden`). Com "reduzir movimento", nada se mexe e os links rolam sem animação. A seção ativa do menu leva `aria-current`. Onde o navegador não liga animação à rolagem, as seções só aparecem paradas.
+- **Pendente:** PENDENCIAS.md já pergunta se a regra de não fazer peça nova de marca antes de 3 conversas reais vale para esta página. O JP pediu esta mudança em 11/11/2026.

@@ -2,7 +2,7 @@
  * Botões de gota (lib/liquid.ts). Só cores da marca: gota clara (Branco com brilho Lavanda) nas
  * abas e na barra de baixo; gota Roxo Nexo no menu lateral, que já marcava a seção em roxo.
  */
-.has-liquid:not(.tabbar) {
+.has-liquid:not(.tabbar, .lp-nav__links) {
   position: relative;
 }
 

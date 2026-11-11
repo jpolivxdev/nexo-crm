@@ -9,12 +9,14 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MadeByNexo, NexoLogo } from '../components/Brand';
 import { NICHES } from '../lib/niches';
 import panelPreview from '../assets/painel-exemplo.webp';
+import nexoSymbol from '../assets/brand/nexo-simbolo-fundo-escuro.svg';
 import { useAuthOptions } from './AuthPages';
 import { BASIC_PLAN, PREMIUM_PLAN } from '../lib/plans';
+import '../styles/landing.css';
 
 /** Seções da página. Rolam até o lugar sem mexer no endereço (o painel usa o # para as rotas). */
 const SECTIONS = [
@@ -47,14 +49,80 @@ const STEPS = [
 ];
 
 function scrollTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  document
+    .getElementById(id)
+    ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
 }
 
-/** Página de entrada (estilo do modelo de SaaS do 21st.dev, com as cores e fontes da nexo). */
+/**
+ * Camadas do topo que andam em velocidades diferentes ao rolar (ideia do "parallax scrolling"
+ * da Osmo, feita aqui sem GSAP nem Lenis: a rolagem continua a do navegador). Põe quanto o topo
+ * já rolou em `--lp-rolagem`; o CSS move cada camada por uma fração disso. Com "reduzir
+ * movimento", nada se mexe.
+ */
+function useParallax() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    let raf = 0;
+    const paint = () => {
+      raf = 0;
+      const y = reduce?.matches
+        ? 0
+        : Math.max(0, Math.min(window.scrollY, window.innerHeight * 1.5));
+      root.style.setProperty('--lp-rolagem', String(Math.round(y)));
+    };
+    const onScroll = () => {
+      if (!raf) raf = window.requestAnimationFrame(paint);
+    };
+    paint();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, []);
+  return ref;
+}
+
+/** Qual seção está na tela, para a gota do menu de cima acompanhar a rolagem. */
+function useActiveSection(ids: string[]) {
+  const [active, setActive] = useState<string | null>(null);
+  const key = ids.join(',');
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+    const seen = new Map<string, boolean>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => seen.set(e.target.id, e.isIntersecting));
+        setActive(key.split(',').find((id) => seen.get(id)) ?? null);
+      },
+      { rootMargin: '-45% 0px -50% 0px' },
+    );
+    key.split(',').forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) io.observe(el);
+    });
+    return () => io.disconnect();
+  }, [key]);
+  return active;
+}
+
+/**
+ * Página de entrada (estilo do modelo de SaaS do 21st.dev, com as cores e fontes da nexo), com o
+ * topo em camadas que rolam em velocidades diferentes e o mesmo vidro e gota do painel.
+ */
 export function Landing() {
   const options = useAuthOptions();
   const [menuOpen, setMenuOpen] = useState(false);
   const signup = options?.signupEnabled ?? false;
+  const pageRef = useParallax();
+  const active = useActiveSection(SECTIONS.map((s) => s.id));
 
   const go = (id: string) => {
     setMenuOpen(false);
@@ -78,13 +146,19 @@ export function Landing() {
   );
 
   return (
-    <div className="lp">
+    <div className="lp" ref={pageRef}>
       <header className="lp-nav">
         <nav className="lp-nav__inner" aria-label="Principal">
           <NexoLogo fundo="escuro" height={28} />
           <div className="lp-nav__links">
             {SECTIONS.map((s) => (
-              <button key={s.id} type="button" className="lp-nav__link" onClick={() => go(s.id)}>
+              <button
+                key={s.id}
+                type="button"
+                className={`lp-nav__link${active === s.id ? ' on' : ''}`}
+                aria-current={active === s.id ? 'true' : undefined}
+                onClick={() => go(s.id)}
+              >
                 {s.label}
               </button>
             ))}
@@ -115,34 +189,40 @@ export function Landing() {
 
       <main>
         <section className="lp-hero">
-          <p className="lp-pill">
-            <span>Em fase de testes</span>
-            <button type="button" className="lp-pill__link" onClick={() => go('como-funciona')}>
-              Ver como funciona
-              <ArrowRight aria-hidden="true" size={12} />
-            </button>
-          </p>
-          <h1 className="lp-hero__title">
-            Seu cliente marca horário <br className="lp-br" />
-            sozinho pelo WhatsApp
-          </h1>
-          <p className="lp-hero__lead">
-            Até de madrugada. E você vê agenda, clientes e conversas do seu negócio organizados num
-            lugar só, direto do celular.
-          </p>
-          <div className="lp-hero__cta">
-            <a href="#/demo" className="lp-button lp-button--gradient lp-button--lg">
-              <PlayCircle aria-hidden="true" size={18} />
-              Ver a demonstração
-            </a>
-            <a href="#/entrar" className="lp-button lp-button--secondary lp-button--lg">
-              Entrar no painel
-              <ArrowRight aria-hidden="true" size={18} />
-            </a>
+          <div className="lp-layers" aria-hidden="true">
+            <div className="lp-layer lp-layer--manchas" />
+            <img className="lp-layer lp-layer--simbolo" src={nexoSymbol} alt="" />
           </div>
-          <p className="lp-hero__note">
-            A demonstração abre o painel com um negócio e clientes fictícios, sem cadastro.
-          </p>
+          <div className="lp-hero__copy">
+            <p className="lp-pill">
+              <span>Em fase de testes</span>
+              <button type="button" className="lp-pill__link" onClick={() => go('como-funciona')}>
+                Ver como funciona
+                <ArrowRight aria-hidden="true" size={12} />
+              </button>
+            </p>
+            <h1 className="lp-hero__title">
+              Seu cliente marca horário <br className="lp-br" />
+              sozinho pelo WhatsApp
+            </h1>
+            <p className="lp-hero__lead">
+              Até de madrugada. E você vê agenda, clientes e conversas do seu negócio organizados
+              num lugar só, direto do celular.
+            </p>
+            <div className="lp-hero__cta">
+              <a href="#/demo" className="lp-button lp-button--gradient lp-button--lg">
+                <PlayCircle aria-hidden="true" size={18} />
+                Ver a demonstração
+              </a>
+              <a href="#/entrar" className="lp-button lp-button--secondary lp-button--lg">
+                Entrar no painel
+                <ArrowRight aria-hidden="true" size={18} />
+              </a>
+            </div>
+            <p className="lp-hero__note">
+              A demonstração abre o painel com um negócio e clientes fictícios, sem cadastro.
+            </p>
+          </div>
           <figure className="lp-preview">
             <div className="lp-preview__glow" aria-hidden="true" />
             <img
@@ -153,9 +233,10 @@ export function Landing() {
             />
             <figcaption>Painel com dados de exemplo (fictícios).</figcaption>
           </figure>
+          <div className="lp-hero__fade" aria-hidden="true" />
         </section>
 
-        <section id="como-funciona" className="lp-section">
+        <section id="como-funciona" className="lp-section lp-reveal">
           <h2>Como funciona</h2>
           <ol className="lp-steps">
             {STEPS.map(({ Icon, title, text }) => (
@@ -168,7 +249,7 @@ export function Landing() {
           </ol>
         </section>
 
-        <section id="planos" className="lp-section">
+        <section id="planos" className="lp-section lp-reveal">
           <h2>Planos</h2>
           <p className="lp-section__lead">Comece pelo Básico. O Premium está em teste.</p>
           <div className="lp-plans">
@@ -223,7 +304,7 @@ export function Landing() {
           </div>
         </section>
 
-        <section id="para-quem" className="lp-section">
+        <section id="para-quem" className="lp-section lp-reveal">
           <h2>Para quem é</h2>
           <p className="lp-section__lead">
             Pequenos negócios que marcam horário e atendem pelo WhatsApp.

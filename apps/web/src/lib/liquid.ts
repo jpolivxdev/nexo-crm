@@ -14,9 +14,10 @@
  * Com "reduzir movimento", a gota só muda de lugar, sem esticar, sem onda e sem animar ícone.
  */
 
-export const LIQUID_GROUPS = ['.tabbar', '.sidebar__nav', '.segmented'] as const;
+export const LIQUID_GROUPS = ['.tabbar', '.sidebar__nav', '.segmented', '.lp-nav__links'] as const;
 const GROUP_SELECTOR = LIQUID_GROUPS.join(', ');
-const ACTIVE = ':scope .on, :scope [aria-current="page"], :scope [aria-pressed="true"]';
+const ACTIVE =
+  ':scope .on, :scope [aria-current="page"], :scope [aria-current="true"], :scope [aria-pressed="true"]';
 const RIPPLE_SELECTOR = [
   '.tabbar a',
   '.sidebar__link',
@@ -24,6 +25,8 @@ const RIPPLE_SELECTOR = [
   '.button',
   '.chip',
   '.glass-adjust',
+  '.lp-button',
+  '.lp-nav__link',
 ].join(', ');
 
 /** Classes que a própria gota põe e tira: não pedem nova leitura das telas. */
