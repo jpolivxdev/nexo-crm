@@ -1,0 +1,234 @@
+/*
+ * Efeito de vidro do painel (lib/glass.ts). Liga com data-vidro="on" no <html>.
+ * Só cores da marca: fundo Papel (ou Tinta, no escuro) com manchas suaves de Lavanda, Roxo e
+ * Azul Elo; superfícies Branco (ou a superfície escura) translúcidas, com borda clara.
+ *
+ * O desfoque fica num ::before atrás do conteúdo, e não no cartão: backdrop-filter no próprio
+ * cartão prenderia painéis "fixed" que abrem de dentro dele (como o Sheet) ao tamanho do cartão.
+ *
+ * Variáveis (postas pelo lib/glass.ts): --vidro-desfoque, --vidro-opacidade, --vidro-saturacao,
+ * --vidro-borda.
+ */
+:root {
+  --vidro-desfoque: 12px;
+  --vidro-opacidade: 86%;
+  --vidro-saturacao: 1.2;
+  --vidro-borda: 50%;
+  --vidro-base: var(--branco);
+  --vidro-brilho: var(--branco);
+  --vidro-mancha-1: rgb(169 139 255 / 42%); /* Lavanda */
+  --vidro-mancha-2: rgb(106 31 232 / 16%); /* Roxo Nexo */
+  --vidro-mancha-3: rgb(47 91 255 / 14%); /* Azul Elo */
+  --vidro-mancha-4: rgb(239 234 255 / 90%); /* Lilás */
+}
+
+:root[data-theme='escuro'] {
+  --vidro-base: color-mix(in srgb, var(--tinta) 90%, var(--lavanda));
+  --vidro-brilho: var(--lavanda);
+  --vidro-mancha-1: rgb(106 31 232 / 42%);
+  --vidro-mancha-2: rgb(169 139 255 / 18%);
+  --vidro-mancha-3: rgb(47 91 255 / 22%);
+  --vidro-mancha-4: rgb(106 31 232 / 18%);
+}
+
+/* ---------- fundo atrás do vidro (só no painel logado) ---------- */
+:root[data-vidro='on'] .app--with-nav,
+:root[data-vidro='on'] body:has(> #root > .app--with-nav) {
+  /* O body também pinta fundo e ficaria por cima do ::before (z-index -1). */
+  background: transparent;
+}
+
+:root[data-vidro='on'] .app--with-nav::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(42% 36% at 88% 6%, var(--vidro-mancha-1), transparent 72%),
+    radial-gradient(40% 34% at 6% 38%, var(--vidro-mancha-2), transparent 70%),
+    radial-gradient(46% 40% at 70% 88%, var(--vidro-mancha-3), transparent 72%),
+    radial-gradient(60% 50% at 30% 0%, var(--vidro-mancha-4), transparent 70%), var(--cor-fundo);
+}
+
+/* ---------- cartões, títulos de página e números ---------- */
+:root[data-vidro='on']
+  .app--with-nav
+  :is(.card:not(.card--highlight), .page-header, .kpi:not(.kpi--attention)) {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+  border-color: color-mix(in srgb, var(--vidro-brilho) var(--vidro-borda), var(--cor-borda));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--vidro-brilho) var(--vidro-borda), transparent),
+    var(--sombra-1);
+}
+
+:root[data-vidro='on']
+  .app--with-nav
+  :is(.card:not(.card--highlight), .page-header, .kpi:not(.kpi--attention))::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--vidro-base) var(--vidro-opacidade), transparent);
+  -webkit-backdrop-filter: blur(var(--vidro-desfoque)) saturate(var(--vidro-saturacao));
+  backdrop-filter: blur(var(--vidro-desfoque)) saturate(var(--vidro-saturacao));
+}
+
+/* Cartão dentro de cartão: só o de fora desfoca (o de dentro fica na cor, mais leve). */
+:root[data-vidro='on']
+  .app--with-nav
+  :is(.card, .page-header, .kpi:not(.kpi--attention))
+  :is(.card, .kpi:not(.kpi--attention))::before {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* ---------- barra de baixo (celular) e menu lateral (computador) ---------- */
+:root[data-vidro='on'] .app--with-nav > :is(.tabbar, .sidebar) {
+  background: color-mix(in srgb, var(--vidro-base) var(--vidro-opacidade), transparent);
+  -webkit-backdrop-filter: blur(var(--vidro-desfoque)) saturate(var(--vidro-saturacao));
+  backdrop-filter: blur(var(--vidro-desfoque)) saturate(var(--vidro-saturacao));
+}
+
+:root[data-vidro='on'] .app--with-nav > .tabbar {
+  border-top-color: color-mix(in srgb, var(--vidro-brilho) var(--vidro-borda), var(--cor-borda));
+}
+
+:root[data-vidro='on'] .app--with-nav > .sidebar {
+  border-right-color: color-mix(in srgb, var(--vidro-brilho) var(--vidro-borda), var(--cor-borda));
+}
+
+/* Cabeçalho escuro do celular: vidro escuro, sempre bem coberto para o texto branco ler bem. */
+@media (max-width: 1023.98px) {
+  :root[data-vidro='on'] .app--with-nav > .appbar {
+    background: color-mix(
+      in srgb,
+      var(--cor-escuro) clamp(88%, calc(var(--vidro-opacidade) + 12%), 100%),
+      transparent
+    );
+    box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--lavanda) var(--vidro-borda), transparent);
+  }
+}
+
+/* No computador, os botões redondos do topo também viram vidro. */
+@media (min-width: 1024px) {
+  :root[data-vidro='on'] .app--with-nav > .appbar .icon-button:not(:hover, .on) {
+    background: color-mix(in srgb, var(--vidro-base) var(--vidro-opacidade), transparent);
+    -webkit-backdrop-filter: blur(var(--vidro-desfoque)) saturate(var(--vidro-saturacao));
+    backdrop-filter: blur(var(--vidro-desfoque)) saturate(var(--vidro-saturacao));
+  }
+}
+
+/* ---------- quando o vidro não deve aparecer ---------- */
+
+/* Navegador sem desfoque: superfície quase sólida, para o texto não perder contraste. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root[data-vidro='on'] {
+    --vidro-opacidade: 96%;
+  }
+}
+
+/* Quem pediu menos transparência no aparelho fica com as superfícies sólidas. */
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-vidro='on'] {
+    --vidro-opacidade: 100%;
+    --vidro-desfoque: 0px;
+  }
+}
+
+@media (forced-colors: active) {
+  :root[data-vidro='on'] .app--with-nav::before,
+  :root[data-vidro='on']
+    .app--with-nav
+    :is(.card, .page-header, .kpi:not(.kpi--attention))::before {
+    display: none;
+  }
+}
+
+/* ---------- controles em Conta → Aparência ---------- */
+.glass-controls {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--cor-borda);
+}
+
+.glass-controls h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.glass-controls__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.glass-controls__sliders {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .glass-controls__sliders {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+  }
+}
+
+.glass-slider {
+  display: grid;
+  gap: 4px;
+}
+
+.glass-slider__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.glass-slider output {
+  font-variant-numeric: tabular-nums;
+  color: var(--cor-texto-suave);
+}
+
+.glass-slider small {
+  color: var(--cor-texto-suave);
+}
+
+.glass-slider input[type='range'] {
+  width: 100%;
+  min-height: var(--toque-minimo);
+  margin: 0;
+  accent-color: var(--roxo-nexo);
+  cursor: pointer;
+}
+
+:root[data-theme='escuro'] .glass-slider input[type='range'] {
+  accent-color: var(--lavanda);
+}
+
+.glass-slider input[type='range']:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.glass-controls summary {
+  min-height: var(--toque-minimo);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--cor-destaque-texto);
+}
+
+.glass-controls__head p {
+  margin: 2px 0 0;
+}

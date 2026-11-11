@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 import './App.css';
+import './styles/glass.css';
 import { Bell } from './components/Bell';
 import { MadeByNexo, NexoLogo } from './components/Brand';
 import { Nex, type NexTopic } from './components/Nex';
@@ -28,6 +29,7 @@ import { AuthProvider, useAuth } from './lib/auth';
 import { time } from './lib/format';
 import { useRoute } from './lib/hooks';
 import { applyBrand, logoUrl } from './lib/brand';
+import { applyGlass } from './lib/glass';
 import { DEMO_TOUR, markTourSeen, tourFor, tourSeen } from './lib/tours';
 import { enterDemo, isDemo, leaveDemo, takeDemoTour } from './lib/demo/mode';
 import { DemoBanner } from './components/DemoBanner';
@@ -69,6 +71,9 @@ import { BrandSettings } from './screens/BrandSettings';
 import { Templates } from './screens/Templates';
 import { Boards } from './screens/Boards';
 import { Today } from './screens/Today';
+
+// Vidro do painel: vale desde o primeiro desenho (preferência deste aparelho).
+applyGlass();
 
 const NAV: (SidebarItem & { feature?: Feature })[] = [
   { to: '/hoje', label: 'Hoje', Icon: House, hint: 'O resumo do dia e o que precisa de você' },
