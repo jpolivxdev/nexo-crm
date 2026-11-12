@@ -16,6 +16,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   leaveDemo();
   vi.unstubAllGlobals();
   window.location.hash = '';
@@ -58,6 +59,10 @@ describe('demonstração', () => {
   });
 
   it('as ações mudam só a memória: responder pausa o robô e marcar realizado move a etapa', async () => {
+    // Hora fixa (terça, 10h em São Paulo): tarde da noite a demo já não tem horário em aberto hoje.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-10T13:00:00Z'));
+    resetDemo();
     const conv = (await demoRequest('GET', '/panel/conversations?tab=waiting')) as {
       conversations: { id: string; contact: { id: string } }[];
     };
