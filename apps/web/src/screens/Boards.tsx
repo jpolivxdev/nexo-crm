@@ -854,7 +854,7 @@ function Canvas({ board, go }: { board: BoardData; go: (to: string) => void }) {
             type="button"
             className={tool === t.id ? 'board__tool on' : 'board__tool'}
             aria-label={t.label}
-            title={`${t.label} (${t.key.toUpperCase()})`}
+            data-tip-sub={t.key.toUpperCase()}
             aria-pressed={tool === t.id}
             onClick={() => setTool(t.id)}
           >
@@ -865,7 +865,6 @@ function Canvas({ board, go }: { board: BoardData; go: (to: string) => void }) {
           type="button"
           className="board__tool"
           aria-label="Imagem"
-          title="Imagem"
           onClick={() => fileInput.current?.click()}
         >
           <ImagePlus aria-hidden="true" size={18} />
@@ -887,7 +886,7 @@ function Canvas({ board, go }: { board: BoardData; go: (to: string) => void }) {
           type="button"
           className="board__tool"
           aria-label="Desfazer"
-          title="Desfazer (Ctrl+Z)"
+          data-tip-sub="Ctrl+Z"
           disabled={hist.undo === 0}
           onClick={undo}
         >
@@ -897,7 +896,7 @@ function Canvas({ board, go }: { board: BoardData; go: (to: string) => void }) {
           type="button"
           className="board__tool"
           aria-label="Refazer"
-          title="Refazer (Ctrl+Shift+Z)"
+          data-tip-sub="Ctrl+Shift+Z"
           disabled={hist.redo === 0}
           onClick={redo}
         >
@@ -907,7 +906,8 @@ function Canvas({ board, go }: { board: BoardData; go: (to: string) => void }) {
           type="button"
           className="board__tool"
           aria-label="Apagar item selecionado"
-          title="Apagar (Delete)"
+          data-tip="Apagar"
+          data-tip-sub="Delete"
           disabled={!selected}
           onClick={removeSelected}
         >
@@ -935,7 +935,6 @@ function Canvas({ board, go }: { board: BoardData; go: (to: string) => void }) {
           type="button"
           className="board__tool"
           aria-label="Mostrar o quadro inteiro"
-          title="Mostrar o quadro inteiro"
           onClick={fit}
         >
           <Maximize aria-hidden="true" size={18} />

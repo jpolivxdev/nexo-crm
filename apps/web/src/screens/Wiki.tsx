@@ -698,7 +698,6 @@ function Editor({
               type="button"
               className="icon-button icon-button--plain"
               aria-label={t.label}
-              title={t.label}
               disabled={preview}
               onClick={() => tool(t.apply)}
             >
