@@ -1923,3 +1923,34 @@
     font-size: 1.125rem;
   }
 }
+
+/* ---- chamada final: símbolo da nexo revelado em vidro, no lado livre ---- */
+.lp-final__vidro {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .lp-final {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    column-gap: clamp(24px, 4vw, 72px);
+    align-items: center;
+  }
+
+  .lp-final > :not(.lp-final__vidro) {
+    grid-column: 1;
+  }
+
+  /* o quadro pinta Tinta lisa; a máscara desfaz a borda no degradê da caixa */
+  .lp-final__vidro {
+    display: block;
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    justify-self: center;
+    width: min(100%, 460px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    -webkit-mask-image: radial-gradient(closest-side, #000 45%, transparent 100%);
+    mask-image: radial-gradient(closest-side, #000 45%, transparent 100%);
+  }
+}

@@ -486,3 +486,13 @@ Pedido do JP: a parte clara estava "sem sal", títulos com pouco espaço e plano
 - **Planos:** três cartões retos, da mesma altura, ocupando a largura toda. O nome do plano é o destaque; "Valor em breve" virou etiqueta pequena (preço continua [A DEFINIR] com o Coca). Premium segue escuro e um pouco mais alto.
 - **Fale conosco:** continua sem destino (ver PENDENCIAS). Não foi apontado para a demo, para o botão não prometer um contato que não acontece.
 - **Passo a passo:** as cenas pequenas ocupam o quadro inteiro.
+
+## Símbolo da nexo revelado em vidro na chamada final (12/11/2026)
+
+Pedido do JP: usar o efeito "liquid glass logo reveal" com a logo da nexo na página de entrada.
+
+- **Onde:** no lado livre da chamada final ("Veja como fica o seu dia com a nexo"), só a partir de 900 px. No celular a chamada fica como estava.
+- **Código:** `apps/web/src/components/GlassIconReveal.tsx`. O shader e a linha do tempo são de zanwei/glass-icon-reveal, **licença MIT** (conferida no repositório em 12/11/2026); o crédito está no topo do arquivo. Não entrou a marca do 21st.dev, nem Tailwind, shadcn ou dependência nova.
+- **Marca:** usa o SVG oficial do símbolo (fundo escuro), com as cores dele, e termina no símbolo nítido. O vidro distorce a imagem só durante a animação; a dispersão em arco-íris foi reduzida para não sair da paleta.
+- **Comportamento:** toca uma vez quando entra na tela (um clique repete). Com "reduzir movimento" mostra o símbolo parado; sem WebGL2 mostra só o símbolo.
+- **Exceção de tipos:** o arquivo usa `@ts-nocheck` porque é código de terceiros cheio de conta em vetores e o projeto liga `noUncheckedIndexedAccess`; as props continuam tipadas para quem usa.

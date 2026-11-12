@@ -19,7 +19,9 @@ import {
 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { NICHES } from '../lib/niches';
+import { GlassIconReveal } from './GlassIconReveal';
 import { Phone } from './Phone';
+import nexoSymbol from '../assets/brand/nexo-simbolo-fundo-escuro.svg';
 import { BASIC_PLAN, CUSTOM_PLAN, NEXO_CONTACT_URL, PREMIUM_PLAN } from '../lib/plans';
 
 /** Liga `.is-visivel` quando o bloco entra na tela (uma vez), para as animações de entrada. */
@@ -631,10 +633,41 @@ export function ForWhom() {
 
 // ---------------- chamada final ----------------
 
+/** Vidro mais contido que o do modelo: quase sem arco-íris, para não sair da paleta. */
+const GLASS_TUNING = { dispersion: 0.35, colorBleed: 0.3, present: 2.6 };
+
+/**
+ * Símbolo oficial da nexo revelado por um bloco de vidro. Toca uma vez quando entra na tela (um
+ * toque repete). Com "reduzir movimento", mostra direto o símbolo parado.
+ */
+function GlassMark() {
+  const [still] = useState(
+    () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false,
+  );
+  return (
+    <GlassIconReveal
+      className="lp-final__vidro"
+      logo={nexoSymbol}
+      label="nexo"
+      look="dark"
+      originalColors
+      iconPlate={false}
+      background="#100C24"
+      tileSize={230}
+      logoScale={0.62}
+      finalScale={0.9}
+      loop={false}
+      time={still ? 3.7 : undefined}
+      tuning={GLASS_TUNING}
+    />
+  );
+}
+
 export function FinalCta() {
   return (
     <section className="lp-band lp-reveal">
       <div className="lp-final lp-escuro">
+        <GlassMark />
         <Sparkles aria-hidden="true" size={28} className="lp-final__icon" />
         <h2>Veja como fica o seu dia com a nexo</h2>
         <p>Abra a demonstração e mexa à vontade. Leva um minuto.</p>
