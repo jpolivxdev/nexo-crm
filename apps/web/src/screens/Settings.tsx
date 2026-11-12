@@ -19,6 +19,7 @@ import { PageHeader } from '../components/PageHeader';
 import { Banner } from '../components/ui';
 import { api, ApiError } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { GlassControls } from '../components/GlassControls';
 import { setThemePref, type ThemePref, useThemePref } from '../lib/theme';
 import { ChangePassword } from './ChangePassword';
 
@@ -205,7 +206,7 @@ function ThemePicker() {
   return (
     <section className="card" aria-labelledby="aparencia">
       <h2 id="aparencia">Aparência</h2>
-      <p className="muted">Escolha as cores do painel neste aparelho.</p>
+      <p className="muted">Escolha as cores e o efeito do painel neste aparelho.</p>
       <div className="segmented" role="group" aria-labelledby="aparencia">
         {THEMES.map((t) => (
           <button
@@ -219,6 +220,7 @@ function ThemePicker() {
           </button>
         ))}
       </div>
+      <GlassControls />
     </section>
   );
 }
