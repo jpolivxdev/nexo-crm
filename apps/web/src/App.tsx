@@ -16,7 +16,10 @@ import {
 } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 import './App.css';
+import './styles/glass.css';
+import './styles/liquid.css';
 import { Bell } from './components/Bell';
+import { GlassAdjust } from './components/GlassAdjust';
 import { MadeByNexo, NexoLogo } from './components/Brand';
 import { Nex, type NexTopic } from './components/Nex';
 import { OwnerToasts } from './components/OwnerToasts';
@@ -28,6 +31,8 @@ import { AuthProvider, useAuth } from './lib/auth';
 import { time } from './lib/format';
 import { useRoute } from './lib/hooks';
 import { applyBrand, logoUrl } from './lib/brand';
+import { applyGlass } from './lib/glass';
+import { installLiquid } from './lib/liquid';
 import { DEMO_TOUR, markTourSeen, tourFor, tourSeen } from './lib/tours';
 import { enterDemo, isDemo, leaveDemo, takeDemoTour } from './lib/demo/mode';
 import { DemoBanner } from './components/DemoBanner';
@@ -69,6 +74,9 @@ import { BrandSettings } from './screens/BrandSettings';
 import { Templates } from './screens/Templates';
 import { Boards } from './screens/Boards';
 import { Today } from './screens/Today';
+
+// Vidro do painel: vale desde o primeiro desenho (preferência deste aparelho).
+applyGlass();
 
 const NAV: (SidebarItem & { feature?: Feature })[] = [
   { to: '/hoje', label: 'Hoje', Icon: House, hint: 'O resumo do dia e o que precisa de você' },
@@ -187,6 +195,8 @@ const NEX_TOPICS: NexTopic[] = [
 ];
 
 export function App() {
+  // Botões de gota em todo o painel (lib/liquid.ts): liga uma vez e segue as telas sozinho.
+  useEffect(() => installLiquid(), []);
   return (
     <AuthProvider>
       <Shell />
@@ -488,6 +498,7 @@ function Panel({ me }: { me: Me }) {
             <span className="appbar__eyebrow">Seu painel</span>
             <strong>{me.businessName ?? 'nexo'}</strong>
           </div>
+          <GlassAdjust />
           <button
             type="button"
             className="icon-button"

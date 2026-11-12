@@ -176,7 +176,6 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Página de entrada** (escolha do JP no cartão): o modelo "SaaS template" do 21st.dev refeito no CSS do projeto, sem Tailwind, shadcn nem a fonte Poppins (fica Sora/Inter da marca) e sem imagens externas (a CSP só aceita a própria origem). Mantém a estrutura do modelo: barra fixa translúcida com menu no celular, selo no topo, título em degradê, botão claro em degradê e prévia do painel com brilho atrás. O brilho virou degradê CSS e a prévia é uma captura do painel com dados fictícios, legendada "Painel com dados de exemplo". O selo diz "Em fase de testes" e o texto só fala do que já existe (princípio 7). Os links do menu rolam a página sem mexer no endereço, porque o `#` é a rota do painel.
 - **Rotas sem login:** `#/` página de entrada, `#/entrar`, `#/criar-conta`, `#/esqueci-senha`, `#/nova-senha?token=`, `#/confirmar-email?token=`. Os dois links de e-mail abrem mesmo com alguém logado no aparelho. Uma rota do painel sem sessão (ex.: sessão vencida em `#/agenda`) mostra o login, como antes.
 
-
 ## Painel no computador e planos Grátis / CRM / Completo (27/10/2026)
 
 - **Pedido do Jandoza:** trazer o visual de dois modelos do 21st.dev ("app-1" e "dashboard with collapsible sidebar") mantendo a identidade da nexo. Entraram **refeitos no CSS do projeto**, como os anteriores: os originais pedem Tailwind, shadcn e recharts, usam fotos do Unsplash e números inventados ("+12% from last month"). Fotos externas e a tag `<style>` que o gráfico do shadcn injeta seriam barradas pela CSP; afrouxar a CSP por causa de visual não vale. Números inventados ferem o princípio 7.
@@ -256,7 +255,6 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Aviso pelo WhatsApp da dona:** entra com a Cloud API (mensagem de modelo aprovada), como já estava previsto.
 - **Prazo do "oferecer o próximo horário":** configurável em Conta → Avisos (padrão: no mesmo dia; desligável). A piloto pediu 10 dias (29/10/2026). O "a fazer" só aparece em Hoje no dia do prazo e fecha sozinho se a cliente marcar antes.
 - **Uma conexão de tempo real só:** as telas dividem a mesma conexão com o servidor em vez de abrir uma cada.
-
 
 ## Etapas em quadro (29/10/2026)
 
@@ -435,3 +433,66 @@ Cada decisão com data, quem decidiu e o motivo.
 - **Demo do Premium:** botão "Demo do Premium" na página inicial (`#/demo-premium`). O mesmo negócio fictício da demo do Básico, com tudo do Premium ligado e dados marcados "(demo)": CRM, painéis, carteira, chat, Wiki, quadro, marca e modelos. Nada sai do navegador; enviar arquivo e ligar domínio avisam que não funcionam na demo.
 - **Correção:** na demo, tocar numa cliente ou conversa não abria a ficha (a rota só aceitava ids do servidor). Agora aceita também os ids da demo.
 - **Página inicial:** o Premium passou de "Em construção" para "Em teste", com a lista do que ele tem. Preço continua **[A DEFINIR com o Coca]**.
+
+## Visual de vidro em todo o painel (11/11/2026)
+
+- **O quê:** o painel inteiro ganhou o visual do "adjustable glass dashboard" do 21st.dev, pedido do JP: fundo colorido com a paleta, barra de cima e menu lateral flutuantes em vidro, uma moldura de vidro grande em volta do conteúdo, cartões translúcidos sem borda dura, abas e campos em vidro, barra de baixo do celular como doca flutuante, janelas (avisos, Nex, tour, painel lateral) em vidro e entrada suave das telas. **Nenhuma função mudou**, só o visual.
+- **Primeira versão, no mesmo dia:** começou só com cartões translúcidos e cobertura de 86%. O JP viu no localhost e achou igual ao de antes, então virou o redesenho completo.
+- **Origem e licença (fato):** o componente enviado é um painel financeiro com Tailwind, shadcn e GSAP, e o texto não declara licença. **Nenhum código foi copiado.** É CSS e TS próprios (`styles/glass.css`, `lib/glass.ts`, `components/GlassAdjust.tsx`, `components/GlassControls.tsx`), sem dependência nova. A animação de entrada é CSS, sem GSAP.
+- **Marca:** fontes Sora e Inter (o modelo usa Segoe UI); só cores da paleta; roxo continua só em destaque (menu ativo, botões, cartão "Esperando você"). Fundo é degradê da paleta, sem foto de banco de imagem.
+- **Ajuste:** botão "Ajustar vidro" na barra de cima (a partir de 640 px), como no modelo, e o mesmo ajuste em Conta → Aparência (no celular fica só lá). Liga e desliga, modelos Transparente, Fosco e Sólido, e ajuste à mão (Desfoque, Cobertura, Cor do fundo, Brilho da borda). Fica só no aparelho. **Padrão: ligado, Fosco.**
+- **Legibilidade:** a cobertura da moldura não desce de 25% e os cartões somam cobertura por cima, para o texto manter contraste. Sem suporte a desfoque, quase sólido. Com "reduzir transparência" ou "reduzir movimento" no aparelho, volta a sólido ou sem animação.
+- **Símbolo da nexo no fundo (pedido do JP):** o SVG oficial do símbolo, grande e parado atrás do vidro. No claro, a versão para fundo claro (traço Tinta, nó Roxo) a 75%; no escuro, a versão para fundo escuro a 32%. Mais fraco que isso, o vidro branco o reduzia a uma mancha (JP, 11/11/2026). Nada no desenho muda; o desfoque é o do vidro que passa por cima.
+- **Tela larga:** o conteúdo ocupa até 1600 px e fica centralizado ao lado do menu (antes ficava em 1200 px colado à esquerda, sobrando uma faixa vazia).
+- **Técnica:** a janela de ajuste vai direto no `<body>`, porque dentro da barra (que tem desfoque) ficaria presa atrás do conteúdo. A chave do aparelho mudou para `nexo-vidro-v2`.
+
+## Botões de gota e animação ao trocar de página (11/11/2026)
+
+- **O quê:** pedido do JP a partir do "liquid glass navbar" (Waterline). Em todo grupo de opções do painel (barra de baixo do celular, menu lateral e abas como Mês/Dia/Semana/Lista, 7/30/90 dias, Quadro/Lista), o destaque da opção ativa virou uma gota que escorre até a opção nova: a ponta da frente vai na hora, a de trás vem atrasada, a gota se estica, afina e volta. Ao tocar em botões, abas e itens do menu sai uma onda do ponto do toque. O ícone da opção nova faz uma animação curta (salto, giro, aceno ou pulo, em rodízio). As telas continuam as mesmas: a gota se prende sozinha aos grupos.
+- **Origem e licença (fato):** o componente (guglielmogiannattasio.it) não declara licença. **Nenhum código foi copiado.** Implementação própria em `lib/liquid.ts` (mola em JS) e `styles/liquid.css`, **sem WebGL e sem som**. O passo "imagens do Unsplash" do prompt não entrou (regra da marca: sem banco de imagem).
+- **Cores:** água azul do original trocada pela paleta: gota Branco com brilho Lavanda nas abas e na barra de baixo; gota Roxo Nexo no menu lateral (a seção ativa já era roxa); no escuro, gota roxa com texto Papel. Onda em Lavanda (Branco sobre botões roxos).
+- **Acessibilidade:** a gota e a onda são só enfeite (`aria-hidden`); a opção ativa continua marcada com `aria-current` / `aria-pressed`. Com "reduzir movimento", a gota só muda de lugar, sem esticar, sem onda e sem animar ícone. Os botões só de ícone ficaram sem onda, para não cortar o número do sino.
+- **Troca de tela (ajustes de 11/11/2026):** a entrada em cascata com desfoque ficou pesada ("não tá clean", JP), e o fade que começava apagado parecia carregamento. Agora só a troca de aba anima: a tela nova já nasce a 75% e assenta em 0,16 s, no tempo da gota. A gota ficou mais firme (chega em cerca de 0,25 s) e o "Carregando…" só aparece se a espera passar de 0,35 s.
+- **Correção junto:** os números roxos de Resultados ("Pelo robô") estavam perdendo o fundo roxo com o vidro; voltaram.
+
+## Página de entrada em camadas (11/11/2026)
+
+- **O quê:** pedido do JP a partir do "parallax scrolling" da Osmo (21st.dev). O topo da página de entrada virou camadas que rolam em velocidades diferentes: manchas da paleta ao fundo, o símbolo oficial da nexo, o texto (que sobe mais devagar e some) e, na frente, o print do painel de exemplo num cartão de vidro. As seções (Como funciona, Planos, Para quem é) ganharam cartões de vidro e aparecem subindo ao entrar na tela. No menu de cima, a gota do painel marca a seção que está na tela, e os botões soltam a mesma onda do painel.
+- **Origem e licença (fato):** o recurso é da Osmo e não traz licença de uso no prompt. **Nenhum código foi copiado.** Feito em `screens/Landing.tsx` e `styles/landing.css`, **sem GSAP e sem Lenis** (zero dependência nova). A rolagem continua a do navegador: o Lenis troca a rolagem por uma própria, o que atrapalha teclado, leitor de tela e os links das seções.
+- **Fora:** as 3 imagens das camadas (do CDN da Osmo), as fotos do Unsplash pedidas no prompt (regra da marca: sem banco de imagem), o ícone e os créditos da Osmo, a estrutura shadcn/Tailwind.
+- **Acessibilidade:** camadas são enfeite (`aria-hidden`). Com "reduzir movimento", nada se mexe e os links rolam sem animação. A seção ativa do menu leva `aria-current`. Onde o navegador não liga animação à rolagem, as seções só aparecem paradas.
+- **Pendente:** PENDENCIAS.md já pergunta se a regra de não fazer peça nova de marca antes de 3 conversas reais vale para esta página. O JP pediu esta mudança em 11/11/2026.
+
+## Página de entrada mais completa e três planos (11/11/2026)
+
+- **O quê:** pedido do JP ("ainda tá muito simples") com o modelo de preços do 21st.dev. Entraram: uma conversa de exemplo no celular (o mesmo fluxo do robô, com dados fictícios e rótulo "exemplo fictício"), destaques em blocos, perguntas frequentes e uma chamada final. Planos viraram três cartões: Básico, Premium (destaque "Mais completo", que sobe) e **Personalizado**, sem preço e com "Fale conosco". No computador, os cartões dos lados entram girados para o do meio, com uma mola em CSS.
+- **Fora do modelo (fato):** sem shadcn, Tailwind, framer-motion, canvas-confetti e NumberFlow (zero dependência nova). Sem a chave mensal/anual e sem "economize 20%", porque não há preço nem desconto definidos; o confete era o efeito dessa chave. Preços continuam "Valor em breve" ([A DEFINIR] com o Coca). Nenhum número, depoimento ou métrica inventada.
+- **"Fale conosco":** vai para o link em `VITE_NEXO_CONTATO` (WhatsApp ou e-mail da nexo). Vazio, o botão fica apagado com "Contato em breve" (PENDENCIAS.md).
+- **Personalizado:** só promete o que é conversa e ajuste combinado ("Tudo do Premium", ajustes com a nexo, ajuda para configurar e ensinar a equipe), nada que o sistema não faça.
+
+## Página de entrada no estilo de tela cheia (11/11/2026)
+
+- **O quê:** pedido do JP a partir de um modelo de site do Modulify ("Black Plus"), visto só pela prévia. A página foi refeita usando a largura toda: abertura em Tinta com título gigante e um celular desenhado em CSS (moldura, ilha, barra de status) que sobe e passa por trás do título conforme a rolagem; "Como funciona" em 5 passos com faixas alternadas, texto grande de um lado e a tela de exemplo em tamanho de leitura do outro (refeito em 11/11/2026: o mosaico de cartões deixava as telas minúsculas em tela larga, escolha do JP); celular no centro com a conversa do robô e as funções chegando dos lados; título fixo à esquerda com fatos do produto rolando à direita (o do meio aceso); virada do fundo para Papel nos planos, "para quem é", perguntas e chamada final.
+- **Do modelo, só a estrutura (fato):** nenhum código, texto, imagem ou nome dele. A foto da mão segurando o celular e a faixa de logos de "empresas que confiam" ficaram de fora. Celular e telas são desenho próprio, com dados fictícios marcados.
+- **Fatos no lugar de números de resultado:** 24 h atendendo, 2 lembretes por horário (24 h e 1 h antes, em `packages/core/src/bot/reminders.ts`), 0 horário marcado duas vezes (trava no banco) e 1 toque para assumir. Nenhum número de cliente, nota ou depoimento.
+- **Técnica:** sem dependência nova. A abertura usa `position: sticky` e `--lp-p` (quanto rolou); por isso `.lp` usa `overflow-x: clip` (com `hidden`, o sticky não funciona). Com "reduzir movimento", tudo aparece parado. No celular (até 767 px), a abertura vira coluna simples.
+
+## Acabamento da parte clara da página de entrada (11/11/2026)
+
+Pedido do JP: a parte clara estava "sem sal", títulos com pouco espaço e planos para repensar.
+
+- **Parte clara:** a virada do escuro para o claro passa por Roxo, Lavanda e Lilás; o fundo ganhou manchas suaves e anéis finos da paleta. "Para quem é" virou uma caixa Lilás com os tipos de negócio em cartões com ícone. Perguntas frequentes ficaram com o título fixo de um lado e as respostas do outro.
+- **Títulos:** todo título de seção tem rótulo, respiro embaixo e entrelinha maior.
+- **Planos:** três cartões retos, da mesma altura, ocupando a largura toda. O nome do plano é o destaque; "Valor em breve" virou etiqueta pequena (preço continua [A DEFINIR] com o Coca). Premium segue escuro e um pouco mais alto.
+- **Fale conosco:** continua sem destino (ver PENDENCIAS). Não foi apontado para a demo, para o botão não prometer um contato que não acontece.
+- **Passo a passo:** as cenas pequenas ocupam o quadro inteiro.
+
+## Símbolo da nexo revelado em vidro na chamada final (12/11/2026)
+
+Pedido do JP: usar o efeito "liquid glass logo reveal" com a logo da nexo na página de entrada.
+
+- **Onde:** no lado livre da chamada final ("Veja como fica o seu dia com a nexo"), só a partir de 900 px. No celular a chamada fica como estava.
+- **Código:** `apps/web/src/components/GlassIconReveal.tsx`. O shader e a linha do tempo são de zanwei/glass-icon-reveal, **licença MIT** (conferida no repositório em 12/11/2026); o crédito está no topo do arquivo. Não entrou a marca do 21st.dev, nem Tailwind, shadcn ou dependência nova.
+- **Marca:** usa o SVG oficial do símbolo (fundo escuro), com as cores dele, e termina no símbolo nítido. O vidro distorce a imagem só durante a animação; a dispersão em arco-íris foi reduzida para não sair da paleta.
+- **Comportamento:** toca uma vez quando entra na tela (um clique repete). Com "reduzir movimento" mostra o símbolo parado; sem WebGL2 mostra só o símbolo.
+- **Exceção de tipos:** o arquivo usa `@ts-nocheck` porque é código de terceiros cheio de conta em vetores e o projeto liga `noUncheckedIndexedAccess`; as props continuam tipadas para quem usa.

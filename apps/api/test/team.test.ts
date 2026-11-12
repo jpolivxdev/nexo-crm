@@ -135,7 +135,10 @@ describe('equipe: várias profissionais e o acesso de cada uma', () => {
         },
       }),
     );
-    const from = tomorrow.toISOString().slice(0, 10);
+    // A agenda recebe o dia no fuso do negócio; o dia em UTC erra entre 21h e meia-noite de lá.
+    const from = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(
+      tomorrow,
+    );
     const agenda = await staff.get(`/panel/agenda?from=${from}&days=2`);
     expect(agenda.status).toBe(200);
     expect(agenda.body.appointments.map((a: { id: string }) => a.id)).toEqual([hers.id]);

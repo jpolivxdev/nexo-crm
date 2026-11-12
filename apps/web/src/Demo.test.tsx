@@ -16,6 +16,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   leaveDemo();
   vi.unstubAllGlobals();
   window.location.hash = '';
@@ -58,6 +59,10 @@ describe('demonstração', () => {
   });
 
   it('as ações mudam só a memória: responder pausa o robô e marcar realizado move a etapa', async () => {
+    // Hora fixa (terça, 10h em São Paulo): tarde da noite a demo já não tem horário em aberto hoje.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-10T13:00:00Z'));
+    resetDemo();
     const conv = (await demoRequest('GET', '/panel/conversations?tab=waiting')) as {
       conversations: { id: string; contact: { id: string } }[];
     };
@@ -114,17 +119,21 @@ describe('demonstração', () => {
     );
   });
 
-  it('a página inicial mostra os dois planos e leva para a demo', async () => {
+  it('a página inicial mostra os três planos e leva para a demo', async () => {
     window.location.hash = '';
     render(<App />);
-    const plans = await screen.findByRole('heading', { name: 'Planos' });
+    const plans = await screen.findByRole('heading', {
+      name: 'Escolha o plano que cabe no seu negócio.',
+    });
     const section = plans.closest('section')!;
     expect(within(section).getByRole('heading', { name: 'Básico' })).toBeInTheDocument();
     expect(within(section).getByRole('heading', { name: 'Premium' })).toBeInTheDocument();
+    expect(within(section).getByRole('heading', { name: 'Personalizado' })).toBeInTheDocument();
+    // preço só quando o Coca definir; o Personalizado tem "Fale conosco" no lugar
     expect(within(section).getAllByText('Valor em breve')).toHaveLength(2);
-    expect(screen.getByRole('link', { name: 'Ver a demonstração' })).toHaveAttribute(
-      'href',
-      '#/demo',
-    );
+    expect(within(section).getByText('Fale conosco')).toBeInTheDocument();
+    for (const link of screen.getAllByRole('link', { name: 'Ver a demonstração' })) {
+      expect(link).toHaveAttribute('href', '#/demo');
+    }
   });
 });
