@@ -1,0 +1,87 @@
+/*
+ * Dica fluida (lib/fluidTooltip.ts). Só cores da marca:
+ * claro = pílula Tinta com texto Papel e detalhe Lavanda;
+ * escuro = pílula Papel com texto Tinta e detalhe Grafite, para destacar sobre o fundo Tinta.
+ */
+.ftip {
+  --ftip-fundo: var(--tinta);
+  --ftip-texto: var(--papel);
+  --ftip-suave: var(--lavanda);
+  --ftip-borda: rgb(169 139 255 / 22%);
+  --ftip-sombra: 0 8px 22px rgb(16 12 36 / 28%), 0 2px 6px rgb(16 12 36 / 14%);
+
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  height: 30px;
+  width: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--ftip-fundo);
+  box-shadow:
+    var(--ftip-sombra),
+    inset 0 0 0 1px var(--ftip-borda);
+  /* Só opacidade (sem visibility): o texto continua legível para o aria-describedby. */
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, width, opacity;
+}
+
+.ftip[data-side='top'] {
+  transform-origin: center bottom;
+}
+
+.ftip[data-side='bottom'] {
+  transform-origin: center top;
+}
+
+.ftip[data-side='right'] {
+  transform-origin: left center;
+}
+
+.ftip[data-side='left'] {
+  transform-origin: right center;
+}
+
+.ftip__label {
+  position: absolute;
+  top: 0;
+  left: 11px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  font-family: var(--fonte-texto);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ftip-texto);
+  will-change: transform, opacity, filter;
+}
+
+.ftip__sub {
+  font-weight: 400;
+  color: var(--ftip-suave);
+}
+
+:root[data-theme='escuro'] .ftip {
+  --ftip-fundo: var(--papel);
+  --ftip-texto: var(--tinta);
+  --ftip-suave: var(--grafite);
+  --ftip-borda: rgb(106 31 232 / 18%);
+  --ftip-sombra: 0 8px 24px rgb(0 0 0 / 45%), 0 2px 6px rgb(0 0 0 / 30%);
+}
+
+@media (forced-colors: active) {
+  .ftip {
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+
+  .ftip__label,
+  .ftip__sub {
+    color: CanvasText;
+  }
+}
