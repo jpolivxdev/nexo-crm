@@ -80,6 +80,28 @@ export class PrivacyService {
         where: { id: tenantId },
         select: { name: true, timezone: true },
       });
+      // Premium: todos os atendimentos da cliente, de todos os funis, com valor e campos próprios.
+      const allDeals = await tx.deal.findMany({
+        where: { contactId },
+        orderBy: { createdAt: 'asc' },
+        select: {
+          title: true,
+          valueCents: true,
+          expectedCloseOn: true,
+          fields: true,
+          createdAt: true,
+          closedAt: true,
+          pipeline: { select: { name: true } },
+          stage: { select: { name: true } },
+          campaign: { select: { name: true } },
+        },
+      });
+      const labels = new Map(
+        (await tx.customField.findMany({ select: { id: true, label: true } })).map((f) => [
+          f.id,
+          f.label,
+        ]),
+      );
       const history = await tx.event.findMany({
         where: { payload: { path: ['contactId'], equals: contactId } },
         orderBy: { createdAt: 'asc' },
@@ -92,6 +114,18 @@ export class PrivacyService {
         timeZone: tenant.timezone,
         contact: rest,
         stage: deals[0]?.stage.name ?? null,
+        deals: allDeals.map(({ pipeline, stage, campaign, fields, ...d }) => ({
+          ...d,
+          pipeline: pipeline.name,
+          stage: stage.name,
+          campaign: campaign?.name ?? null,
+          fields: Object.fromEntries(
+            Object.entries((fields ?? {}) as Record<string, unknown>).map(([k, v]) => [
+              labels.get(k) ?? k,
+              v,
+            ]),
+          ),
+        })),
         consents,
         conversations,
         tasks,
@@ -144,6 +178,8 @@ export class PrivacyService {
       await tx.task.deleteMany({ where: { contactId } });
       // Sai do quadro de etapas sem mudar a etapa em que estava.
       await tx.deal.updateMany({ where: { contactId, closedAt: null }, data: { closedAt: now } });
+      // Título e campos próprios são texto livre da equipe e podem ter dado da cliente.
+      await tx.deal.updateMany({ where: { contactId }, data: { title: null, fields: {} } });
 
       await tx.contact.update({
         where: { id: contactId },
