@@ -5934,3 +5934,17 @@ a.button {
   margin-bottom: 8px;
   font-weight: 600;
 }
+
+/*
+ * "Carregando…" só aparece se a espera passar de 0,35 s. Na maioria das trocas de tela os dados
+ * chegam antes disso, e o aviso piscando por um instante dava a impressão de lentidão.
+ */
+@keyframes loading-aparece {
+  from {
+    opacity: 0;
+  }
+}
+
+.loading {
+  animation: loading-aparece 0.2s ease 0.35s backwards;
+}

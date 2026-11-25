@@ -1,0 +1,229 @@
+/*
+ * Botões de gota (lib/liquid.ts). Só cores da marca: gota clara (Branco com brilho Lavanda) nas
+ * abas e na barra de baixo; gota Roxo Nexo no menu lateral, que já marcava a seção em roxo.
+ */
+.has-liquid:not(.tabbar, .lp-nav__links) {
+  position: relative;
+}
+
+.has-liquid > :not(.liquid-drop) {
+  position: relative;
+  z-index: 1;
+}
+
+.liquid-drop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  border-radius: 999px;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, width, height;
+  background:
+    radial-gradient(120% 140% at 30% 0%, rgb(255 255 255 / 85%), rgb(255 255 255 / 0%) 55%),
+    color-mix(in srgb, var(--branco) 72%, var(--lavanda));
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 95%),
+    inset 0 -2px 6px rgb(169 139 255 / 30%),
+    inset 0 0 0 1px rgb(255 255 255 / 55%),
+    0 6px 16px -6px rgb(106 31 232 / 35%);
+}
+
+.segmented.has-liquid .liquid-drop {
+  border-radius: 10px;
+}
+
+/* Menu lateral: gota roxa (a seção ativa já era roxa) */
+.sidebar__nav .liquid-drop {
+  border-radius: var(--raio-pequeno);
+  background:
+    radial-gradient(120% 160% at 25% 0%, rgb(255 255 255 / 28%), rgb(255 255 255 / 0%) 50%),
+    var(--roxo-nexo);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 35%),
+    inset 0 -3px 8px rgb(16 12 36 / 25%),
+    0 8px 18px -6px rgb(106 31 232 / 45%);
+}
+
+:root[data-theme='escuro'] .liquid-drop:not(.sidebar__nav .liquid-drop) {
+  background:
+    radial-gradient(120% 140% at 30% 0%, rgb(169 139 255 / 45%), rgb(169 139 255 / 0%) 55%),
+    color-mix(in srgb, var(--roxo-nexo) 58%, var(--tinta));
+  box-shadow:
+    inset 0 1px 1px rgb(239 234 255 / 45%),
+    inset 0 0 0 1px rgb(169 139 255 / 35%),
+    0 6px 16px -6px rgb(0 0 0 / 55%);
+}
+
+/* No escuro, o texto da opção ativa fica claro sobre a gota roxa */
+:root[data-theme='escuro'] :is(.segmented, .tabbar).has-liquid :is(.on, [aria-pressed='true']) {
+  color: var(--papel);
+}
+
+/* A gota faz o papel do fundo da opção ativa */
+.has-liquid .on,
+.has-liquid [aria-current='page'],
+.has-liquid [aria-pressed='true'],
+:root[data-vidro='on'] .app--with-nav > .tabbar.has-liquid a.on,
+.tabbar.has-liquid a.on .tabbar__icon {
+  background: transparent;
+  box-shadow: none;
+}
+
+.sidebar__nav.has-liquid .sidebar__link.on,
+.sidebar__nav.has-liquid .sidebar__link.on:hover {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Enquanto a gota do menu ainda vem, o nome da seção nova fica na cor normal (senão seria
+   texto branco sobre o menu claro). */
+.sidebar__nav.liquid-moving .sidebar__link.on {
+  color: var(--cor-destaque-texto);
+}
+
+/* ---------- onda no toque ---------- */
+.has-ripple {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.tabbar a.has-ripple,
+.segmented button.has-ripple {
+  overflow: hidden;
+}
+
+.liquid-ripple {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    rgb(169 139 255 / 38%) 0%,
+    rgb(169 139 255 / 18%) 40%,
+    rgb(169 139 255 / 0%) 70%
+  );
+  transform: scale(0);
+  animation: liquid-onda 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.button:not(.button--ghost) .liquid-ripple,
+.sidebar__link.on .liquid-ripple {
+  background: radial-gradient(
+    circle,
+    rgb(255 255 255 / 40%) 0%,
+    rgb(255 255 255 / 15%) 40%,
+    rgb(255 255 255 / 0%) 70%
+  );
+}
+
+@keyframes liquid-onda {
+  60% {
+    opacity: 1;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* ---------- animação dos ícones ao trocar de página ---------- */
+.liquid-fx {
+  transform-origin: 50% 90%;
+}
+
+.liquid-fx--salto {
+  animation: liquid-salto 0.8s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+
+.liquid-fx--giro {
+  transform-origin: 50% 50%;
+  animation: liquid-giro 0.9s cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.liquid-fx--aceno {
+  animation: liquid-aceno 0.9s ease-in-out both;
+}
+
+.liquid-fx--pulo {
+  transform-origin: 50% 100%;
+  animation: liquid-pulo 0.95s cubic-bezier(0.4, 0, 0.3, 1) both;
+}
+
+@keyframes liquid-salto {
+  30% {
+    transform: translateY(-5px) scale(1.04, 0.96);
+  }
+
+  55% {
+    transform: translateY(0) scale(1.12, 0.88);
+  }
+
+  75% {
+    transform: translateY(-2px) scale(0.98, 1.04);
+  }
+}
+
+@keyframes liquid-giro {
+  from {
+    transform: perspective(80px) rotateY(0);
+  }
+
+  to {
+    transform: perspective(80px) rotateY(360deg);
+  }
+}
+
+@keyframes liquid-aceno {
+  20% {
+    transform: rotate(-15deg);
+  }
+
+  40% {
+    transform: rotate(12deg);
+  }
+
+  60% {
+    transform: rotate(-8deg);
+  }
+
+  80% {
+    transform: rotate(4deg);
+  }
+}
+
+@keyframes liquid-pulo {
+  26% {
+    transform: translateY(-10px) scale(0.88, 1.12);
+  }
+
+  46% {
+    transform: translateY(2px) scale(1.25, 0.72);
+  }
+
+  62% {
+    transform: translateY(-3px) scale(0.92, 1.08);
+  }
+
+  80% {
+    transform: scale(1.04, 0.97);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-fx,
+  .liquid-ripple {
+    animation: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .liquid-drop {
+    background: Highlight;
+    box-shadow: none;
+  }
+}

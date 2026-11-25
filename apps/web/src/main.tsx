@@ -8,6 +8,7 @@ import './styles/global.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { FluidTooltip } from './components/FluidTooltip';
 import { applyTheme, followSystemTheme } from './lib/theme';
 
 applyTheme();
@@ -21,6 +22,7 @@ if (!root) {
 createRoot(root).render(
   <StrictMode>
     <App />
+    <FluidTooltip />
   </StrictMode>,
 );
 

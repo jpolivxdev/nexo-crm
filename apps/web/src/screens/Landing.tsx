@@ -1,60 +1,108 @@
-import {
-  ArrowRight,
-  CalendarCheck,
-  Check,
-  Hand,
-  Menu,
-  MessageCircle,
-  PlayCircle,
-  Users,
-  X,
-} from 'lucide-react';
-import { useState } from 'react';
+import { ArrowRight, Menu, PlayCircle, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { MadeByNexo, NexoLogo } from '../components/Brand';
-import { NICHES } from '../lib/niches';
 import panelPreview from '../assets/painel-exemplo.webp';
 import { useAuthOptions } from './AuthPages';
-import { BASIC_PLAN, PREMIUM_PLAN } from '../lib/plans';
+import { Phone } from '../components/Phone';
+import {
+  AGENDA_LABEL,
+  AgendaScreen,
+  Facts,
+  Faq,
+  FinalCta,
+  ForWhom,
+  Orbit,
+  PlansSection,
+  Steps,
+} from '../components/LandingSections';
+import '../styles/landing.css';
 
 /** Seções da página. Rolam até o lugar sem mexer no endereço (o painel usa o # para as rotas). */
 const SECTIONS = [
   { id: 'como-funciona', label: 'Como funciona' },
+  { id: 'no-whatsapp', label: 'No WhatsApp' },
   { id: 'planos', label: 'Planos' },
-  { id: 'para-quem', label: 'Para quem é' },
-];
-
-const STEPS = [
-  {
-    Icon: MessageCircle,
-    title: 'O cliente marca pelo WhatsApp',
-    text: 'O robô responde na hora, até de madrugada, e só oferece os horários livres.',
-  },
-  {
-    Icon: CalendarCheck,
-    title: 'O horário cai na sua agenda',
-    text: 'Você vê o dia no celular e marca "realizado" ou "faltou" com um toque.',
-  },
-  {
-    Icon: Users,
-    title: 'A ficha do cliente se monta sozinha',
-    text: 'Conversas, horários e faltas de cada cliente num lugar só, sem digitar nada.',
-  },
-  {
-    Icon: Hand,
-    title: 'Você no controle',
-    text: 'Quando o cliente pede para falar com você, o robô pausa e te avisa.',
-  },
+  { id: 'perguntas', label: 'Perguntas' },
 ];
 
 function scrollTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  document
+    .getElementById(id)
+    ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
 }
 
-/** Página de entrada (estilo do modelo de SaaS do 21st.dev, com as cores e fontes da nexo). */
+/**
+ * Abertura ligada à rolagem: põe em `--lp-p` (0 a 1) quanto da abertura já rolou. O CSS usa isso
+ * para o celular subir e passar por trás do título. Feito à mão (sem GSAP nem Lenis): a rolagem
+ * continua a do navegador. Com "reduzir movimento", fica parado no fim.
+ */
+function useHeroProgress() {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const hero = ref.current;
+    if (!hero) return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    let raf = 0;
+    const paint = () => {
+      raf = 0;
+      if (reduce?.matches) {
+        hero.style.setProperty('--lp-p', '1');
+        return;
+      }
+      const room = Math.max(1, hero.offsetHeight - window.innerHeight);
+      const p = Math.min(1, Math.max(0, -hero.getBoundingClientRect().top / room));
+      hero.style.setProperty('--lp-p', p.toFixed(3));
+    };
+    const onScroll = () => {
+      if (!raf) raf = window.requestAnimationFrame(paint);
+    };
+    paint();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, []);
+  return ref;
+}
+
+/** Qual seção está na tela, para a gota do menu de cima acompanhar a rolagem. */
+function useActiveSection(ids: string[]) {
+  const [active, setActive] = useState<string | null>(null);
+  const key = ids.join(',');
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+    const seen = new Map<string, boolean>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => seen.set(e.target.id, e.isIntersecting));
+        setActive(key.split(',').find((id) => seen.get(id)) ?? null);
+      },
+      { rootMargin: '-45% 0px -50% 0px' },
+    );
+    key.split(',').forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) io.observe(el);
+    });
+    return () => io.disconnect();
+  }, [key]);
+  return active;
+}
+
+/**
+ * Página de entrada. Layout inspirado num modelo de site do Modulify (só a estrutura: abertura
+ * escura com título gigante e celular, mosaico, título fixo com fatos ao lado, virada para o
+ * claro), com textos, telas e cores da nexo. Usa a largura toda da tela.
+ */
 export function Landing() {
   const options = useAuthOptions();
   const [menuOpen, setMenuOpen] = useState(false);
   const signup = options?.signupEnabled ?? false;
+  const heroRef = useHeroProgress();
+  const active = useActiveSection(SECTIONS.map((s) => s.id));
 
   const go = (id: string) => {
     setMenuOpen(false);
@@ -63,17 +111,17 @@ export function Landing() {
 
   const actions = (
     <>
-      <a href="#/demo" className="lp-button lp-button--ghost">
-        Demo
-      </a>
       <a href="#/entrar" className="lp-button lp-button--ghost">
         Entrar
       </a>
       {signup && (
-        <a href="#/criar-conta" className="lp-button lp-button--light">
+        <a href="#/criar-conta" className="lp-button lp-button--ghost">
           Criar conta
         </a>
       )}
+      <a href="#/demo" className="lp-button lp-button--light">
+        Demo
+      </a>
     </>
   );
 
@@ -81,10 +129,16 @@ export function Landing() {
     <div className="lp">
       <header className="lp-nav">
         <nav className="lp-nav__inner" aria-label="Principal">
-          <NexoLogo fundo="escuro" height={28} />
+          <NexoLogo fundo="escuro" height={26} />
           <div className="lp-nav__links">
             {SECTIONS.map((s) => (
-              <button key={s.id} type="button" className="lp-nav__link" onClick={() => go(s.id)}>
+              <button
+                key={s.id}
+                type="button"
+                className={`lp-nav__link${active === s.id ? ' on' : ''}`}
+                aria-current={active === s.id ? 'true' : undefined}
+                onClick={() => go(s.id)}
+              >
                 {s.label}
               </button>
             ))}
@@ -114,131 +168,63 @@ export function Landing() {
       </header>
 
       <main>
-        <section className="lp-hero">
-          <p className="lp-pill">
-            <span>Em fase de testes</span>
-            <button type="button" className="lp-pill__link" onClick={() => go('como-funciona')}>
-              Ver como funciona
-              <ArrowRight aria-hidden="true" size={12} />
-            </button>
-          </p>
-          <h1 className="lp-hero__title">
-            Seu cliente marca horário <br className="lp-br" />
-            sozinho pelo WhatsApp
-          </h1>
-          <p className="lp-hero__lead">
-            Até de madrugada. E você vê agenda, clientes e conversas do seu negócio organizados num
-            lugar só, direto do celular.
-          </p>
-          <div className="lp-hero__cta">
-            <a href="#/demo" className="lp-button lp-button--gradient lp-button--lg">
-              <PlayCircle aria-hidden="true" size={18} />
-              Ver a demonstração
-            </a>
-            <a href="#/entrar" className="lp-button lp-button--secondary lp-button--lg">
-              Entrar no painel
-              <ArrowRight aria-hidden="true" size={18} />
-            </a>
-          </div>
-          <p className="lp-hero__note">
-            A demonstração abre o painel com um negócio e clientes fictícios, sem cadastro.
-          </p>
-          <figure className="lp-preview">
-            <div className="lp-preview__glow" aria-hidden="true" />
-            <img
-              src={panelPreview}
-              alt="Tela do painel com a agenda do dia de um negócio de exemplo"
-              width={1280}
-              height={800}
-            />
-            <figcaption>Painel com dados de exemplo (fictícios).</figcaption>
-          </figure>
-        </section>
-
-        <section id="como-funciona" className="lp-section">
-          <h2>Como funciona</h2>
-          <ol className="lp-steps">
-            {STEPS.map(({ Icon, title, text }) => (
-              <li key={title} className="lp-step">
-                <Icon aria-hidden="true" size={22} />
-                <h3>{title}</h3>
-                <p>{text}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section id="planos" className="lp-section">
-          <h2>Planos</h2>
-          <p className="lp-section__lead">Comece pelo Básico. O Premium está em teste.</p>
-          <div className="lp-plans">
-            <article className="lp-plan lp-plan--main" aria-labelledby="plano-basico">
-              <p className="lp-plan__tag">Disponível</p>
-              <h3 id="plano-basico">{BASIC_PLAN.name}</h3>
-              <p className="lp-plan__lead">{BASIC_PLAN.lead}</p>
-              <p className="lp-plan__price">Valor em breve</p>
-              <ul className="lp-plan__list">
-                {BASIC_PLAN.items.map((item) => (
-                  <li key={item}>
-                    <Check aria-hidden="true" size={18} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <div className="lp-plan__cta">
-                <a href="#/demo" className="lp-button lp-button--gradient">
-                  <PlayCircle aria-hidden="true" size={18} />
-                  Demo
-                </a>
-                {signup && (
-                  <a href="#/criar-conta" className="lp-button lp-button--secondary">
-                    Criar conta
-                  </a>
-                )}
-              </div>
-            </article>
-            <article className="lp-plan" aria-labelledby="plano-premium">
-              <p className="lp-plan__tag lp-plan__tag--soon">Em teste</p>
-              <h3 id="plano-premium">{PREMIUM_PLAN.name}</h3>
-              <p className="lp-plan__lead">{PREMIUM_PLAN.lead}</p>
-              <p className="lp-plan__price">Valor em breve</p>
-              <ul className="lp-plan__list">
-                {PREMIUM_PLAN.items.map((item) => (
-                  <li key={item}>
-                    <Check aria-hidden="true" size={18} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <div className="lp-plan__cta">
-                <a href="#/demo-premium" className="lp-button lp-button--secondary">
-                  <PlayCircle aria-hidden="true" size={18} />
-                  Demo do Premium
-                </a>
-              </div>
-              <p className="lp-plan__note">
-                Ainda em teste com o primeiro negócio. Valor em breve.
+        <section ref={heroRef} className="lp-open">
+          <div className="lp-open__stage">
+            <div className="lp-open__glow" aria-hidden="true" />
+            <p className="lp-pill">
+              <span>Em fase de testes</span>
+              <button type="button" className="lp-pill__link" onClick={() => go('como-funciona')}>
+                Ver como funciona
+                <ArrowRight aria-hidden="true" size={12} />
+              </button>
+            </p>
+            <h1 className="lp-open__title">
+              <span className="lp-open__word">Seu cliente marca horário</span>{' '}
+              <span className="lp-open__word lp-open__word--cor">sozinho pelo WhatsApp</span>
+            </h1>
+            <Phone className="phone--hero" label={AGENDA_LABEL}>
+              <AgendaScreen />
+            </Phone>
+            <div className="lp-open__foot">
+              <p className="lp-open__lead">
+                Até de madrugada. E você vê agenda, clientes e conversas do seu negócio organizados
+                num lugar só, direto do celular.
               </p>
-            </article>
+              <div className="lp-open__cta">
+                <a href="#/demo" className="lp-button lp-button--gradient lp-button--lg">
+                  <PlayCircle aria-hidden="true" size={18} />
+                  Ver a demonstração
+                </a>
+                <a href="#/entrar" className="lp-button lp-button--secondary lp-button--lg">
+                  Entrar no painel
+                  <ArrowRight aria-hidden="true" size={18} />
+                </a>
+              </div>
+              <p className="lp-open__note">
+                A demonstração abre o painel com um negócio e clientes fictícios, sem cadastro.
+              </p>
+            </div>
           </div>
         </section>
 
-        <section id="para-quem" className="lp-section">
-          <h2>Para quem é</h2>
-          <p className="lp-section__lead">
-            Pequenos negócios que marcam horário e atendem pelo WhatsApp.
-          </p>
-          <ul className="lp-niches">
-            {NICHES.filter((n) => n.value !== 'outro').map((n) => (
-              <li key={n.value}>{n.label}</li>
-            ))}
-          </ul>
-        </section>
-      </main>
+        <Steps preview={panelPreview} />
+        <Orbit />
+        <Facts />
 
-      <footer className="lp-footer">
-        <MadeByNexo fundo="escuro" />
-      </footer>
+        <div className="lp-claro">
+          <div className="lp-claro__fundo" aria-hidden="true" />
+          <PlansSection signup={signup} />
+
+          <ForWhom />
+
+          <Faq />
+          <FinalCta />
+
+          <footer className="lp-footer">
+            <MadeByNexo fundo="claro" />
+          </footer>
+        </div>
+      </main>
     </div>
   );
 }

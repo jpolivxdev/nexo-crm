@@ -46,10 +46,9 @@ describe('página de entrada, criar conta e esqueci a senha (E12)', () => {
       await screen.findByRole('heading', { name: /Seu cliente marca horário/ }),
     ).toBeInTheDocument();
     expect(screen.getByText('Em fase de testes')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Entrar no painel/ })).toHaveAttribute(
-      'href',
-      '#/entrar',
-    );
+    for (const link of screen.getAllByRole('link', { name: /Entrar no painel/ })) {
+      expect(link).toHaveAttribute('href', '#/entrar');
+    }
     expect(await screen.findAllByRole('link', { name: 'Criar conta' })).not.toHaveLength(0);
     expect(screen.getByText('Painel com dados de exemplo (fictícios).')).toBeInTheDocument();
   });
