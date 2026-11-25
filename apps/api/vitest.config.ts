@@ -7,5 +7,8 @@ export default defineConfig({
   test: {
     include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
     environment: 'node',
+    // Os testes sobem a API e o banco: num PC com o painel rodando junto, 5 s não bastam.
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
   },
 });
